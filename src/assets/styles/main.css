@@ -1,0 +1,63 @@
+body,
+body h1 {
+  font-family: roboto;
+  font-weight: 300;
+}
+
+body h1 {
+  font-family: roboto;
+  font-weight: 400;
+}
+
+.footer_icons a {
+  color: var(--ion-color-primary-contrast) !important;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+
+:root {
+  /* --light_grey: rgb(243, 243, 243); */
+  --light_grey: rgba(210, 210, 210, 0.4);
+
+  --grey: #6c6c6c;
+  --dark_grey: #404040;
+  /* rgb(52, 230, 177) */
+  /* --light_green: rgb(64, 255, 198); */
+  --light_green: rgb(52, 230, 177);
+  --dark_green: rgb(44, 183, 141);
+
+  --pink: #ff79beff;
+  /*  höhe  rechts/links  blur  weite  */
+  --box_shadow: 0px 0px 0.5px rgba(0, 0, 0, 0.038),
+    0px 0px 1.3px rgba(0, 0, 0, 0.055), 0px 0px 3px rgba(0, 0, 0, 0.072),
+    0px 0px 10px rgba(0, 0, 0, 0.11);
+
+  --box_shadow_2: 0px 0px 1.2px rgba(0, 0, 0, 0.077),
+    0px 0px 3.3px rgba(0, 0, 0, 0.11), 0px 0px 7.8px rgba(0, 0, 0, 0.143),
+    0px 0px 26px rgba(0, 0, 0, 0.22);
+  --box_shadow_funky: -4px -3px 15px 5px #8cff85, 8px -3px 10px 5px #80c7ff,
+    8px 6px 10px 7px #e488ff, -5px -4px 15px 1px #8e5cff,
+    0px 0px 10px -4px rgba(0, 0, 0, 0);
+}
+
+.container {
+  max-width: 1500px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-around;
+
+  padding: 30px 20px;
+  box-sizing: border-box;
+}
+
+.padding_top_bottom {
+  padding: 30px 0px;
+}

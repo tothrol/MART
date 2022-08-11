@@ -1,0 +1,8 @@
+{
+  "name": "IonicBoilerplate",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue",
+  "id": "d10710c3"
+}
