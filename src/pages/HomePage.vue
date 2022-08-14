@@ -1,6 +1,7 @@
 <template>
   <base-layout
     ><div>Hallo {{ userStore.userData.firstname }}</div>
+    <div>https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen</div>
   </base-layout>
 </template>
 
