@@ -1,5 +1,11 @@
 <template>
-  <base-layout>
+  <base-layout
+    ><div>Hallo {{ userStore.userData.firstname }}</div>
+    <div>https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen</div>
+
+    <ion-button @click="getQuestionsInitial"
+      >Axios get Questions Initial</ion-button
+    >
     <div class="sheets">
       <div class="sheet" v-for="(sheet, key) in sheets" :key="key">
         <p class="item_text" v-if="sheet.item">
@@ -12,16 +18,7 @@
           v-if="sheet.batteryText"
           v-html="sheet.batteryText"
         ></p>
-        <div class="number" v-if="sheet.item && sheet.scaleId === 1">
-          <input
-            class=""
-            :id="`${sheet.itemId}_${scales[sheet.scaleId].scaleRepeater.value}`"
-            type="number"
-            :name="`${sheet.itemId}`"
-            v-model="answers[1]"
-          />
-        </div>
-        <div class="radios" v-if="sheet.item && sheet.scaleId != 1">
+        <div class="radios" v-if="sheet.item">
           <fieldset>
             <div
               class="radio"
@@ -29,26 +26,23 @@
               :key="input.value"
             >
               <input
-                :id="`${sheet.itemId}_${input.value}`"
+                :id="`${sheet.itemId}_${scales[sheet.scaleId].scaleId}_${
+                  input.value
+                }`"
                 type="radio"
-                :name="`${sheet.itemId}`"
-                @input="setAnswer(sheet.itemId, input.value)"
+                :name="`${sheet.itemId}_${scales[sheet.scaleId].scaleId}`"
               />
-              <label :for="`${sheet.itemId}_${input.value}`">{{
-                input.key
-              }}</label>
+              <label
+                :for="`${sheet.itemId}_${scales[sheet.scaleId].scaleId}_${
+                  input.value
+                }`"
+                >{{ input.key }}</label
+              >
             </div>
           </fieldset>
         </div>
         <div class="buttons">
-          <ion-button
-            color="primary"
-            :disabled="
-              (answers[sheet.itemId] === '' ||
-                answers[sheet.itemId] === undefined) &&
-              sheet.batteryText === undefined
-            "
-            >weiter</ion-button
+          <ion-button color="primary">weiter</ion-button
           ><ion-button color="tertiary">zurück</ion-button>
         </div>
         <div class="progress" v-if="sheet.itemId">
@@ -56,53 +50,7 @@
         </div>
       </div>
     </div>
-    <div class="sheet">
-      <div class="absenden_text">Bereit zum Absenden?</div>
-      <div
-        class="missing_text"
-        v-if="Object.keys(missingFields).length != 0 || answers[1] === ''"
-      >
-        Es fehlen Angaben zu folgenden Fragen:
-
-        <div class="missing_fields">
-          <span
-            class="missing_field"
-            v-for="(key, field) of missingFields"
-            :key="field"
-          >
-            {{ key
-            }}<span v-if="field != Object.entries(missingFields).length - 1"
-              >,
-            </span>
-          </span>
-        </div>
-      </div>
-
-      <ion-button
-        color="primary"
-        @click="sendInitialAnswers()"
-        :disabled="
-          Object.keys(questions).length != Object.keys(answers).length ||
-          answers[1] === '' ||
-          Object.keys(answers).length === 0
-        "
-        >Fragebogen absenden</ion-button
-      ><ion-button color="tertiary">zurück</ion-button>
-    </div>
   </base-layout>
-
-  <div class="development">
-    Development
-    <div>
-      <div>https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen</div>
-
-      <ion-button @click="getQuestionsInitial"
-        >Axios get Questions Initial</ion-button
-      >
-      <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
-    </div>
-    <div>answers: {{ answers }}</div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -119,8 +67,6 @@
   let scales = ref(questionsStore.scalesInitial);
   let batteries = ref(questionsStore.batteriesInitial);
   let questions = ref(questionsStore.questionsInitial);
-
-  let answers = ref({});
 
   let errors = ref({});
 
@@ -155,31 +101,6 @@
 
     return sheets;
   });
-
-  function setAnswer(itemId, value) {
-    console.log('QuestionInitialPage - setAnswer', itemId, value);
-    answers.value[itemId] = value;
-  }
-
-  let missingFields = computed(() => {
-    let fields = [];
-
-    for (let [key, question] of Object.entries(questions.value)) {
-      console.log('QuestionInitialPage - missingFields', key, question);
-      if (answers.value[key] === undefined || answers.value[key] === '') {
-        fields.push(key);
-      }
-    }
-
-    return fields;
-  });
-
-  function setAllAnswers() {
-    for (let [key, question] of Object.entries(questions.value)) {
-      console.log('QuestionInitialPage - setAllAnswers', key, question);
-      answers.value[key] = 1;
-    }
-  }
 </script>
 
 <style scoped>
@@ -188,8 +109,6 @@
     border-radius: 15px;
     background-color: var(--light_light_grey);
     margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
   }
   .radios {
     display: flex;
@@ -279,8 +198,7 @@
     line-height: 1;
   }
 
-  .radio,
-  .number {
+  .radio {
     width: auto;
     background-color: var(--light_grey);
     margin-bottom: 15px;
@@ -294,46 +212,27 @@
     line-height: 1;
   }
 
-  .number > input {
-    border-radius: 5px;
-    border-color: var(--light_grey);
-    box-shadow: none !important;
-    margin-right: auto;
-    margin-left: auto;
-    height: 40px;
-    width: 100px;
-    font-weight: 500;
-    color: var(--ion-color-secondary);
-    text-align: center;
-  }
-
   .buttons {
     display: flex;
     flex-direction: column;
-    width: 300px;
+    max-width: 300px;
 
     margin-right: auto;
     margin-left: auto;
   }
 
+  .buttons > ion-button {
+    --border-radius: 25px;
+    text-transform: none;
+    --box-shadow: var(--box_shadow);
+    height: 50px;
+  }
+
   .item_text,
-  .battery_text,
-  .absenden_text {
-    font-size: 20px;
+  .battery_text {
+    font-size: 25px;
     color: var(--ion-color-primary);
     font-family: 'Roboto-Slab';
-    margin-bottom: 20px;
-  }
-
-  .missing_text {
-    color: var(--ion-color-secondary);
-    font-weight: 500;
-    font-size: 20px;
-  }
-
-  .missing_fields {
-    margin-top: 20px;
-    margin-bottom: 40px;
   }
 
   .progress {
@@ -348,13 +247,5 @@
 
   fieldset {
     border: none;
-  }
-
-  .development {
-    position: fixed;
-    bottom: 100px;
-    background-color: rgba(156, 156, 156, 0.44);
-    padding: 20px;
-    width: 300px;
   }
 </style>

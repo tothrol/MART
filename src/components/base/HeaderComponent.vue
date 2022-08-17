@@ -10,16 +10,16 @@
       </ion-buttons>
       <div id="logo">
         <router-link to="/home">
-          <img src="@/assets/images/Logo.svg" />
+          <img src="@/assets/images/Logo.png" />
         </router-link>
       </div>
 
       <ion-title id="title" v-if="!showLogo" class="title" slot="">{{
         pageTitle
       }}</ion-title>
-      <router-link to="/user" slot="end">
+      <!-- <router-link to="/user" slot="end">
         <ion-icon class="user_icon" :icon="personCircleOutline"> </ion-icon>
-      </router-link>
+      </router-link> -->
       <router-link to="/settings" slot="end">
         <ion-icon class="settings_icon" :icon="settingsOutline"> </ion-icon>
       </router-link>
@@ -49,16 +49,16 @@
 
 <style scoped>
   ion-toolbar {
-    --background: var(--ion-color-light-shade);
+    --background: white;
     padding-right: 10px;
     padding-left: 10px;
   }
   .toolbar-background {
-    background-color: blue;
+    /* background-color: blue; */
   }
   #back_button {
     font-size: 40px;
-    color: white !important;
+    color: var(--grey) !important;
   }
 
   .user_icon,
@@ -66,16 +66,16 @@
     font-size: 40px;
     border-radius: 50%;
     object-fit: cover;
-    color: white;
+    color: var(--grey) !important;
   }
 
   .settings_icon {
     font-size: 35px;
     margin-left: 10px;
   }
-  /* .header-md::after {
+  .header-md::after {
     background-image: none !important;
-  } */
+  }
 
   #logo {
     margin-left: auto;

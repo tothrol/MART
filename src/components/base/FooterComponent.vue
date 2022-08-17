@@ -9,7 +9,7 @@
             </router-link>
           </div>
           <div class="suche">
-            <router-link to="/suche">
+            <router-link to="/questionsinitial">
               <div class="home_icon">
                 <Icon :icon="search" />
               </div>

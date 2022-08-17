@@ -4,6 +4,19 @@ body h1 {
   font-weight: 300;
 }
 
+@font-face {
+  font-family: 'Roboto-Slab';
+  src: local('Roboto-Slab'),
+    url(@/assets/fonts/Roboto_Slab/RobotoSlab-VariableFont_wght.ttf)
+      format('truetype');
+}
+
+#main {
+  max-width: 600px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
 body h1 {
   font-family: roboto;
   font-weight: 400;
@@ -24,6 +37,7 @@ body h1 {
 
 :root {
   /* --light_grey: rgb(243, 243, 243); */
+  --light_light_grey: rgb(250, 250, 250);
   --light_grey: rgba(210, 210, 210, 0.4);
 
   --grey: #6c6c6c;
@@ -45,6 +59,17 @@ body h1 {
   --box_shadow_funky: -4px -3px 15px 5px #8cff85, 8px -3px 10px 5px #80c7ff,
     8px 6px 10px 7px #e488ff, -5px -4px 15px 1px #8e5cff,
     0px 0px 10px -4px rgba(0, 0, 0, 0);
+}
+
+ion-button {
+  --border-radius: 25px;
+  text-transform: none;
+  --box-shadow: var(--box_shadow);
+  height: 50px;
+  max-width: 300px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .container {
