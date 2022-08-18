@@ -21,7 +21,7 @@
             </div>
           </div>
           <div class="benachrichtigungen display_none">
-            <router-link to="/benachrichtigungen">
+            <router-link to="/">
               <div class="home_icon">
                 <Icon :icon="bell" />
               </div>

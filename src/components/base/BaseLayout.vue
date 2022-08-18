@@ -3,7 +3,7 @@
     <header-component></header-component>
 
     <ion-content>
-      <div id="main"><slot /></div
+      <div id="main"><slot></slot></div
     ></ion-content>
     <footer-component></footer-component>
   </ion-page>

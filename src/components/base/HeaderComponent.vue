@@ -20,7 +20,7 @@
       <!-- <router-link to="/user" slot="end">
         <ion-icon class="user_icon" :icon="personCircleOutline"> </ion-icon>
       </router-link> -->
-      <router-link to="/settings" slot="end">
+      <router-link to="/" slot="end">
         <ion-icon class="settings_icon" :icon="settingsOutline"> </ion-icon>
       </router-link>
     </ion-toolbar>

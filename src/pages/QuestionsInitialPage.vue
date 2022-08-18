@@ -1,108 +1,111 @@
 <template>
   <base-layout>
-    <div class="sheets">
-      <div class="sheet" v-for="(sheet, key) in sheets" :key="key">
-        <p class="item_text" v-if="sheet.item">
-          <span v-html="sheet.itemId"></span>.
-          <span v-html="sheet.item"></span>
-        </p>
+    <div>
+      <div class="sheets">
+        <div class="sheet" v-for="(sheet, key) in sheets" :key="key">
+          <p class="item_text" v-if="sheet.item">
+            <span v-html="sheet.itemId"></span>.
+            <span v-html="sheet.item"></span>
+          </p>
 
-        <p
-          class="battery_text"
-          v-if="sheet.batteryText"
-          v-html="sheet.batteryText"
-        ></p>
-        <div class="number" v-if="sheet.item && sheet.scaleId === 1">
-          <input
-            class=""
-            :id="`${sheet.itemId}_${scales[sheet.scaleId].scaleRepeater.value}`"
-            type="number"
-            :name="`${sheet.itemId}`"
-            v-model="answers[1]"
-          />
+          <p
+            class="battery_text"
+            v-if="sheet.batteryText"
+            v-html="sheet.batteryText"
+          ></p>
+          <div class="number" v-if="sheet.item && sheet.scaleId === 1">
+            <input
+              class=""
+              :id="`${sheet.itemId}_${
+                scales[sheet.scaleId].scaleRepeater.value
+              }`"
+              type="number"
+              :name="`${sheet.itemId}`"
+              v-model="answers[1]"
+            />
+          </div>
+          <div class="radios" v-if="sheet.item && sheet.scaleId != 1">
+            <fieldset>
+              <div
+                class="radio"
+                v-for="input in scales[sheet.scaleId].scaleRepeater"
+                :key="input.value"
+              >
+                <input
+                  :id="`${sheet.itemId}_${input.value}`"
+                  type="radio"
+                  :name="`${sheet.itemId}`"
+                  @input="setAnswer(sheet.itemId, input.value)"
+                />
+                <label :for="`${sheet.itemId}_${input.value}`">{{
+                  input.key
+                }}</label>
+              </div>
+            </fieldset>
+          </div>
+          <div class="buttons">
+            <ion-button
+              color="primary"
+              :disabled="
+                (answers[sheet.itemId] === '' ||
+                  answers[sheet.itemId] === undefined) &&
+                sheet.batteryText === undefined
+              "
+              >weiter</ion-button
+            ><ion-button color="tertiary">zurück</ion-button>
+          </div>
+          <div class="progress" v-if="sheet.itemId">
+            {{ sheet.itemId }}/{{ Object.keys(questions).length }}
+          </div>
         </div>
-        <div class="radios" v-if="sheet.item && sheet.scaleId != 1">
-          <fieldset>
-            <div
-              class="radio"
-              v-for="input in scales[sheet.scaleId].scaleRepeater"
-              :key="input.value"
+      </div>
+      <div class="sheet">
+        <div class="absenden_text">Bereit zum Absenden?</div>
+        <div
+          class="missing_text"
+          v-if="Object.keys(missingFields).length != 0 || answers[1] === ''"
+        >
+          Es fehlen Angaben zu folgenden Fragen:
+
+          <div class="missing_fields">
+            <span
+              class="missing_field"
+              v-for="(key, field) of missingFields"
+              :key="field"
             >
-              <input
-                :id="`${sheet.itemId}_${input.value}`"
-                type="radio"
-                :name="`${sheet.itemId}`"
-                @input="setAnswer(sheet.itemId, input.value)"
-              />
-              <label :for="`${sheet.itemId}_${input.value}`">{{
-                input.key
-              }}</label>
-            </div>
-          </fieldset>
+              {{ key
+              }}<span v-if="field != Object.entries(missingFields).length - 1"
+                >,
+              </span>
+            </span>
+          </div>
         </div>
-        <div class="buttons">
-          <ion-button
-            color="primary"
-            :disabled="
-              (answers[sheet.itemId] === '' ||
-                answers[sheet.itemId] === undefined) &&
-              sheet.batteryText === undefined
-            "
-            >weiter</ion-button
-          ><ion-button color="tertiary">zurück</ion-button>
-        </div>
-        <div class="progress" v-if="sheet.itemId">
-          {{ sheet.itemId }}/{{ Object.keys(questions).length }}
-        </div>
+
+        <ion-button
+          color="primary"
+          @click="questionsStore.sendInitialAnswers(answers)"
+          :disabled="
+            Object.keys(questions).length != Object.keys(answers).length ||
+            answers[1] === '' ||
+            Object.keys(answers).length === 0
+          "
+          >Fragebogen absenden</ion-button
+        ><ion-button color="tertiary">zurück</ion-button>
       </div>
     </div>
-    <div class="sheet">
-      <div class="absenden_text">Bereit zum Absenden?</div>
-      <div
-        class="missing_text"
-        v-if="Object.keys(missingFields).length != 0 || answers[1] === ''"
-      >
-        Es fehlen Angaben zu folgenden Fragen:
+    <div class="development">
+      Development
+      <div>
+        <div>https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen</div>
 
-        <div class="missing_fields">
-          <span
-            class="missing_field"
-            v-for="(key, field) of missingFields"
-            :key="field"
-          >
-            {{ key
-            }}<span v-if="field != Object.entries(missingFields).length - 1"
-              >,
-            </span>
-          </span>
-        </div>
+        <ion-button @click="getQuestionsInitial"
+          >Axios get Questions Initial</ion-button
+        >
+        <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
       </div>
-
-      <ion-button
-        color="primary"
-        @click="sendInitialAnswers()"
-        :disabled="
-          Object.keys(questions).length != Object.keys(answers).length ||
-          answers[1] === '' ||
-          Object.keys(answers).length === 0
-        "
-        >Fragebogen absenden</ion-button
-      ><ion-button color="tertiary">zurück</ion-button>
+      <div>answers: {{ answers }}</div>
     </div>
   </base-layout>
-
-  <div class="development">
-    Development
-    <div>
-      <div>https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen</div>
-
-      <ion-button @click="getQuestionsInitial"
-        >Axios get Questions Initial</ion-button
-      >
-      <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
-    </div>
-    <div>answers: {{ answers }}</div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -352,6 +355,7 @@
 
   .development {
     position: fixed;
+    left: 0;
     bottom: 100px;
     background-color: rgba(156, 156, 156, 0.44);
     padding: 20px;

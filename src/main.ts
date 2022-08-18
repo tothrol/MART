@@ -26,12 +26,20 @@ import '@ionic/vue/css/display.css';
 import './theme/variables.css';
 import './assets/styles/main.css';
 
+const options = {
+  animated: false,
+};
+
 const pinia = createPinia();
 
-const app = createApp(App).use(IonicVue).use(router).use(pinia);
+const app = createApp(App).use(IonicVue, options).use(router).use(pinia);
 
 app.component('base-layout', BaseLayout);
 app.component('ion-button', IonButton);
+
+app.config.compilerOptions.isCustomElement = (tag) => {
+  return tag.startsWith('ion-');
+};
 
 router.isReady().then(() => {
   app.mount('#app');
