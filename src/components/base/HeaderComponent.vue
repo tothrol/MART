@@ -10,7 +10,7 @@
       </ion-buttons>
       <div id="logo">
         <router-link to="/home">
-          <img src="@/assets/images/Logo.png" />
+          <img class="logo" src="@/assets/images/Logo.svg" />
         </router-link>
       </div>
 
@@ -80,7 +80,7 @@
   #logo {
     margin-left: auto;
     margin-right: auto;
-    width: 250px;
+    width: 150px;
   }
 
   #title,

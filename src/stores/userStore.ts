@@ -6,13 +6,16 @@ export const useUserStore = defineStore('userStore', {
   state: () => {
     return {
       userData: {
-        id: '',
+        id: 0,
         email: '',
         username: '',
         firstname: '',
         lastname: '',
         token: '',
       },
+      showInitial: false,
+      showQuestions: true,
+      showDevbox: false,
     };
   },
   actions: {
@@ -20,7 +23,7 @@ export const useUserStore = defineStore('userStore', {
       console.log('store - updateUserData - data', data);
 
       const userData: any = {
-        id: '',
+        id: 0,
         email: '',
         username: '',
         firstname: '',
@@ -38,7 +41,7 @@ export const useUserStore = defineStore('userStore', {
     },
     resetUserData() {
       this.userData = {
-        id: '',
+        id: 0,
         email: '',
         username: '',
         firstname: '',
@@ -63,6 +66,7 @@ export const useUserStore = defineStore('userStore', {
         this.userData.token = response.data.token;
         this.userData.email = response.data.user_email;
         this.userData.username = response.data.user_display_name;
+        this.userData.id = response.data.user_id;
 
         return new Promise((resolve) => {
           // if (response.status == 200) {
@@ -70,7 +74,13 @@ export const useUserStore = defineStore('userStore', {
           // }
         });
       } catch (e) {
-        return e;
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+
+          reject(e);
+          // }
+        });
+
         // console.log('userStore - login - e', e);
       }
     },

@@ -39,7 +39,9 @@ export const useQuestionsStore = defineStore('questionsStore', {
           return e;
         });
     },
-    sendInitialAnswers(answers) {
+    async sendInitialAnswers(answers) {
+      // try {
+      this.showSpinner = true;
       console.log('questionsStore - sendInitialAnswers - answers', answers);
       const userStore = useUserStore();
       let token = userStore.userData.token;
@@ -54,27 +56,83 @@ export const useQuestionsStore = defineStore('questionsStore', {
         acf: { userId: userStore.userData.id, answers: answersString },
         slug: 'TT',
         title: 'ttt',
+        status: 'publish',
       };
 
-      axios
-        .post(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_initial`,
-          body,
-          config
-        )
-        .then((response) => {
-          // JSON responses are automatically parsed.
+      let response = await axios.post(
+        `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_initial`,
+        body,
+        config
+      );
 
-          console.log(
-            'questionsStore - sendInitialAnswers - response',
-            response
+      // JSON responses are automatically parsed.
+
+      console.log('questionsStore - sendInitialAnswers - response', response);
+
+      return response;
+
+      // new Promise((resolve) => {
+      //   if (response.status == 201) {
+      //     return resolve(response);
+      //   }
+      // });
+      // } catch (e) {
+      //   new Promise((reject) => {
+      //     // if (response.status == 200) {
+
+      //     return reject(e);
+      //     // }
+      //   });
+      // }
+    },
+    async checkIfInitalAnswerExists() {
+      const userStore = useUserStore();
+      console.log(
+        'questionsStore - checkIfInitalAnswersExists - userID',
+        userStore.userData.id
+      );
+      if (userStore.userData.id != 0 && userStore.userData.id != '') {
+        try {
+          const response = await axios.get(
+            `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_initial?author=${userStore.userData.id}`
           );
 
-          return;
-        })
-        .catch((e) => {
-          return e;
-        });
+          console.log(
+            'questionsStore - checkIfInitalAnswersExists - response',
+            response
+          );
+          if (response.data.length >= 1) {
+            userStore.showInitial = false;
+            console.log(
+              'questionsStore - checkIfInitalAnswersExists - DOES EXIST -  userStore.showInitial',
+              userStore.showInitial
+            );
+
+            return new Promise((resolve) => {
+              // if (response.status == 200) {
+              resolve(response);
+              // }
+            });
+          } else {
+            userStore.showInitial = true;
+            console.log(
+              'questionsStore - checkIfInitalAnswersExists - DOES NOT Exist - userStore.showInitial',
+              userStore.showInitial
+            );
+            return new Promise((resolve) => {
+              // if (response.status == 200) {
+              resolve(response);
+              // }
+            });
+          }
+        } catch (e) {
+          return new Promise((reject) => {
+            // if (response.status == 200) {
+            reject(e);
+            // }
+          });
+        }
+      }
     },
   },
 

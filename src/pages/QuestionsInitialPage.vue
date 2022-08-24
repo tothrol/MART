@@ -83,7 +83,7 @@
 
         <ion-button
           color="primary"
-          @click="questionsStore.sendInitialAnswers(answers)"
+          @click="sendInitialAnswers()"
           :disabled="
             Object.keys(questions).length != Object.keys(answers).length ||
             answers[1] === '' ||
@@ -93,7 +93,7 @@
         ><ion-button color="tertiary">zurück</ion-button>
       </div>
     </div>
-    <div class="development">
+    <div class="development devbox" v-if="userStore.showDevbox">
       Development
       <div>
         <div>https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen</div>
@@ -104,7 +104,13 @@
         <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
       </div>
       <div>answers: {{ answers }}</div>
+      <div class="spinner" v-if="showSpinner">
+        <ion-spinner name="dots"></ion-spinner>
+      </div>
     </div>
+    <spinner-component v-if="showSpinner"
+      >Daten werden gesendet.</spinner-component
+    >
   </base-layout>
 </template>
 
@@ -114,9 +120,13 @@
   import { useUserStore } from '@/stores/userStore';
   import { useQuestionsStore } from '@/stores/questionsStore';
   import axios from 'axios';
+  import { IonSpinner } from '@ionic/vue';
+  import SpinnerComponent from '@/components/SpinnerComponent.vue';
+  import { useRouter, useRoute } from 'vue-router';
 
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
+  const router = useRouter();
 
   // let questions = ref(questionsStore.questionsInitial);
   let scales = ref(questionsStore.scalesInitial);
@@ -126,6 +136,12 @@
   let answers = ref({});
 
   let errors = ref({});
+
+  let showSpinner = ref(false);
+
+  onMounted(() => {
+    getQuestionsInitial();
+  });
 
   function getQuestionsInitial() {
     questionsStore.getInitialQuestions();
@@ -140,7 +156,7 @@
     for (let [key, question] of Object.entries(
       questionsStore.questionsInitial
     )) {
-      console.log('QuestionInitialPage - question', question);
+      // console.log('QuestionInitialPage - question', question);
       let currentBatteryId = question.batteryId;
       if (lastBatteryId != currentBatteryId) {
         sheetsArray.push(batteries.value[currentBatteryId]);
@@ -150,17 +166,17 @@
     }
 
     for (let [key, sheet] of Object.entries(sheetsArray)) {
-      console.log('QuestionInitialPage - key, sheet', key, sheet);
+      // console.log('QuestionInitialPage - key, sheet', key, sheet);
       sheets[key] = sheet;
     }
 
-    console.log('QuestionInitialPage - sheets', sheets);
+    // console.log('QuestionInitialPage - sheets', sheets);
 
     return sheets;
   });
 
   function setAnswer(itemId, value) {
-    console.log('QuestionInitialPage - setAnswer', itemId, value);
+    // console.log('QuestionInitialPage - setAnswer', itemId, value);
     answers.value[itemId] = value;
   }
 
@@ -168,7 +184,7 @@
     let fields = [];
 
     for (let [key, question] of Object.entries(questions.value)) {
-      console.log('QuestionInitialPage - missingFields', key, question);
+      // console.log('QuestionInitialPage - missingFields', key, question);
       if (answers.value[key] === undefined || answers.value[key] === '') {
         fields.push(key);
       }
@@ -179,9 +195,21 @@
 
   function setAllAnswers() {
     for (let [key, question] of Object.entries(questions.value)) {
-      console.log('QuestionInitialPage - setAllAnswers', key, question);
+      // console.log('QuestionInitialPage - setAllAnswers', key, question);
       answers.value[key] = 1;
     }
+  }
+
+  function sendInitialAnswers() {
+    showSpinner.value = true;
+
+    questionsStore.sendInitialAnswers(answers).then((response) => {
+      showSpinner.value = false;
+
+      console.log('QuestionInitialPage - sendInitialAnswers', response);
+      userStore.showInitial = false;
+      router.push('/success');
+    });
   }
 </script>
 
@@ -308,6 +336,7 @@
     font-weight: 500;
     color: var(--ion-color-secondary);
     text-align: center;
+    background: white;
   }
 
   .buttons {
@@ -351,14 +380,5 @@
 
   fieldset {
     border: none;
-  }
-
-  .development {
-    position: fixed;
-    left: 0;
-    bottom: 100px;
-    background-color: rgba(156, 156, 156, 0.44);
-    padding: 20px;
-    width: 300px;
   }
 </style>

@@ -24,4 +24,11 @@
     --padding-start: 20px;
     --padding-top: 20px;
   }
+  #main {
+    max-width: 600px;
+    margin-right: auto;
+    margin-left: auto;
+    height: 100%;
+    padding: 20px 0px;
+  }
 </style>

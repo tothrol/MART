@@ -16,27 +16,16 @@
             </router-link>
           </div>
           <div class="refresh">
-            <router-link to="/login">
-              <div class="home_icon">
-                <Icon :icon="refresh" />
-              </div>
-            </router-link>
+            <div class="home_icon">
+              <Icon :icon="refresh" />
+            </div>
           </div>
-          <div class="benachrichtigungen">
-            <router-link to="/success">
+          <div class="benachrichtigungen display_none">
+            <router-link to="/">
               <div class="home_icon">
                 <Icon :icon="bell" />
               </div>
             </router-link>
-          </div>
-
-          <div class="development display_none">
-            <div
-              class="home_icon"
-              @click="userStore.showDevbox = !userStore.showDevbox"
-            >
-              <Icon :icon="browser" />
-            </div>
           </div>
         </div>
       </div>
@@ -66,11 +55,6 @@
   import search from '@iconify-icons/codicon/search';
   import bell from '@iconify-icons/codicon/bell';
   import refresh from '@iconify-icons/codicon/refresh';
-  import browser from '@iconify-icons/codicon/browser';
-
-  import { useUserStore } from '@/stores/userStore';
-
-  const userStore = useUserStore();
 </script>
 
 <style scoped>
