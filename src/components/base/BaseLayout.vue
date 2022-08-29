@@ -28,7 +28,8 @@
     max-width: 600px;
     margin-right: auto;
     margin-left: auto;
-    height: 100%;
+    min-height: 100%;
+    height: min-content;
     padding: 20px 0px;
   }
 </style>

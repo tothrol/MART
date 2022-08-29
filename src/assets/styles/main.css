@@ -93,6 +93,7 @@ ion-button.auto_width {
   justify-content: center;
   justify-items: center;
   height: 100%;
+  min-height: 85vh;
   width: 100%;
   padding: 100px 20px;
   align-items: center;

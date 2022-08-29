@@ -8,9 +8,7 @@
               {{ sheet.itemId }}/{{ Object.keys(questions).length }}
             </div>
             <div class="development">
-              <div class="display_none">
-                sheet key: {{ key }}, sheet.itemId: {{ sheet.itemId }}
-              </div>
+              sheet key: {{ key }}, sheet.itemId: {{ sheet.itemId }}
             </div>
             <p class="item_text" v-if="sheet.item">
               <span v-html="sheet.itemId"></span>.
@@ -30,7 +28,7 @@
                 }`"
                 type="number"
                 :name="`${sheet.itemId}`"
-                v-model="answers.entries[1]"
+                v-model="answers[1]"
               />
             </div>
             <div class="radios" v-if="sheet.item && sheet.scaleId != 1">
@@ -47,17 +45,12 @@
                   <input
                     :id="`${sheet.itemId}_${input.value}`"
                     type="radio"
-                    :value="input.value"
-                    v-model="answers.entries[sheet.itemId]"
+                    :name="`${sheet.itemId}`"
+                    @input="setAnswer(sheet.itemId, input.value)"
                   />
-
                   <label :for="`${sheet.itemId}_${input.value}`">{{
                     input.key
                   }}</label>
-                </div>
-                <div class="display_none">
-                  answers.entries[sheet.itemId] :
-                  {{ answers.entries[sheet.itemId] }}
                 </div>
               </fieldset>
             </div>
@@ -66,8 +59,8 @@
                 @click="nextSheet()"
                 color="primary"
                 :disabled="
-                  (answers.entries[sheet.itemId] === '' ||
-                    answers.entries[sheet.itemId] === undefined) &&
+                  (answers[sheet.itemId] === '' ||
+                    answers[sheet.itemId] === undefined) &&
                   sheet.batteryText === undefined
                 "
                 >weiter</ion-button
@@ -83,10 +76,7 @@
             <div class="absenden_text">Bereit zum Absenden?</div>
             <div
               class="missing_text"
-              v-if="
-                Object.keys(missingFields).length != 0 ||
-                answers.entries[1] === ''
-              "
+              v-if="Object.keys(missingFields).length != 0 || answers[1] === ''"
             >
               Es fehlen Angaben zu folgenden Fragen:
 
@@ -110,9 +100,9 @@
                 @click="sendInitialAnswers()"
                 :disabled="
                   Object.keys(questions).length !=
-                    Object.keys(answers.entries).length ||
-                  answers.entries[1] === '' ||
-                  Object.keys(answers.entries).length === 0
+                    Object.keys(answers).length ||
+                  answers[1] === '' ||
+                  Object.keys(answers).length === 0
                 "
                 >Fragebogen absenden</ion-button
               ><ion-button @click="previousSheet()" color="tertiary"
@@ -133,7 +123,7 @@
         >
         <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
       </div>
-      <div>answers.entries: {{ answers.entries }}</div>
+      <div>answers: {{ answers }}</div>
       <div class="spinner" v-if="showSpinner">
         <ion-spinner name="dots"></ion-spinner>
       </div>
@@ -165,7 +155,7 @@
   let batteries = ref(questionsStore.batteriesInitial);
   let questions = ref(questionsStore.questionsInitial);
 
-  let answers = reactive({ entries: {} });
+  let answers = ref({});
 
   let errors = ref({});
 
@@ -233,8 +223,8 @@
   });
 
   function setAnswer(itemId, value) {
-    console.log('QuestionInitialPage - setAnswer', itemId, value);
-    answers.entries[itemId] = value;
+    // console.log('QuestionInitialPage - setAnswer', itemId, value);
+    answers.value[itemId] = value;
   }
 
   let missingFields = computed(() => {
@@ -242,7 +232,7 @@
 
     for (let [key, question] of Object.entries(questions.value)) {
       // console.log('QuestionInitialPage - missingFields', key, question);
-      if (answers.entries[key] === undefined || answers.entries[key] === '') {
+      if (answers.value[key] === undefined || answers.value[key] === '') {
         fields.push(key);
       }
     }
@@ -253,14 +243,14 @@
   function setAllAnswers() {
     for (let [key, question] of Object.entries(questions.value)) {
       // console.log('QuestionInitialPage - setAllAnswers', key, question);
-      answers.entries[key] = 1;
+      answers.value[key] = 1;
     }
   }
 
   function sendInitialAnswers() {
     showSpinner.value = true;
 
-    questionsStore.sendInitialAnswers(answers.entries).then((response) => {
+    questionsStore.sendInitialAnswers(answers).then((response) => {
       showSpinner.value = false;
 
       console.log('QuestionInitialPage - sendInitialAnswers', response);
@@ -272,9 +262,11 @@
 
 <style scoped>
   .wrapper_h100 {
+    height: 100%;
   }
 
   .sheets {
+    height: 100%;
   }
 
   .buttons {
@@ -287,7 +279,7 @@
     margin-bottom: 20px;
     display: flex;
     flex-direction: column;
-    min-height: 80vh;
+    height: 100%;
   }
   .radios {
     display: flex;

@@ -13,6 +13,7 @@
 <style scoped>
   .messagebox {
     width: 85%;
+        max-width: 560px;
     background: rgba(255, 255, 255, 0.371);
     border-radius: 5px;
     padding: 10px 20px;
