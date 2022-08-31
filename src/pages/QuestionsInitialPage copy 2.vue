@@ -3,73 +3,65 @@
     <div class="wrapper_h100">
       <div class="sheets">
         <TransitionGroup name="list">
-          <li class="sheet" v-if="currentSheet != Object.keys(sheets).length">
-            <div class="progress" v-if="activeSheet.itemId">
-              {{ activeSheet.itemId }}/{{ Object.keys(questions).length }}
+          <li class="sheet" v-for="(sheet, key) in activeSheet" :key="key">
+            <div class="progress" v-if="sheet.itemId">
+              {{ sheet.itemId }}/{{ Object.keys(questions).length }}
             </div>
             <div class="timer" v-if="showTimer">
               Timer: {{ time.toFixed(1) }}
             </div>
             <div class="development">
               <div class="display_none">
-                activeSheet:
-                {{}}, activeSheet.itemId:
-                {{ activeSheet.itemId }}
+                sheet key: {{ key }}, sheet.itemId: {{ sheet.itemId }}
               </div>
             </div>
-            <p class="item_text" v-if="activeSheet.item">
-              <span v-html="activeSheet.itemId"></span>.
-              <span v-html="activeSheet.item"></span>
+            <p class="item_text" v-if="sheet.item">
+              <span v-html="sheet.itemId"></span>.
+              <span v-html="sheet.item"></span>
             </p>
 
             <p
               class="battery_text"
-              v-if="activeSheet.batteryText"
-              v-html="activeSheet.batteryText"
+              v-if="sheet.batteryText"
+              v-html="sheet.batteryText"
             ></p>
-            <div
-              class="number"
-              v-if="activeSheet.item && activeSheet.scaleId === 1"
-            >
+            <div class="number" v-if="sheet.item && sheet.scaleId === 1">
               <input
                 class=""
-                :id="`${activeSheet.itemId}_${
-                  scales[activeSheet.scaleId].scaleRepeater.value
+                :id="`${sheet.itemId}_${
+                  scales[sheet.scaleId].scaleRepeater.value
                 }`"
                 type="number"
-                :name="`${activeSheet.itemId}`"
+                :name="`${sheet.itemId}`"
                 v-model="answers.entries[1]"
               />
             </div>
-            <div
-              class="radios"
-              v-if="activeSheet.item && activeSheet.scaleId != 1"
-            >
+            <div class="radios" v-if="sheet.item && sheet.scaleId != 1">
               <fieldset>
                 <div
-                  :class="`radio ${activeSheet.scaleId} ${input.value}`"
-                  v-for="input in scales[activeSheet.scaleId].scaleRepeater"
+                  :class="`radio ${sheet.scaleId} ${input.value}`"
+                  v-for="input in scales[sheet.scaleId].scaleRepeater"
                   :key="input.value"
                   v-show="
-                    activeSheet.scaleId !== 7 ||
-                    (activeSheet.scaleId === 7 && input.value !== 11)
+                    sheet.scaleId !== 7 ||
+                    (sheet.scaleId === 7 && input.value !== 11)
                   "
                 >
                   <input
-                    :id="`${activeSheet.itemId}_${input.value}`"
+                    :id="`${sheet.itemId}_${input.value}`"
                     type="radio"
                     :value="input.value"
-                    v-model="answers.entries[activeSheet.itemId]"
+                    v-model="answers.entries[sheet.itemId]"
                     :disabled="disableInput"
                   />
 
-                  <label :for="`${activeSheet.itemId}_${input.value}`">{{
+                  <label :for="`${sheet.itemId}_${input.value}`">{{
                     input.key
                   }}</label>
                 </div>
                 <div class="display_none">
-                  answers.entries[activeSheet.itemId] :
-                  {{ answers.entries[activeSheet.itemId] }}
+                  answers.entries[sheet.itemId] :
+                  {{ answers.entries[sheet.itemId] }}
                 </div>
               </fieldset>
             </div>
@@ -78,15 +70,15 @@
                 @click="nextSheet()"
                 color="primary"
                 :disabled="
-                  ((answers.entries[activeSheet.itemId] === '' ||
-                    answers.entries[activeSheet.itemId] === undefined) &&
-                    activeSheet.batteryText === undefined) ||
-                  (time > 0.1 && activeSheet.scaleId === 7)
+                  ((answers.entries[sheet.itemId] === '' ||
+                    answers.entries[sheet.itemId] === undefined) &&
+                    sheet.batteryText === undefined) ||
+                  (time > 0.1 && activeSheet[currentSheet].scaleId === 7)
                 "
                 >weiter</ion-button
               ><ion-button
                 @click="previousSheet()"
-                v-if="activeSheet.itemId != 1"
+                v-if="sheet.itemId != 1"
                 color="tertiary"
                 :disabled="disablePreviousButton"
                 >zurück</ion-button
@@ -204,7 +196,10 @@
       // // setting timerStopped to false to allow the looping
       // // It works here coz
       // timerStopped.value = false;
-      if (answers.unchangeable[activeSheet.value.itemId] === undefined) {
+      if (
+        answers.unchangeable[activeSheet.value[currentSheet.value].itemId] ===
+        undefined
+      ) {
         time.value = 5;
         timer();
       }
@@ -257,7 +252,7 @@
     for (let [key, sheet] of Object.entries(sheets.value)) {
       if (key == currentSheet.value) {
         // This If Statement ensures that only the active enty is in the activeSheet object
-        activeSheet = sheet;
+        activeSheet[key] = sheet;
       }
     }
 
@@ -265,7 +260,7 @@
   });
 
   let currentScaleId = computed(() => {
-    let currentScale = activeSheet.value.scaleId;
+    let currentScale = activeSheet.value[currentSheet.value].scaleId;
 
     return currentScale;
   });
@@ -344,10 +339,13 @@
   let disableInput = computed(() => {
     if (
       (currentScaleId.value === 7 && time.value <= 0.1) ||
-      answers.unchangeable[activeSheet.value.itemId] == true
+      answers.unchangeable[activeSheet.value[currentSheet.value].itemId] == true
     ) {
       setUnchangeableValue();
-      if (answers.entries[activeSheet.value.itemId] == undefined) {
+      if (
+        answers.entries[activeSheet.value[currentSheet.value].itemId] ==
+        undefined
+      ) {
         // There was no Input at Timeout
         setTimeoutValue();
       }
@@ -358,16 +356,19 @@
   function setTimeoutValue() {
     // There was no Input at Timeout, Value gets set to 11
     console.log('QuestionInitialPage -setTimeoutValue');
-    answers.entries[activeSheet.value.itemId] = 11;
+    answers.entries[activeSheet.value[currentSheet.value].itemId] = 11;
   }
 
   function setUnchangeableValue() {
     // ones the value got set, it cant be changed again
-    answers.unchangeable[activeSheet.value.itemId] = true;
+    answers.unchangeable[activeSheet.value[currentSheet.value].itemId] = true;
   }
 
   let disablePreviousButton = computed(() => {
-    if (time.value > 0.1 && activeSheet.value.scaleId === 7) {
+    if (
+      time.value > 0.1 &&
+      activeSheet.value[currentSheet.value].scaleId === 7
+    ) {
       return true;
     } else {
       return false;
