@@ -4,6 +4,7 @@ import HomePage from '../pages/HomePage.vue';
 import Login from '../pages/LoginPage.vue';
 import DayJS from '../pages/examples/DayJSPage.vue';
 import QuestionsInitial from '../pages/QuestionsInitialPage.vue';
+import QuestionsShort from '../pages/QuestionsShortPage.vue';
 import Success from '../pages/SuccessPage.vue';
 
 const routes: Array<RouteRecordRaw> = [
@@ -26,6 +27,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/questionsinitial',
     component: QuestionsInitial,
+  },
+  {
+    path: '/questionsshort',
+    component: QuestionsShort,
   },
   {
     path: '/success',

@@ -4,7 +4,7 @@
       <router-link to="/questionsinitial" v-if="userStore.showInitial">
         <ion-button>Initialen Fragebogen starten</ion-button>
       </router-link>
-      <router-link to="/questions" v-if="userStore.showQuestions">
+      <router-link to="/questionsShort" v-if="userStore.showQuestions">
         <ion-button>Fragebogen starten</ion-button>
       </router-link>
     </div>

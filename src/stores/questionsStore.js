@@ -10,6 +10,10 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
       batteriesInitial: {},
       scalesInitial: {},
+
+      questionsShort: {},
+      batteriesShort: {},
+      scalesShort: {},
     };
   },
   actions: {
@@ -133,6 +137,67 @@ export const useQuestionsStore = defineStore('questionsStore', {
           });
         }
       }
+    },
+
+    // Questions Short
+    getShortQuestions() {
+      axios
+        .get(`https://fuberlin.nvii-dev.com/wp-json/wp/v2/kurzfragebogen`)
+        .then((response) => {
+          // JSON responses are automatically parsed.
+          console.log(
+            'questionsStore - getShortQuestions - response',
+            response
+          );
+
+          const questions = response.data[0].acf.questionRepeater_k;
+          const batteries = response.data[0].acf.batteries_k;
+          const scales = response.data[0].acf.scalesRepeater_k;
+
+          for (const question of questions) {
+            this.questionsShort[question.itemId_k] = {
+              batteryId: question.batteryId_k,
+              choiceId: question.choiceId_k,
+              itemId: question.itemId_k,
+              item: question.item_k,
+              scaleId: question.skaleId_k,
+            };
+          }
+          for (const battery of batteries) {
+            this.batteriesShort[battery.batteryId_k] = {
+              batteryId: battery.batteryId_k,
+              batteryName: battery.batteryName_k,
+              batteryText: battery.batteryText_k,
+            };
+          }
+          for (const scale of scales) {
+            let scaleRep = [];
+            for (let [index, repeater] of Object.entries(
+              scale.scaleRepeater_k
+            )) {
+              scaleRep.push({
+                key: repeater.key_k,
+                value: repeater.value_k,
+              });
+            }
+            this.scalesShort[scale.skaleId_k] = {
+              choiceId: scale.choiceId_k,
+              scaleRepeater: scaleRep,
+              scaleId: scale.skaleId_k,
+            };
+          }
+
+          console.log(
+            'questionsStore - getShortQuestions - response',
+            response
+          );
+
+          return;
+        })
+        .catch((e) => {
+          console.log('questionsStore - getShortQuestions - error', e);
+          return e;
+        });
     },
   },
 

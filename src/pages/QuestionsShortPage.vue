@@ -3,54 +3,73 @@
     <div class="wrapper_h100">
       <div class="sheets">
         <TransitionGroup name="list">
-          <li class="sheet" v-for="(sheet, key) in activeSheet" :key="key">
-            <div class="progress" v-if="sheet.itemId">
-              {{ sheet.itemId }}/{{ Object.keys(questions).length }}
+          <li class="sheet" v-if="currentSheet != Object.keys(sheets).length">
+            <div class="progress" v-if="activeSheet.itemId">
+              {{ activeSheet.itemId }}/{{ Object.keys(questions).length }}
+            </div>
+            <div class="timer" v-if="showTimer">
+              Timer: {{ time.toFixed(1) }}
             </div>
             <div class="development">
-              sheet key: {{ key }}, sheet.itemId: {{ sheet.itemId }}
+              <div class="display_none">
+                activeSheet:
+                {{}}, activeSheet.itemId:
+                {{ activeSheet.itemId }}
+              </div>
             </div>
-            <p class="item_text" v-if="sheet.item">
-              <span v-html="sheet.itemId"></span>.
-              <span v-html="sheet.item"></span>
+            <p class="item_text" v-if="activeSheet.item">
+              <span v-html="activeSheet.itemId"></span>.
+              <span v-html="activeSheet.item"></span>
             </p>
 
             <p
               class="battery_text"
-              v-if="sheet.batteryText"
-              v-html="sheet.batteryText"
+              v-if="activeSheet.batteryText"
+              v-html="activeSheet.batteryText"
             ></p>
-            <div class="number" v-if="sheet.item && sheet.scaleId === 1">
+            <div
+              class="number"
+              v-if="activeSheet.item && activeSheet.scaleId === 1"
+            >
               <input
                 class=""
-                :id="`${sheet.itemId}_${
-                  scales[sheet.scaleId].scaleRepeater.value
+                :id="`${activeSheet.itemId}_${
+                  scales[activeSheet.scaleId].scaleRepeater.value
                 }`"
                 type="number"
-                :name="`${sheet.itemId}`"
-                v-model="answers[1]"
+                :name="`${activeSheet.itemId}`"
+                v-model="answers.entries[1]"
               />
             </div>
-            <div class="radios" v-if="sheet.item && sheet.scaleId != 1">
+            <div
+              class="radios"
+              v-if="activeSheet.item && activeSheet.scaleId != 1"
+            >
               <fieldset>
                 <div
-                  :class="`radio ${sheet.scaleId} ${input.value}`"
-                  v-for="input in scales[sheet.scaleId].scaleRepeater"
+                  :class="`radio ${activeSheet.scaleId} ${input.value}`"
+                  v-for="input in scales[activeSheet.scaleId].scaleRepeater"
                   :key="input.value"
                   v-show="
-                    sheet.scaleId !== 7 ||
-                    (sheet.scaleId === 7 && input.value !== 11)
+                    activeSheet.scaleId !== 7 ||
+                    (activeSheet.scaleId === 7 && input.value !== 11)
                   "
                 >
                   <input
-                    :id="`${sheet.itemId}_${input.value}`"
+                    :id="`${activeSheet.itemId}_${input.value}`"
                     type="radio"
-                    :name="`${sheet.itemId}`"
-                    @input="setAnswer(sheet.itemId, input.value)"
+                    :value="input.value"
+                    v-model="answers.entries[activeSheet.itemId]"
+                    :disabled="disableInput"
                   />
-                  <label :for="`${sheet.itemId}_${input.value}`">{{
+
+                  <label :for="`${activeSheet.itemId}_${input.value}`">{{
                     input.key
                   }}</label>
+                </div>
+                <div class="display_none">
+                  answers.entries[activeSheet.itemId] :
+                  {{ answers.entries[activeSheet.itemId] }}
                 </div>
               </fieldset>
             </div>
@@ -59,15 +78,17 @@
                 @click="nextSheet()"
                 color="primary"
                 :disabled="
-                  (answers[sheet.itemId] === '' ||
-                    answers[sheet.itemId] === undefined) &&
-                  sheet.batteryText === undefined
+                  ((answers.entries[activeSheet.itemId] === '' ||
+                    answers.entries[activeSheet.itemId] === undefined) &&
+                    activeSheet.batteryText === undefined) ||
+                  (time > 0.1 && activeSheet.scaleId === 7)
                 "
                 >weiter</ion-button
               ><ion-button
                 @click="previousSheet()"
-                v-if="sheet.itemId != 1"
+                v-if="activeSheet.itemId != 1"
                 color="tertiary"
+                :disabled="disablePreviousButton"
                 >zurück</ion-button
               >
             </div>
@@ -76,7 +97,10 @@
             <div class="absenden_text">Bereit zum Absenden?</div>
             <div
               class="missing_text"
-              v-if="Object.keys(missingFields).length != 0 || answers[1] === ''"
+              v-if="
+                Object.keys(missingFields).length != 0 ||
+                answers.entries[1] === ''
+              "
             >
               Es fehlen Angaben zu folgenden Fragen:
 
@@ -97,12 +121,12 @@
             <div class="buttons">
               <ion-button
                 color="primary"
-                @click="sendInitialAnswers()"
+                @click="sendShortAnswers()"
                 :disabled="
                   Object.keys(questions).length !=
-                    Object.keys(answers).length ||
-                  answers[1] === '' ||
-                  Object.keys(answers).length === 0
+                    Object.keys(answers.entries).length ||
+                  answers.entries[1] === '' ||
+                  Object.keys(answers.entries).length === 0
                 "
                 >Fragebogen absenden</ion-button
               ><ion-button @click="previousSheet()" color="tertiary"
@@ -118,12 +142,12 @@
       <div>
         <div>https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen</div>
 
-        <ion-button @click="getQuestionsInitial"
-          >Axios get Questions Initial</ion-button
+        <ion-button @click="getQuestionsShort"
+          >Axios get Questions Short</ion-button
         >
         <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
       </div>
-      <div>answers: {{ answers }}</div>
+      <div>answers.entries: {{ answers.entries }}</div>
       <div class="spinner" v-if="showSpinner">
         <ion-spinner name="dots"></ion-spinner>
       </div>
@@ -138,7 +162,7 @@
 
 <script setup lang="ts">
   import { reactive } from 'vue';
-  import { ref, onMounted, computed } from 'vue';
+  import { ref, onMounted, computed, watch } from 'vue';
   import { useUserStore } from '@/stores/userStore';
   import { useQuestionsStore } from '@/stores/questionsStore';
   import axios from 'axios';
@@ -150,12 +174,12 @@
   const questionsStore = useQuestionsStore();
   const router = useRouter();
 
-  // let questions = ref(questionsStore.questionsInitial);
-  let scales = ref(questionsStore.scalesInitial);
-  let batteries = ref(questionsStore.batteriesInitial);
-  let questions = ref(questionsStore.questionsInitial);
+  // let questions = ref(questionsStore.questionsShort);
+  let scales = ref(questionsStore.scalesShort);
+  let batteries = ref(questionsStore.batteriesShort);
+  let questions = ref(questionsStore.questionsShort);
 
-  let answers = ref({});
+  let answers = reactive({ entries: {}, unchangeable: {} });
 
   let errors = ref({});
 
@@ -163,9 +187,24 @@
 
   let currentSheet = ref(0);
 
+  // let currentScaleId = ref(0)
+
   function nextSheet() {
     if (currentSheet.value <= Object.keys(sheets.value).length) {
       currentSheet.value++;
+    }
+    if (currentScaleId.value === 7) {
+      // Might start the timer even though its already the scaleId 8 as thes gets triggert on nextSheet click
+      console.log('QuestionShortPage - nextSheet - call To Timer', time.value);
+      // // setting timerStopped to true to stop the looping
+      // timerStopped.value = true;
+      // // setting timerStopped to false to allow the looping
+      // // It works here coz
+      // timerStopped.value = false;
+      if (answers.unchangeable[activeSheet.value.itemId] === undefined) {
+        time.value = 5;
+        timer();
+      }
     }
   }
 
@@ -174,11 +213,12 @@
   }
 
   onMounted(() => {
-    getQuestionsInitial();
+    getQuestionsShort();
   });
 
-  function getQuestionsInitial() {
-    questionsStore.getInitialQuestions();
+  function getQuestionsShort() {
+    questionsStore.getShortQuestions();
+    console.log('QuestionsShortPage on Mounted');
   }
 
   let sheets = computed(() => {
@@ -187,10 +227,8 @@
 
     let lastBatteryId = 1;
 
-    for (let [key, question] of Object.entries(
-      questionsStore.questionsInitial
-    )) {
-      // console.log('QuestionInitialPage - question', question);
+    for (let [key, question] of Object.entries(questionsStore.questionsShort)) {
+      // console.log('QuestionShortPage - question', question);
       let currentBatteryId = question.batteryId;
       if (lastBatteryId != currentBatteryId) {
         sheetsArray.push(batteries.value[currentBatteryId]);
@@ -200,11 +238,11 @@
     }
 
     for (let [key, sheet] of Object.entries(sheetsArray)) {
-      // console.log('QuestionInitialPage - key, sheet', key, sheet);
+      // console.log('QuestionShortPage - key, sheet', key, sheet);
 
       sheets[key] = sheet;
     }
-    // console.log('QuestionInitialPage - sheets', sheets);
+    // console.log('QuestionShortPage - sheets', sheets);
 
     return sheets;
   });
@@ -215,24 +253,39 @@
     for (let [key, sheet] of Object.entries(sheets.value)) {
       if (key == currentSheet.value) {
         // This If Statement ensures that only the active enty is in the activeSheet object
-        activeSheet[key] = sheet;
+        activeSheet = sheet;
       }
     }
 
     return activeSheet;
   });
 
+  let currentScaleId = computed(() => {
+    let currentScale = activeSheet.value.scaleId;
+
+    return currentScale;
+  });
+
+  let showTimer = computed(() => {
+    let currentScale = currentScaleId.value;
+    if (currentScale === 7) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+
   function setAnswer(itemId, value) {
-    // console.log('QuestionInitialPage - setAnswer', itemId, value);
-    answers.value[itemId] = value;
+    console.log('QuestionShortPage - setAnswer', itemId, value);
+    answers.entries[itemId] = value;
   }
 
   let missingFields = computed(() => {
     let fields = [];
 
     for (let [key, question] of Object.entries(questions.value)) {
-      // console.log('QuestionInitialPage - missingFields', key, question);
-      if (answers.value[key] === undefined || answers.value[key] === '') {
+      // console.log('QuestionShortPage - missingFields', key, question);
+      if (answers.entries[key] === undefined || answers.entries[key] === '') {
         fields.push(key);
       }
     }
@@ -242,31 +295,87 @@
 
   function setAllAnswers() {
     for (let [key, question] of Object.entries(questions.value)) {
-      // console.log('QuestionInitialPage - setAllAnswers', key, question);
-      answers.value[key] = 1;
+      // console.log('QuestionShortPage - setAllAnswers', key, question);
+      answers.entries[key] = 1;
     }
   }
 
-  function sendInitialAnswers() {
+  function sendShortAnswers() {
     showSpinner.value = true;
 
-    questionsStore.sendInitialAnswers(answers).then((response) => {
+    questionsStore.sendShortAnswers(answers.entries).then((response) => {
       showSpinner.value = false;
 
-      console.log('QuestionInitialPage - sendInitialAnswers', response);
-      userStore.showInitial = false;
+      console.log('QuestionShortPage - sendShortAnswers', response);
+      userStore.showShort = false;
       router.push('/success');
     });
   }
+
+  let time = ref(5.0);
+
+  // let timerStopped = ref(false);
+
+  function timer() {
+    console.log('QuestionShortPage - timer - time', time.value);
+    // if (timerStopped.value === true) {
+    //   // timerStopped gets set to true with click on weiter or zurück
+    //   return;
+    // }
+
+    if (time.value >= 0.1) {
+      time.value = time.value - 0.1;
+      //console.log(timer);
+      setTimeout(timer, 100); /* replicate wait 1 second */
+    }
+  }
+
+  // function stopTimer() {
+  //   // gets triggered by click on weiter or zurück
+  //   timerStopped.value = true;
+
+  //   console.log('QuestionShortPage - stopTimer');
+  // }
+
+  let disableInput = computed(() => {
+    if (
+      (currentScaleId.value === 7 && time.value <= 0.1) ||
+      answers.unchangeable[activeSheet.value.itemId] == true
+    ) {
+      setUnchangeableValue();
+      if (answers.entries[activeSheet.value.itemId] == undefined) {
+        // There was no Input at Timeout
+        setTimeoutValue();
+      }
+      return true;
+    } else return false;
+  });
+
+  function setTimeoutValue() {
+    // There was no Input at Timeout, Value gets set to 11
+    console.log('QuestionShortPage -setTimeoutValue');
+    answers.entries[activeSheet.value.itemId] = 11;
+  }
+
+  function setUnchangeableValue() {
+    // ones the value got set, it cant be changed again
+    answers.unchangeable[activeSheet.value.itemId] = true;
+  }
+
+  let disablePreviousButton = computed(() => {
+    if (time.value > 0.1 && activeSheet.value.scaleId === 7) {
+      return true;
+    } else {
+      return false;
+    }
+  });
 </script>
 
 <style scoped>
   .wrapper_h100 {
-    height: 100%;
   }
 
   .sheets {
-    height: 100%;
   }
 
   .buttons {
@@ -279,7 +388,7 @@
     margin-bottom: 20px;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: 80vh;
   }
   .radios {
     display: flex;
@@ -451,6 +560,14 @@
   .list-leave-to {
     opacity: 0;
     /* transform: translateX(30px); */
+  }
+
+  .timer {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: 500;
+    color: var(--ion-color-secondary);
+    font-size: 20px;
   }
 
   .display_none {
