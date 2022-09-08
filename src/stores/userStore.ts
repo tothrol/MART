@@ -39,7 +39,7 @@ export const useUserStore = defineStore('userStore', {
 
       console.log('store - updateUserData - this.userData', this.userData);
     },
-    resetUserData() {
+    logout() {
       this.userData = {
         id: 0,
         email: '',
@@ -48,6 +48,9 @@ export const useUserStore = defineStore('userStore', {
         lastname: '',
         token: '',
       };
+      this.showInitial = false;
+      this.showQuestions = true;
+      this.showDevbox = false;
     },
 
     async login(username: any, password: any) {

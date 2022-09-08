@@ -35,6 +35,7 @@
         await questionsStore.checkIfInitalAnswerExists();
       if (initialAnswerResponse.status == 200) {
         console.log('LoginPage - 4', initialAnswerResponse);
+        console.log('LoginPage - Before Route -', userStore.userData.token);
         router.push('/home');
       }
     }

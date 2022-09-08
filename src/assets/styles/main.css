@@ -1,3 +1,7 @@
+.dev {
+  display: none !important;
+}
+
 body,
 body h1 {
   font-family: roboto;

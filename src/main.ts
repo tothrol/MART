@@ -5,6 +5,7 @@ import router from './router';
 
 import { IonicVue, IonButton } from '@ionic/vue';
 import { createPinia } from 'pinia';
+import checkAuth from './plugins/checkAuth';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
@@ -30,9 +31,16 @@ const options = {
   animated: false,
 };
 
-const pinia = createPinia();
+// to use pinia In the Router, i need to access it in the router/index file
+// Pinia is needet in the Router to check for the token
+// const pinia = createPinia();
 
-const app = createApp(App).use(IonicVue, options).use(router).use(pinia);
+const app = createApp(App)
+  .use(IonicVue, options)
+  // .use(pinia)
+  .use(router)
+
+  .use(checkAuth);
 
 app.component('base-layout', BaseLayout);
 app.component('ion-button', IonButton);

@@ -7,7 +7,9 @@
             <div class="progress" v-if="activeSheet.itemId">
               {{ activeSheet.itemId }}/{{ Object.keys(questions).length }}
             </div>
-
+            <div class="timer" v-if="showTimer">
+              Timer: {{ time.toFixed(1) }}
+            </div>
             <div class="development">
               <div class="display_none">
                 activeSheet:
@@ -26,25 +28,15 @@
               v-html="activeSheet.batteryText"
             ></p>
             <div
-              class="range_slider_wrapper"
+              class="number"
               v-if="activeSheet.item && activeSheet.scaleId === 1"
             >
-              <span
-                class="questionOneState"
-                v-if="answers.entries[1] != undefined"
-              >
-                {{ questionOneState }}</span
-              >
-
               <input
-                class="range_slider"
+                class=""
                 :id="`${activeSheet.itemId}_${
                   scales[activeSheet.scaleId].scaleRepeater.value
                 }`"
-                type="range"
-                min="1"
-                max="7"
-                step="1"
+                type="number"
                 :name="`${activeSheet.itemId}`"
                 v-model="answers.entries[1]"
               />
@@ -58,12 +50,12 @@
                   :class="`radio ${activeSheet.scaleId} ${input.value}`"
                   v-for="input in scales[activeSheet.scaleId].scaleRepeater"
                   :key="input.value"
+                  v-show="
+                    activeSheet.scaleId !== 7 ||
+                    (activeSheet.scaleId === 7 && input.value !== 11)
+                  "
                 >
                   <input
-                    v-if="
-                      activeSheet.itemId != 2 ||
-                      (activeSheet.itemId == 2 && input.value != '')
-                    "
                     :id="`${activeSheet.itemId}_${input.value}`"
                     type="radio"
                     :value="input.value"
@@ -71,48 +63,10 @@
                     :disabled="disableInput"
                   />
 
-                  <label
-                    v-if="
-                      activeSheet.itemId != 2 ||
-                      (activeSheet.itemId == 2 && input.value != '')
-                    "
-                    :for="`${activeSheet.itemId}_${input.value}`"
-                    >{{ input.key }}</label
-                  >
-
-                  <!-- Eingabefeld Frage 2 -->
-
-                  <input
-                    class="question2input8"
-                    @click="setQuestion2input()"
-                    v-if="activeSheet.itemId == 2 && input.value == ''"
-                    :id="`${activeSheet.itemId}_${input.value}`"
-                    type="radio"
-                    :disabled="disableInput"
-                    :value="question2inputValue"
-                    v-model="answers.entries[activeSheet.itemId]"
-                  />
-
-                  <label
-                    v-if="activeSheet.itemId == 2 && input.value == ''"
-                    :for="`${activeSheet.itemId}_${input.value}`"
-                    >{{ input.key }}</label
-                  >
-
-                  <input
-                    :id="`${activeSheet.itemId}_${input.value}`"
-                    class="question2input"
-                    v-if="activeSheet.itemId == 2 && input.value == ''"
-                    type="text"
-                    @input="question2input($event.target.value)"
-                    :disabled="disableInput"
-                    v-model="question2inputValue"
-                  />
-
-                  <!-- End Eingabefeld Frage 2 -->
+                  <label :for="`${activeSheet.itemId}_${input.value}`">{{
+                    input.key
+                  }}</label>
                 </div>
-                <input class="testinput" id="t" type="radio" value="1" />
-
                 <div class="display_none">
                   answers.entries[activeSheet.itemId] :
                   {{ answers.entries[activeSheet.itemId] }}
@@ -124,9 +78,10 @@
                 @click="nextSheet()"
                 color="primary"
                 :disabled="
-                  (answers.entries[activeSheet.itemId] === '' ||
+                  ((answers.entries[activeSheet.itemId] === '' ||
                     answers.entries[activeSheet.itemId] === undefined) &&
-                  activeSheet.batteryText === undefined
+                    activeSheet.batteryText === undefined) ||
+                  (time > 0.1 && activeSheet.scaleId === 7)
                 "
                 >weiter</ion-button
               ><ion-button
@@ -224,7 +179,7 @@
   let batteries = ref(questionsStore.batteriesShort);
   let questions = ref(questionsStore.questionsShort);
 
-  let answers = reactive({ entries: { 1: 4 }, unchangeable: {} });
+  let answers = reactive({ entries: {}, unchangeable: {} });
 
   let errors = ref({});
 
@@ -237,12 +192,19 @@
   function nextSheet() {
     if (currentSheet.value <= Object.keys(sheets.value).length) {
       currentSheet.value++;
-      // if (
-      //   activeSheet.value.batteryText != undefined &&
-      //   activeSheet.value.batteryText === ''
-      // ) {
-      //   currentSheet.value++;
-      // }
+    }
+    if (currentScaleId.value === 7) {
+      // Might start the timer even though its already the scaleId 8 as thes gets triggert on nextSheet click
+      console.log('QuestionShortPage - nextSheet - call To Timer', time.value);
+      // // setting timerStopped to true to stop the looping
+      // timerStopped.value = true;
+      // // setting timerStopped to false to allow the looping
+      // // It works here coz
+      // timerStopped.value = false;
+      if (answers.unchangeable[activeSheet.value.itemId] === undefined) {
+        time.value = 5;
+        timer();
+      }
     }
   }
 
@@ -268,10 +230,7 @@
     for (let [key, question] of Object.entries(questionsStore.questionsShort)) {
       // console.log('QuestionShortPage - question', question);
       let currentBatteryId = question.batteryId;
-      if (
-        lastBatteryId != currentBatteryId &&
-        batteries.value[question.batteryId].batteryText != ''
-      ) {
+      if (lastBatteryId != currentBatteryId) {
         sheetsArray.push(batteries.value[currentBatteryId]);
       }
       sheetsArray.push(question);
@@ -305,6 +264,15 @@
     let currentScale = activeSheet.value.scaleId;
 
     return currentScale;
+  });
+
+  let showTimer = computed(() => {
+    let currentScale = currentScaleId.value;
+    if (currentScale === 7) {
+      return true;
+    } else {
+      return false;
+    }
   });
 
   function setAnswer(itemId, value) {
@@ -344,37 +312,63 @@
     });
   }
 
+  let time = ref(5.0);
+
+  // let timerStopped = ref(false);
+
+  function timer() {
+    console.log('QuestionShortPage - timer - time', time.value);
+    // if (timerStopped.value === true) {
+    //   // timerStopped gets set to true with click on weiter or zurück
+    //   return;
+    // }
+
+    if (time.value >= 0.1) {
+      time.value = time.value - 0.1;
+      //console.log(timer);
+      setTimeout(timer, 100); /* replicate wait 1 second */
+    }
+  }
+
+  // function stopTimer() {
+  //   // gets triggered by click on weiter or zurück
+  //   timerStopped.value = true;
+
+  //   console.log('QuestionShortPage - stopTimer');
+  // }
+
   let disableInput = computed(() => {
-    return false;
+    if (
+      (currentScaleId.value === 7 && time.value <= 0.1) ||
+      answers.unchangeable[activeSheet.value.itemId] == true
+    ) {
+      setUnchangeableValue();
+      if (answers.entries[activeSheet.value.itemId] == undefined) {
+        // There was no Input at Timeout
+        setTimeoutValue();
+      }
+      return true;
+    } else return false;
   });
+
+  function setTimeoutValue() {
+    // There was no Input at Timeout, Value gets set to 11
+    console.log('QuestionShortPage -setTimeoutValue');
+    answers.entries[activeSheet.value.itemId] = 11;
+  }
+
+  function setUnchangeableValue() {
+    // ones the value got set, it cant be changed again
+    answers.unchangeable[activeSheet.value.itemId] = true;
+  }
 
   let disablePreviousButton = computed(() => {
-    return false;
+    if (time.value > 0.1 && activeSheet.value.scaleId === 7) {
+      return true;
+    } else {
+      return false;
+    }
   });
-
-  let questionOneState = computed(() => {
-    let answer1Value = answers.entries[1];
-    if (answer1Value != undefined && currentSheet.value == 0) {
-      let answer1Plus = parseInt(answer1Value) - 1;
-      // console.log('How', answer1Value, answer1Plus, activeSheet.value.scaleId);
-
-      return scales.value[activeSheet.value.scaleId].scaleRepeater[answer1Plus]
-        .key;
-    } else return '';
-  });
-
-  function question2input(value) {
-    console.log('question2', value);
-    answers.entries[2] = value;
-    question2inputValue.value = value;
-  }
-
-  let question2inputValue = ref('');
-
-  function setQuestion2input() {
-    console.log('setQuestion2input');
-    answers.entries[2] = question2inputValue.value;
-  }
 </script>
 
 <style scoped>
@@ -578,119 +572,5 @@
 
   .display_none {
     display: none;
-  }
-
-  .range_slider {
-    width: 80% !important;
-  }
-
-  .range_slider_wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .range_slider {
-    height: 40px;
-  }
-
-  .questionOneState {
-    margin-right: auto;
-    margin-left: auto;
-    color: var(--ion-color-secondary);
-    font-size: 25px;
-    margin-bottom: 10px;
-    margin-top: 100px;
-    font-weight: 500;
-  }
-
-  /* Input Range */
-  input[type='range']::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 8.4px;
-    cursor: pointer;
-    /* animate: 0.2s; */
-    /* box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; */
-    background: var(--ion-color-secondary);
-    /* border-radius: 1.3px; */
-    /* border: 0.2px solid #010101; */
-  }
-  input[type='range']::-webkit-slider-thumb {
-    /* box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; */
-    border: 15px solid #000000;
-
-    height: 36px;
-    width: 16px;
-    /* border-radius: 3px; */
-    background: #ffffff;
-    cursor: pointer;
-    -webkit-appearance: none;
-    margin-top: -12px;
-  }
-  input[type='range']:focus::-webkit-slider-runnable-track {
-    background: var(--ion-color-secondary);
-  }
-  input[type='range']::-moz-range-track {
-    width: 100%;
-    height: 20px;
-    cursor: pointer;
-    /* animate: 0.2s; */
-    /* box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; */
-    background: var(--ion-color-secondary);
-    /* border-radius: 1.3px; */
-    /* border: 0.2px solid #010101; */
-  }
-  input[type='range']::-moz-range-thumb {
-    /* box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; */
-    /* border: 1px solid #000000; */
-    height: 36px;
-    width: 16px;
-    border-radius: 3px;
-    background: #ffffff;
-    cursor: pointer;
-  }
-  input[type='range']::-ms-track {
-    width: 100%;
-    height: 20px;
-    cursor: pointer;
-    animate: 0.2s;
-    background: transparent;
-    border-color: transparent;
-    /* border-width: 16px 0; */
-    color: transparent;
-  }
-  input[type='range']::-ms-fill-lower {
-    /* background: #2a6495; */
-    /* border: 0.2px solid #010101; */
-    /* border-radius: 2.6px; */
-    /* box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; */
-  }
-  input[type='range']::-ms-fill-upper {
-    background: var(--ion-color-secondary);
-    /* border: 0.2px solid #010101; */
-    /* border-radius: 2.6px; */
-    /* box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; */
-  }
-  input[type='range']::-ms-thumb {
-    /* box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; */
-    /* border: 1px solid #000000; */
-    height: 36px;
-    width: 16px;
-    /* border-radius: 3px; */
-    background: #ffffff;
-    cursor: pointer;
-  }
-  input[type='range']:focus::-ms-fill-lower {
-    background: var(--ion-color-secondary);
-  }
-  input[type='range']:focus::-ms-fill-upper {
-    background: var(--ion-color-secondary);
-  }
-
-  .question2input {
-    height: 40px;
-    border-radius: 5px !important;
-    background: white;
-    margin-left: 10px;
   }
 </style>

@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import { validValue } from '../composables/ValidValue';
 import { useUserStore } from '@/stores/userStore';
 import axios from 'axios';
+import { toDisplayString } from 'vue';
+import dayjs from 'dayjs';
 
 export const useQuestionsStore = defineStore('questionsStore', {
   state: () => {
@@ -47,7 +49,12 @@ export const useQuestionsStore = defineStore('questionsStore', {
       // try {
       this.showSpinner = true;
       console.log('questionsStore - sendInitialAnswers - answers', answers);
+
       const userStore = useUserStore();
+      console.log(
+        'questionsStore - sendInitialAnswers - answers - user',
+        userStore.userData
+      );
       let token = userStore.userData.token;
 
       let answersString = JSON.stringify(answers);
@@ -56,10 +63,21 @@ export const useQuestionsStore = defineStore('questionsStore', {
         headers: { Authorization: `Bearer ${token}` },
       };
 
+      let today = dayjs().format('DD.MM.YYYY');
+      let now = dayjs().format('HH:mm');
+      let dateLong = dayjs().format();
+
       const body = {
-        acf: { userId: userStore.userData.id, answers: answersString },
-        slug: 'TT',
-        title: 'ttt',
+        acf: {
+          userId: userStore.userData.id,
+          userName: userStore.userData.username,
+          date: today,
+          time: now,
+          answers: answersString,
+          dateLong: dateLong,
+        },
+        slug: `${userStore.userData.username}_${today}_${now}`,
+        title: `${userStore.userData.username}_${today}_${now}`,
         status: 'publish',
       };
 
@@ -198,6 +216,51 @@ export const useQuestionsStore = defineStore('questionsStore', {
           console.log('questionsStore - getShortQuestions - error', e);
           return e;
         });
+    },
+    async sendShortAnswers(answers) {
+      // try {
+      this.showSpinner = true;
+      console.log('questionsStore - sendShortAnswers - answers', answers);
+      const userStore = useUserStore();
+      let token = userStore.userData.token;
+
+      let answersString = JSON.stringify(answers);
+
+      let today = dayjs().format('DD.MM.YYYY');
+      let now = dayjs().format('HH:mm');
+      let dateLong = dayjs().format();
+      console.log('DateLong', dateLong);
+
+      const config = {
+        headers: { Authorization: `Bearer ${token}` },
+      };
+
+      const body = {
+        acf: {
+          userId_k: userStore.userData.id,
+          answers_k: answersString,
+          userId: userStore.userData.id,
+          userName_k: userStore.userData.username,
+          date_k: today,
+          time_k: now,
+          dateLong_k: dateLong,
+        },
+        slug: `${userStore.userData.username}_${today}_${now}`,
+        title: `${userStore.userData.username}_${today}_${now}`,
+        status: 'publish',
+      };
+
+      let response = await axios.post(
+        `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_kurzfrageb`,
+        body,
+        config
+      );
+
+      // JSON responses are automatically parsed.
+
+      console.log('questionsStore - sendShortAnswers - response', response);
+
+      return response;
     },
   },
 

@@ -7,6 +7,9 @@
       <router-link to="/questionsShort" v-if="userStore.showQuestions">
         <ion-button>Fragebogen starten</ion-button>
       </router-link>
+      <router-link to="/answers">
+        <ion-button color="medium">Auswertung ansehen</ion-button>
+      </router-link>
     </div>
     <Transition>
       <MessageboxComponent v-if="showMessage" @click="showMessage = false"
@@ -40,7 +43,7 @@
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
 
-  let showMessage = ref(true);
+  let showMessage = ref(false);
 
   onMounted(() => {
     questionsStore.checkIfInitalAnswerExists();

@@ -2,11 +2,13 @@
   <ion-header :translucent="false">
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-icon
-          id="back_button"
-          text=""
-          :icon="chevronBackOutline"
-        ></ion-icon>
+        <router-link to="home">
+          <ion-icon
+            id="back_button"
+            text=""
+            :icon="chevronBackOutline"
+          ></ion-icon
+        ></router-link>
       </ion-buttons>
       <div id="logo">
         <router-link to="/home">
@@ -20,8 +22,8 @@
       <!-- <router-link to="/user" slot="end">
         <ion-icon class="user_icon" :icon="personCircleOutline"> </ion-icon>
       </router-link> -->
-      <router-link to="/" slot="end">
-        <ion-icon class="settings_icon" :icon="settingsOutline"> </ion-icon>
+      <router-link to="/user" slot="end">
+        <ion-icon class="settings_icon" :icon="personOutline"> </ion-icon>
       </router-link>
     </ion-toolbar>
   </ion-header>
@@ -41,6 +43,7 @@
     chevronBackOutline,
     personCircleOutline,
     settingsOutline,
+    personOutline,
   } from 'ionicons/icons';
 
   import { reactive, computed } from 'vue';

@@ -1,8 +1,8 @@
 <template>
-  <ion-footer collapse="fade">
+  <ion-footer collapse="fade" class="dev">
     <ion-toolbar>
       <div class="padding">
-        <div class="footer_icons">
+        <div class="footer_icons dev">
           <div class="home">
             <router-link to="/home">
               <div class="home_icon home"><Icon :icon="home" /></div>
@@ -30,7 +30,7 @@
             </router-link>
           </div>
 
-          <div class="development display_none">
+          <div class="development display_none dev">
             <div
               class="home_icon"
               @click="userStore.showDevbox = !userStore.showDevbox"
