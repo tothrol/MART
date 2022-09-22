@@ -19,7 +19,10 @@
             </div>
             <p class="item_text" v-if="activeSheet.item">
               <span v-html="activeSheet.itemId"></span>.
-              <span v-html="activeSheet.item"></span>
+              <span
+                style="white-space: pre-line"
+                v-html="activeSheet.item"
+              ></span>
             </p>
 
             <p
@@ -32,6 +35,7 @@
               v-if="activeSheet.text"
               v-html="activeSheet.text"
             ></p>
+            <!-- Dropdown -->
             <div
               class="number"
               v-if="currentScaleMeta && currentScaleMeta[0] === 'dropdown'"
@@ -50,6 +54,8 @@
                 </option>
               </select>
             </div>
+            <!-- END Dropdown -->
+            <!-- Number input -->
             <div
               class="number"
               v-if="currentScaleMeta && currentScaleMeta[0] === 'number'"
@@ -71,6 +77,8 @@
                 >Minuten</span
               >
             </div>
+            <!-- END Number input -->
+            <!-- Range Slider -->
             <div
               class="range_slider_wrapper"
               v-if="currentScaleMeta && currentScaleMeta[0] === 'slider'"
@@ -101,13 +109,16 @@
                 v-model="answers.entries[activeSheet.itemId]"
               />
             </div>
+            <!-- END Range Slider -->
+            <!-- Normal radios -->
             <div
               class="radios"
               v-if="
                 activeSheet.item &&
                 activeSheet.scaleId != 1 &&
                 activeSheet.scaleId != 6 &&
-                currentScaleMeta[0] != 'slider'
+                currentScaleMeta[0] != 'slider' &&
+                currentScaleMeta[0] != 'multiple'
               "
             >
               <fieldset>
@@ -138,6 +149,43 @@
                 </div>
               </fieldset>
             </div>
+            <!--END normal radios -->
+            <!-- Multiple radios -->
+            <div
+              class="radios"
+              v-if="
+                activeSheet.item &&
+                activeSheet.scaleId != 1 &&
+                activeSheet.scaleId != 6 &&
+                currentScaleMeta[0] === 'multiple'
+              "
+            >
+              <fieldset>
+                <div
+                  :class="`radio ${activeSheet.scaleId} ${input.value}`"
+                  v-for="input in scales[activeSheet.scaleId].scaleRepeater"
+                  :key="input.value"
+                  v-show="
+                    activeSheet.scaleId !== 10 ||
+                    (activeSheet.scaleId === 10 && input.value !== 11)
+                  "
+                >
+                  <input
+                    :id="input.value"
+                    type="checkbox"
+                    :value="input.value"
+                    v-model="answers.entries[activeSheet.itemId]"
+                  />
+
+                  <label :for="input.value">{{ input.key }}</label>
+                </div>
+                <div class="display_none">
+                  answers.entries[activeSheet.itemId] :
+                  {{ answers.entries[activeSheet.itemId] }}
+                </div>
+              </fieldset>
+            </div>
+            <!--END Multiple radios -->
             <div class="buttons">
               <ion-button
                 @click="nextSheet()"
@@ -247,7 +295,7 @@
   let questions = ref(questionsStore.questionsInitial);
   let additionalText = ref(questionsStore.additionalTextInitial);
 
-  let answers = reactive({ entries: {}, unchangeable: {} });
+  let answers = reactive({ entries: { 6: [] }, unchangeable: {} });
 
   let errors = ref({});
 
@@ -429,7 +477,11 @@
 
     for (let [key, question] of Object.entries(questions.value)) {
       // console.log('QuestionInitialPage - missingFields', key, question);
-      if (answers.entries[key] === undefined || answers.entries[key] === '') {
+      if (
+        answers.entries[key] === undefined ||
+        answers.entries[key] === '' ||
+        answers.entries[key].length === 0
+      ) {
         fields.push(key);
       }
     }
@@ -459,7 +511,7 @@
 
   function resetAllAnswers() {
     // console.log('QuestionShortPage - setAllAnswers', key, question);
-    answers.entries = {};
+    answers.entries = { 6: [] };
     answers.unchangeable = {};
     currentSheet.value = 0;
   }
