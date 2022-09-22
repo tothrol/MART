@@ -30,7 +30,7 @@
             </router-link>
           </div>
 
-          <div class="development display_none dev">
+          <div class="development dev">
             <div
               class="home_icon"
               @click="userStore.showDevbox = !userStore.showDevbox"

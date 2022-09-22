@@ -1,5 +1,22 @@
 .dev {
-  display: none !important;
+  /* display: none !important; */
+}
+
+.box.blue {
+  color: white;
+}
+
+.ion-page {
+  /* max-width: 800px; */
+}
+
+.buttons {
+  width: 100%;
+}
+
+main,
+ion-content {
+  padding: 10px !important;
 }
 
 body,
@@ -59,12 +76,18 @@ body h1 {
     0px 0px 10px -4px rgba(0, 0, 0, 0);
 }
 
+.link_button {
+  max-width: 300px;
+  width: 100%;
+}
+
 ion-button {
   --border-radius: 25px;
   text-transform: none;
   --box-shadow: var(--box_shadow);
   height: 50px;
-  width: 300px;
+  max-width: 300px;
+  width: 100%;
 
   margin-left: auto;
   margin-right: auto;
@@ -99,7 +122,7 @@ ion-button.auto_width {
   height: 100%;
   min-height: 85vh;
   width: 100%;
-  padding: 100px 20px;
+  padding: 20px 20px;
   align-items: center;
 }
 

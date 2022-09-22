@@ -1,10 +1,10 @@
 <template>
-  <base-layout>
+  <base-layout ref="baseComp">
     <div class="wrapper_h100">
       <div class="sheets">
         <TransitionGroup name="list">
           <li class="sheet" v-if="currentSheet != Object.keys(sheets).length">
-            <div class="progress" v-if="activeSheet.itemId">
+            <div class="progress" v-if="activeSheet.item">
               {{ activeSheet.itemId }}/{{ Object.keys(questions).length }}
             </div>
             <div class="timer" v-if="showTimer">
@@ -27,23 +27,88 @@
               v-if="activeSheet.batteryText"
               v-html="activeSheet.batteryText"
             ></p>
+            <p
+              class="battery_text"
+              v-if="activeSheet.text"
+              v-html="activeSheet.text"
+            ></p>
             <div
               class="number"
-              v-if="activeSheet.item && activeSheet.scaleId === 1"
+              v-if="currentScaleMeta && currentScaleMeta[0] === 'dropdown'"
             >
-              <input
-                class=""
+              <select
+                class="dropdown"
                 :id="`${activeSheet.itemId}_${
                   scales[activeSheet.scaleId].scaleRepeater.value
                 }`"
                 type="number"
                 :name="`${activeSheet.itemId}`"
-                v-model="answers.entries[1]"
+                v-model="answers.entries[activeSheet.scaleId]"
+              >
+                <option v-for="n in getRange(1900, 2010)" :key="n">
+                  {{ n }}
+                </option>
+              </select>
+            </div>
+            <div
+              class="number"
+              v-if="currentScaleMeta && currentScaleMeta[0] === 'number'"
+            >
+              <input
+                :class="activeSheet.itemId === 9 ? 'no_margin_right' : ''"
+                :id="`${activeSheet.itemId}_${
+                  scales[activeSheet.scaleId].scaleRepeater.value
+                }`"
+                :name="`${activeSheet.itemId}`"
+                :value="answers.entries[activeSheet.itemId]"
+                @input="validateNrInput($event.target, activeSheet.itemId)"
+                min="0"
+                max="999"
+                :maxlength="currentScaleMeta[1]"
+                type="number"
+              />
+              <span class="minuten" v-if="activeSheet.itemId === 9"
+                >Minuten</span
+              >
+            </div>
+            <div
+              class="range_slider_wrapper"
+              v-if="currentScaleMeta && currentScaleMeta[0] === 'slider'"
+            >
+              <div
+                class="display_none"
+                v-html="scales[currentScaleId].scaleRepeater[0].key"
+              ></div>
+              <div class="range_slider_current_value">
+                <span
+                  class="questionOneState"
+                  v-if="answers.entries[activeSheet.itemId] != undefined"
+                >
+                  {{ answers.entries[activeSheet.itemId] }}%</span
+                >
+              </div>
+
+              <input
+                class="range_slider"
+                :id="`${activeSheet.itemId}_${
+                  scales[activeSheet.scaleId].scaleRepeater.value
+                }`"
+                type="range"
+                :min="currentScaleMeta[1]"
+                :max="currentScaleMeta[2]"
+                step="1"
+                :name="`${activeSheet.itemId}`"
+                v-model="answers.entries[activeSheet.itemId]"
               />
             </div>
             <div
               class="radios"
-              v-if="activeSheet.item && activeSheet.scaleId != 1"
+              v-if="
+                activeSheet.item &&
+                activeSheet.scaleId != 1 &&
+                activeSheet.scaleId != 6 &&
+                currentScaleMeta[0] != 'slider'
+              "
             >
               <fieldset>
                 <div
@@ -51,8 +116,8 @@
                   v-for="input in scales[activeSheet.scaleId].scaleRepeater"
                   :key="input.value"
                   v-show="
-                    activeSheet.scaleId !== 7 ||
-                    (activeSheet.scaleId === 7 && input.value !== 11)
+                    activeSheet.scaleId !== 10 ||
+                    (activeSheet.scaleId === 10 && input.value !== 11)
                   "
                 >
                   <input
@@ -80,8 +145,9 @@
                 :disabled="
                   ((answers.entries[activeSheet.itemId] === '' ||
                     answers.entries[activeSheet.itemId] === undefined) &&
-                    activeSheet.batteryText === undefined) ||
-                  (time > 0.1 && activeSheet.scaleId === 7)
+                    activeSheet.batteryText === undefined &&
+                    activeSheet.text === undefined) ||
+                  (time > 0.1 && activeSheet.scaleId === 10)
                 "
                 >weiter</ion-button
               ><ion-button
@@ -146,6 +212,7 @@
           >Axios get Questions Initial</ion-button
         >
         <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
+        <ion-button @click="answers.entries[7] = 6">inputNr.value=6</ion-button>
       </div>
       <div>answers.entries: {{ answers.entries }}</div>
       <div class="spinner" v-if="showSpinner">
@@ -162,7 +229,7 @@
 
 <script setup lang="ts">
   import { reactive } from 'vue';
-  import { ref, onMounted, computed, watch } from 'vue';
+  import { ref, onMounted, computed, watch, nextTick, watchEffect } from 'vue';
   import { useUserStore } from '@/stores/userStore';
   import { useQuestionsStore } from '@/stores/questionsStore';
   import axios from 'axios';
@@ -178,6 +245,7 @@
   let scales = ref(questionsStore.scalesInitial);
   let batteries = ref(questionsStore.batteriesInitial);
   let questions = ref(questionsStore.questionsInitial);
+  let additionalText = ref(questionsStore.additionalTextInitial);
 
   let answers = reactive({ entries: {}, unchangeable: {} });
 
@@ -189,11 +257,48 @@
 
   // let currentScaleId = ref(0)
 
+  // insert scroll from Base Component
+  const baseComp = ref(null);
+  function scroll() {
+    baseComp.value.scrollTop();
+  }
+
+  // End insert scroll from Base Component
+
+  function getRange(start, end) {
+    let arr = [];
+    for (var i = end; i >= start; i--) arr.push(i);
+    console.log('getRange', arr);
+    return arr;
+  }
+
+  async function validateNrInput(target: any, itemId: any) {
+    const value = target.value;
+    console.log('target', target);
+    console.log('target.maxlength', target.getAttribute('maxlength'));
+    console.log('itemId', itemId);
+
+    if (value.length <= target.getAttribute('maxlength')) {
+      console.log('value <=', value);
+      answers.entries[itemId] = value;
+    } else {
+      target.value = answers.entries[itemId];
+    }
+  }
+
+  function disableNumberInput() {
+    if (String(answers.entries[7]).length >= 3) {
+      console.log('disableNumberInput');
+      return true;
+    } else return false;
+  }
+
   function nextSheet() {
     if (currentSheet.value <= Object.keys(sheets.value).length) {
       currentSheet.value++;
+      scroll();
     }
-    if (currentScaleId.value === 7) {
+    if (currentScaleId.value === 10) {
       // Might start the timer even though its already the scaleId 8 as thes gets triggert on nextSheet click
       console.log(
         'QuestionInitialPage - nextSheet - call To Timer',
@@ -232,11 +337,17 @@
     for (let [key, question] of Object.entries(
       questionsStore.questionsInitial
     )) {
+      if (additionalText.value[question.itemId] != undefined) {
+        sheetsArray.push(additionalText.value[question.itemId]);
+      }
       // console.log('QuestionInitialPage - question', question);
       let currentBatteryId = question.batteryId;
       if (lastBatteryId != currentBatteryId) {
-        sheetsArray.push(batteries.value[currentBatteryId]);
+        if (batteries.value[currentBatteryId].batteryText != '') {
+          sheetsArray.push(batteries.value[currentBatteryId]);
+        }
       }
+
       sheetsArray.push(question);
       lastBatteryId = currentBatteryId;
     }
@@ -270,9 +381,38 @@
     return currentScale;
   });
 
+  // scale
+
+  let currentScaleMeta = ref('');
+
+  watchEffect(() => {
+    console.log('currentScale', currentScaleId.value);
+
+    if (
+      scales.value[currentScaleId.value] != undefined &&
+      scales.value[currentScaleId.value].choiceId != undefined &&
+      scales.value[currentScaleId.value].choiceId != ''
+    ) {
+      console.log('currentScale IF', currentScaleId.value);
+
+      currentScaleMeta.value =
+        scales.value[currentScaleId.value].choiceId.split(',');
+      console.log('currentScaleMeta IF', currentScaleMeta.value);
+    } else {
+      currentScaleMeta.value = '';
+      console.log('currentScaleMeta Else', currentScaleMeta.value);
+    }
+    if (currentScaleMeta.value && currentScaleMeta.value[0] === 'slider') {
+      console.log('currentScaleMeta ITS Slider');
+      answers.entries[activeSheet.value.itemId] = 50;
+    }
+  });
+
+  // END Scale
+
   let showTimer = computed(() => {
     let currentScale = currentScaleId.value;
-    if (currentScale === 7) {
+    if (currentScale === 10) {
       return true;
     } else {
       return false;
@@ -312,8 +452,16 @@
 
       console.log('QuestionInitialPage - sendInitialAnswers', response);
       userStore.showInitial = false;
+      resetAllAnswers();
       router.push('/success');
     });
+  }
+
+  function resetAllAnswers() {
+    // console.log('QuestionShortPage - setAllAnswers', key, question);
+    answers.entries = {};
+    answers.unchangeable = {};
+    currentSheet.value = 0;
   }
 
   let time = ref(5.0);
@@ -343,7 +491,7 @@
 
   let disableInput = computed(() => {
     if (
-      (currentScaleId.value === 7 && time.value <= 0.1) ||
+      (currentScaleId.value === 10 && time.value <= 0.1) ||
       answers.unchangeable[activeSheet.value.itemId] == true
     ) {
       setUnchangeableValue();
@@ -367,7 +515,7 @@
   }
 
   let disablePreviousButton = computed(() => {
-    if (time.value > 0.1 && activeSheet.value.scaleId === 7) {
+    if (time.value > 0.1 && activeSheet.value.scaleId === 10) {
       return true;
     } else {
       return false;
@@ -375,7 +523,7 @@
   });
 </script>
 
-<style scoped>
+<!-- <style scoped>
   .wrapper_h100 {
   }
 
@@ -577,4 +725,4 @@
   .display_none {
     display: none;
   }
-</style>
+</style> -->

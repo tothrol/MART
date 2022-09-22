@@ -63,13 +63,14 @@ const router = createRouter({
 const userStore = useUserStore(pinia);
 router.beforeEach(async (to: any, from: any) => {
   const userData = userStore.getUserData;
+  // console.log('Navigation guard ', userStore.userData.token);
   // console.log('Navigation guard to:', to, from, userStore.userData.token);
   // console.log('Navigation guard from:', from);
   // console.log('Navigation guard token:', userStore.userData);
   // console.log('Navigation guard userData:', userData);
   // console.log('Navigation guard showInitial:', userStore.showInitial);
   if (userStore.userData.token === '' && to.path !== '/login') {
-    // console.log('Navigation guard - no token');
+    console.log('Navigation guard - no token');
     return '/login';
   }
 });

@@ -1,6 +1,6 @@
 <template>
-  <base-layout>
-    <div class="wrapper_h100">
+  <base-layout ref="baseComp">
+    <div class="wrapper_h100" ref="myContent">
       <div class="sheets">
         <TransitionGroup name="list">
           <li class="sheet" v-if="currentSheet != Object.keys(sheets).length">
@@ -182,8 +182,10 @@
         </TransitionGroup>
       </div>
     </div>
-    <div class="development devbox" v-if="userStore.showDevbox">
+
+    <div class="development devbox dev" v-if="userStore.showDevbox">
       Development
+      <ion-button @click="scroll">2 Top</ion-button>
       <div>
         <div>https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen</div>
 
@@ -191,6 +193,7 @@
           >Axios get Questions Short</ion-button
         >
         <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
+        <ion-button @click="resetAllAnswers()">resetAllAnswers()</ion-button>
       </div>
       <div>answers.entries: {{ answers.entries }}</div>
       <div class="spinner" v-if="showSpinner">
@@ -206,8 +209,8 @@
 </template>
 
 <script setup lang="ts">
-  import { reactive } from 'vue';
-  import { ref, onMounted, computed, watch } from 'vue';
+  import { reactive, inject, watchEffect } from 'vue';
+  import { ref, onMounted, computed, defineProps } from 'vue';
   import { useUserStore } from '@/stores/userStore';
   import { useQuestionsStore } from '@/stores/questionsStore';
   import axios from 'axios';
@@ -226,23 +229,21 @@
 
   let answers = reactive({ entries: { 1: 4 }, unchangeable: {} });
 
+  const baseComp = ref(null);
+  function scroll() {
+    baseComp.value.scrollTop();
+  }
+
   let errors = ref({});
 
   let showSpinner = ref(false);
 
   let currentSheet = ref(0);
 
-  // let currentScaleId = ref(0)
-
   function nextSheet() {
     if (currentSheet.value <= Object.keys(sheets.value).length) {
       currentSheet.value++;
-      // if (
-      //   activeSheet.value.batteryText != undefined &&
-      //   activeSheet.value.batteryText === ''
-      // ) {
-      //   currentSheet.value++;
-      // }
+      scroll();
     }
   }
 
@@ -332,6 +333,13 @@
     }
   }
 
+  function resetAllAnswers() {
+    // console.log('QuestionShortPage - setAllAnswers', key, question);
+    answers.entries = { 1: 4 };
+    answers.unchangeable = {};
+    currentSheet.value = 0;
+  }
+
   function sendShortAnswers() {
     showSpinner.value = true;
 
@@ -340,6 +348,7 @@
 
       console.log('QuestionShortPage - sendShortAnswers', response);
       userStore.showShort = false;
+      resetAllAnswers();
       router.push('/success');
     });
   }
@@ -377,7 +386,10 @@
   }
 </script>
 
-<style scoped>
+<style>
+  option {
+    text-align: center;
+  }
   .wrapper_h100 {
   }
 
@@ -441,8 +453,8 @@
   input[type='radio']:not(:checked) + label::before {
     content: ' ';
     display: inline-block;
-    width: 17px;
-    height: 17px;
+    min-width: 17px;
+    min-height: 17px;
     position: relative;
 
     border: 1px solid #bbb;
@@ -488,9 +500,9 @@
   .number {
     width: auto;
     background-color: var(--light_grey);
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     border-radius: 10px;
-    padding: 15px 10px;
+    padding: 5px 10px;
     display: flex;
     flex-direction: row;
     align-content: center;
@@ -516,7 +528,7 @@
   .buttons {
     display: flex;
     flex-direction: column;
-    width: 300px;
+    width: 100%;
 
     margin-right: auto;
     margin-left: auto;
@@ -548,12 +560,13 @@
     color: var(--ion-color-primary);
     width: max-content;
     font-size: 17px;
-    margin-top: 20px;
+    margin-top: 0px;
     font-weight: 500;
   }
 
-  fieldset {
+  body fieldset {
     border: none;
+    padding: 10px 0px !important;
   }
 
   .list-leave-active {
@@ -594,13 +607,17 @@
     height: 40px;
   }
 
+  .range_slider_current_value {
+    margin-top: 100px;
+  }
+
   .questionOneState {
     margin-right: auto;
     margin-left: auto;
     color: var(--ion-color-secondary);
     font-size: 25px;
     margin-bottom: 10px;
-    margin-top: 100px;
+
     font-weight: 500;
   }
 
@@ -692,5 +709,23 @@
     border-radius: 5px !important;
     background: white;
     margin-left: 10px;
+  }
+
+  .dropdown {
+    background-color: white;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100px;
+    border-radius: 5px;
+    height: 30px;
+  }
+
+  .no_margin_right {
+    margin-right: 0 !important;
+  }
+
+  .minuten {
+    margin-right: auto;
+    margin-left: 5px;
   }
 </style>

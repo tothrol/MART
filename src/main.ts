@@ -4,7 +4,8 @@ import BaseLayout from './components/base/BaseLayout.vue';
 import router from './router';
 
 import { IonicVue, IonButton } from '@ionic/vue';
-import { createPinia } from 'pinia';
+// import { createPinia } from 'pinia';
+import pinia from './stores/store';
 import checkAuth from './plugins/checkAuth';
 
 /* Core CSS required for Ionic components to work properly */
@@ -37,8 +38,9 @@ const options = {
 
 const app = createApp(App)
   .use(IonicVue, options)
-  // .use(pinia)
+
   .use(router)
+  .use(pinia)
 
   .use(checkAuth);
 

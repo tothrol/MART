@@ -36,6 +36,7 @@
     IonToolbar,
     IonBackButton,
     IonButtons,
+    IonIcon,
   } from '@ionic/vue';
   import { defineComponent } from 'vue';
 

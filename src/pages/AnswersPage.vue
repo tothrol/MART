@@ -3,11 +3,11 @@
     ><div class="box">
       <div class="buttons">
         <ion-button
-          @click="answerType = 'initial'"
+          @click="setAnswerType('initial')"
           :color="answerType == 'initial' ? 'primary' : 'medium'"
           >Initalfragebogen</ion-button
         ><ion-button
-          @click="answerType = 'short'"
+          @click="setAnswerType('short')"
           :color="answerType == 'short' ? 'primary' : 'medium'"
           >Kurzfragebogen</ion-button
         >
@@ -53,12 +53,23 @@
   const questionsStore = useQuestionsStore();
   const evaluationStore = useEvaluationStore();
 
-  onMounted(() => {
+  onMounted(async () => {
     evaluationStore.getInitialAnswers();
     evaluationStore.getShortAnswers();
     questionsStore.getInitialQuestions();
     questionsStore.getShortQuestions();
   });
+
+  function setAnswerType(type) {
+    answerType.value = type;
+
+    // Refresh
+    if (type === 'initial') {
+      evaluationStore.getInitialAnswers();
+    } else {
+      evaluationStore.getShortAnswers();
+    }
+  }
 
   let showMessage = ref(true);
 
@@ -68,6 +79,10 @@
     if (answerType.value === 'initial') {
       return evaluationStore.answersInitial;
     } else {
+      console.log(
+        'AnswersPage - evaluationStore.answersShort',
+        evaluationStore.answersShort
+      );
       return evaluationStore.answersShort;
     }
   });
