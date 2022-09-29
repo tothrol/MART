@@ -10,6 +10,9 @@ import QuestionsInitial from '../pages/QuestionsInitialPage.vue';
 import QuestionsShort from '../pages/QuestionsShortPage.vue';
 import Answers from '../pages/AnswersPage.vue';
 import Success from '../pages/SuccessPage.vue';
+import Welcome from '../pages/WelcomePage.vue';
+import Compliance from '../pages/CompliancePage.vue';
+import BriefingShort from '../pages/BriefingShortPage.vue';
 
 // Needet to use Pinia outside of a component
 
@@ -52,6 +55,18 @@ const routes: Array<RouteRecordRaw> = [
     path: '/user',
     component: User,
   },
+  {
+    path: '/welcome',
+    component: Welcome,
+  },
+  {
+    path: '/compliance',
+    component: Compliance,
+  },
+  {
+    path: '/briefing-short',
+    component: BriefingShort,
+  },
 ];
 
 const router = createRouter({
@@ -68,7 +83,8 @@ router.beforeEach(async (to: any, from: any) => {
   // console.log('Navigation guard from:', from);
   // console.log('Navigation guard token:', userStore.userData);
   // console.log('Navigation guard userData:', userData);
-  // console.log('Navigation guard showInitial:', userStore.showInitial);
+  console.log('Navigation guard token:', userStore.userData.token);
+  console.log('Navigation guard token 2:', userData.token);
   if (userStore.userData.token === '' && to.path !== '/login') {
     console.log('Navigation guard - no token');
     return '/login';

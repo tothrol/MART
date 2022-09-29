@@ -1,5 +1,5 @@
 <template>
-  <base-layout ref="baseComp" :fullscreen="true">
+  <base-layout ref="baseComp">
     <div class="wrapper_h100" ref="myContent">
       <div class="sheets">
         <TransitionGroup name="list">
@@ -28,7 +28,6 @@
               class="battery_text"
               v-if="activeSheet.batteryText"
               v-html="activeSheet.batteryText"
-              style="white-space: pre-line"
             ></p>
             <!-- Range  1-7 -->
             <div
@@ -181,7 +180,7 @@
                   :class="`radio ${activeSheet.scaleId} ${input.value}`"
                   v-for="(input, index) in scales[activeSheet.scaleId]
                     .scaleRepeater"
-                  :key="input.key"
+                  :key="input.value"
                   v-show="
                     activeSheet.scaleId !== 10 ||
                     (activeSheet.scaleId === 10 && input.value !== 11)
@@ -194,13 +193,13 @@
                   "
                 >
                   <input
-                    :id="input.key"
+                    :id="input.value"
                     type="checkbox"
                     :value="input.value"
                     v-model="answers.entries[activeSheet.itemId]"
                   />
 
-                  <label :for="input.key">{{ input.key }}</label>
+                  <label :for="input.value">{{ input.key }}</label>
                 </div>
                 <div class="display_none">
                   answers.entries[activeSheet.itemId] :
@@ -215,7 +214,8 @@
                 color="primary"
                 :disabled="
                   (answers.entries[activeSheet.itemId] === '' ||
-                    answers.entries[activeSheet.itemId] === undefined) &&
+                    answers.entries[activeSheet.itemId] === undefined ||
+                    answers.entries[activeSheet.itemId].length === 0) &&
                   activeSheet.batteryText === undefined
                 "
                 >weiter</ion-button
@@ -233,8 +233,7 @@
             <div
               class="missing_text"
               v-if="
-                (Object.keys(missingFields).length != 0 &&
-                  answers.entries[2] != 2) ||
+                Object.keys(missingFields).length != 0 ||
                 answers.entries[1] === ''
               "
             >
@@ -259,6 +258,8 @@
                 color="primary"
                 @click="sendShortAnswers()"
                 :disabled="
+                  Object.keys(questions).length !=
+                    Object.keys(answers.entries).length ||
                   answers.entries[1] === '' ||
                   Object.keys(answers.entries).length === 0
                 "
@@ -360,31 +361,13 @@
 
   function nextSheet() {
     if (currentSheet.value <= Object.keys(sheets.value).length) {
-      if (
-        activeSheet.value.itemId != undefined &&
-        activeSheet.value.itemId == 2 &&
-        answers.entries[2] == 2
-      ) {
-        currentSheet.value = 8;
-      } else {
-        currentSheet.value++;
-      }
+      currentSheet.value++;
       scroll();
     }
   }
 
   function previousSheet() {
-    if (currentSheet.value > 0) {
-      if (
-        currentSheet.value != undefined &&
-        currentSheet.value == 8 &&
-        answers.entries[2] == 2
-      ) {
-        currentSheet.value = 1;
-      } else {
-        currentSheet.value--;
-      }
-    }
+    currentSheet.value > 0 && currentSheet.value--;
   }
 
   onMounted(() => {
@@ -572,8 +555,7 @@
     if (
       currentScaleMeta.value &&
       currentScaleMeta.value[0] === 'slider' &&
-      currentScaleMeta.value[2] == 100 &&
-      answers.entries[7] == undefined
+      currentScaleMeta.value[2] == 100
     ) {
       console.log('currentScaleMeta ITS Slider');
       answers.entries[activeSheet.value.itemId] = 50;
@@ -597,14 +579,7 @@
         answers.entries[key] === '' ||
         answers.entries[key].length === 0
       ) {
-        if (
-          question.scaleId != undefined &&
-          scales[question.scaleId] != undefined &&
-          scales[question.scaleId].choiceId != undefined &&
-          scales[question.scaleId].choiceId != 'multiple' &&
-          scales[question.scaleId].choiceId != 'multiple,random'
-        )
-          fields.push(key);
+        fields.push(key);
       }
     }
 
@@ -614,17 +589,12 @@
   function setAllAnswers() {
     for (let [key, question] of Object.entries(questions.value)) {
       // console.log('QuestionShortPage - setAllAnswers', key, question);
-      if (key == 3 || key == 4 || key == 6) {
-        answers.entries[key] = [1, 2];
-      } else {
-        answers.entries[key] = 1;
-      }
+      answers.entries[key] = 1;
     }
   }
 
   function resetAllAnswers() {
     // console.log('QuestionShortPage - setAllAnswers', key, question);
-
     answers.entries = { 1: 4, 3: [], 4: [], 6: [] };
     answers.unchangeable = {};
     currentSheet.value = 0;
@@ -696,7 +666,7 @@
     margin-bottom: 20px;
     display: flex;
     flex-direction: column;
-    min-height: 94vh;
+    min-height: 80vh;
   }
   .radios {
     display: flex;
@@ -1027,9 +997,5 @@
   .radio_fieldset {
     display: flex;
     flex-direction: column;
-  }
-
-  .timer3 .timer {
-    font-size: 40px;
   }
 </style>

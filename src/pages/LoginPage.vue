@@ -1,5 +1,5 @@
 <template>
-  <base-layout>
+  <base-layout :fullscreen="true">
     <div class="box blue">
       <div class="text_big">Willkommen<br /></div>
       <input type="text" v-model="loginData.name" placeholder="Benutzername" />
@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-  import { reactive } from 'vue';
+  import { reactive, watch } from 'vue';
   import { ref, onMounted } from 'vue';
   import { useUserStore } from '@/stores/userStore';
   import { useRouter, useRoute } from 'vue-router';
@@ -32,24 +32,27 @@
   const router = useRouter();
 
   function checkLogin() {
-    if (
-      loginData.name.length > 4 &&
-      loginData.name.length < 30 &&
-      loginData.password.length > 4 &&
-      loginData.password.length < 30 &&
-      loginData.uniqueUserId.length > 4 &&
-      loginData.uniqueUserId.length < 30
-    ) {
-      return false;
-    } else return true;
+    // if (
+    //   loginData.value.name.length > 4 &&
+    //   loginData.value.name.length < 30 &&
+    //   loginData.value.password.length > 4 &&
+    //   loginData.value.password.length < 30 &&
+    //   loginData.value.uniqueUserId.length > 4 &&
+    //   loginData.value.uniqueUserId.length < 30
+    // ) {
+    //   return false;
+    // } else {
+    //   return true;
+    // }
+    return false;
   }
 
   async function login() {
     console.log('LoginPage - 1');
     const response = await userStore.login(
-      loginData.name,
-      loginData.password,
-      loginData.uniqueUserId
+      loginData.value.name,
+      loginData.value.password,
+      loginData.value.uniqueUserId
     );
     console.log('LoginPage - 2');
     console.log('LoginPage - response', response);
@@ -61,17 +64,30 @@
       if (initialAnswerResponse.status == 200) {
         console.log('LoginPage - 4', initialAnswerResponse);
         console.log('LoginPage - Before Route -', userStore.userData.token);
-        router.push('/home');
+        if (userStore.complianceAccepted === false) {
+          router.push('/welcome');
+        } else {
+          router.push('/home');
+        }
       }
     }
   }
 
   // function login() {
-  //   const response = userStore.login(loginData.name, loginData.password);
+  //   const response = userStore.login(loginData.value.name, loginData.value.password);
   //   console.log('LoginPage - response', response);
   // }
 
-  let loginData = reactive({ name: '', password: '', uniqueUserId: '' });
+  let loginData = ref({ name: '', password: '', uniqueUserId: '' });
+
+  loginData.value.uniqueUserId = userStore.uniqueUserId;
+
+  watch(
+    () => userStore.uniqueUserId,
+    () => {
+      loginData.value.uniqueUserId = userStore.uniqueUserId;
+    }
+  );
 
   async function checkAuth() {
     const isAuth = await userStore.checkAuth();
@@ -79,7 +95,11 @@
 
     if (isAuth == true) {
       console.log('Login - push', isAuth);
-      router.push('/home');
+      if (userStore.complianceAccepted === false) {
+        router.push('/welcome');
+      } else {
+        router.push('/home');
+      }
     }
   }
 

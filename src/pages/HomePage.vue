@@ -6,7 +6,7 @@
           Benutzerkennung: <span class="big">{{ userStore.uniqueUserId }}</span>
         </div>
         <div class="total_nr_answers">
-          Insgesammt ausgefüllte Fragebögen:
+          Insgesammt ausgefüllte Fragebögen.:
           <span class="big">{{ questionsStore.totalShortAnswers }}</span>
         </div>
         <div class="today_nr_answers">
@@ -37,20 +37,17 @@
       >
         <ion-button>Initialen Fragebogen starten</ion-button>
       </router-link>
-      <router-link
-        class="link_button"
-        :to="
-          secToNext <= 1 && questionsStore.todayShortAnswers < 6
-            ? '/questionsShort'
-            : '/home'
+
+      <ion-button
+        @click="onStartQuestionsShort()"
+        v-if="
+          userStore.complianceAccepted === true &&
+          userStore.showQuestions === true
         "
-        v-if="userStore.showQuestions"
+        :disabled="secToNext >= 1 || questionsStore.todayShortAnswers >= 6"
+        >Fragebogen starten</ion-button
       >
-        <ion-button
-          :disabled="secToNext >= 1 || questionsStore.todayShortAnswers >= 6"
-          >Fragebogen starten</ion-button
-        >
-      </router-link>
+
       <router-link class="link_button" to="/answers">
         <ion-button color="medium">Auswertung ansehen</ion-button>
       </router-link>
@@ -61,6 +58,9 @@
       >
     </Transition>
     <div class="devbox" v-if="userStore.showDevbox">
+      <ion-button color="medium" @click="questionsStore.todayShortPlus"
+        >shortanswer ++</ion-button
+      >
       <ion-button
         color="medium"
         @click="userStore.showInitial = !userStore.showInitial"
@@ -78,7 +78,12 @@
       <router-link class="link_button" to="/questionsShort">
         <ion-button color="medium">Fragebogen starten</ion-button>
       </router-link>
+      <router-link class="link_button" to="/welcome">
+        <ion-button color="medium">welcome</ion-button>
+      </router-link>
     </div>
+    <!-- <modal-component :welcome></modal-component>
+    <modal-component :datenschutz></modal-component> -->
   </base-layout>
 </template>
 
@@ -91,6 +96,7 @@
   import MessageboxComponent from '../components/MessageboxComponent.vue';
   import dayjs from 'dayjs';
   import relativeTime from 'dayjs/plugin/relativeTime';
+  import router from '@/router';
 
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
@@ -99,8 +105,18 @@
 
   let minToNext = ref(0);
   let secToNext = ref(0);
+  // let welcome = ref();
+  // welcome.value = infoStore.welcomeText;
 
   // watch(questionsStore.lastQuestionShort, (newValue, oldValue) => {});
+
+  function onStartQuestionsShort() {
+    if (userStore.briefingShortChecked === false) {
+      router.push('/briefing-short');
+    } else {
+      router.push('/questionsshort');
+    }
+  }
 
   watch(
     () => questionsStore.lastQuestionShort,
@@ -171,7 +187,8 @@
   let dateNext = ref({});
 
   async function initDate() {
-    let lastShortAnswer = await questionsStore.getLastShortAnswer();
+    // let lastShortAnswer = await questionsStore.getLastShortAnswer();
+    let lastShortAnswer = questionsStore.lastQuestionShort;
     if (lastShortAnswer != undefined) {
       dateNow.value = dayjs();
       dateLast.value = dayjs(lastShortAnswer);

@@ -30,6 +30,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
         .get(`https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen`)
         .then((response) => {
           // JSON responses are automatically parsed.
+          console.log('RRRRR', response);
 
           const questions = response.data[1].acf.questionsRepeater;
           const batteries = response.data[1].acf.batteries;
@@ -66,17 +67,17 @@ export const useQuestionsStore = defineStore('questionsStore', {
         'questionsStore - sendInitialAnswers - answers - user',
         userStore.userData
       );
-      let token = userStore.userData.token;
+      const token = userStore.userData.token;
 
-      let answersString = JSON.stringify(answers);
+      const answersString = JSON.stringify(answers);
 
       const config = {
         headers: { Authorization: `Bearer ${token}` },
       };
 
-      let today = dayjs().format('DD.MM.YYYY');
-      let now = dayjs().format('HH:mm');
-      let dateLong = dayjs().format();
+      const today = dayjs().format('DD.MM.YYYY');
+      const now = dayjs().format('HH:mm');
+      const dateLong = dayjs().format();
 
       const body = {
         acf: {
@@ -96,7 +97,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
         },
       };
 
-      let response = await axios.post(
+      const response = await axios.post(
         `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_initial`,
         body,
         config
@@ -105,6 +106,14 @@ export const useQuestionsStore = defineStore('questionsStore', {
       // JSON responses are automatically parsed.
 
       console.log('questionsStore - sendInitialAnswers - response', response);
+
+      if (response.status === 201) {
+        console.log('questionsStore - sendInitialAnswers - response = 201');
+        userStore.showQuestions = true;
+      } else {
+        // Error handling here
+        console.log('questionsStore - sendInitialAnswers - response = NOT 201');
+      }
 
       return response;
 
@@ -144,6 +153,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
           );
           if (response.data.length >= 1) {
             userStore.showInitial = false;
+            userStore.showQuestions = true;
             console.log(
               'questionsStore - checkIfInitalAnswersExists - DOES EXIST -  userStore.showInitial',
               userStore.showInitial
@@ -205,11 +215,12 @@ export const useQuestionsStore = defineStore('questionsStore', {
               batteryId: battery.batteryId_k,
               batteryName: battery.batteryName_k,
               batteryText: battery.batteryText_k,
+              batteryMeta: battery.batteryMeta_k,
             };
           }
           for (const scale of scales) {
-            let scaleRep = [];
-            for (let [index, repeater] of Object.entries(
+            const scaleRep = [];
+            for (const [index, repeater] of Object.entries(
               scale.scaleRepeater_k
             )) {
               scaleRep.push({
@@ -241,14 +252,14 @@ export const useQuestionsStore = defineStore('questionsStore', {
       this.showSpinner = true;
       console.log('questionsStore - sendShortAnswers - answers', answers);
       const userStore = useUserStore();
-      let token = userStore.userData.token;
+      const token = userStore.userData.token;
       console.log('questionsStore - sendShortAnswers - token', token);
 
-      let answersString = JSON.stringify(answers);
+      const answersString = JSON.stringify(answers);
 
-      let today = dayjs().format('DD.MM.YYYY');
-      let now = dayjs().format('HH:mm');
-      let dateLong = dayjs().format();
+      const today = dayjs().format('DD.MM.YYYY');
+      const now = dayjs().format('HH:mm');
+      const dateLong = dayjs().format();
       console.log('DateLong', dateLong);
 
       const config = {
@@ -264,7 +275,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
           date_k: today,
           time_k: now,
           dateLong_k: dateLong,
-          uniqueUserId: userStore.uniqueUserId,
+          uniqueUserId_k: userStore.uniqueUserId,
         },
         slug: `${userStore.userData.username}_${today}_${now}`,
         title: `${userStore.userData.username}_${today}_${now}`,
@@ -274,7 +285,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
         },
       };
 
-      let response = await axios.post(
+      const response = await axios.post(
         `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_kurzfrageb`,
         body,
         config
@@ -284,9 +295,16 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
       console.log('questionsStore - sendShortAnswers - response', response);
 
-      if (response) {
+      if (response.status === 201) {
         this.lastQuestionShort = dateLong;
         const storage = new Storage();
+        await storage.create();
+        await storage.set('lastShortQuestion', dateLong);
+        this.todayShortAnswers++;
+
+        this.lastQuestionShort = dateLong;
+        console.log();
+
         await storage.create();
         await storage.set('lastShortQuestion', dateLong);
       }
@@ -294,20 +312,26 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
       return response;
     },
+    todayShortPlus() {
+      this.todayShortAnswers++;
+
+      const dateLong = dayjs().format();
+      this.lastQuestionShort = dateLong;
+    },
     async getLastShortAnswer() {
       const userStore = useUserStore();
 
-      let userId = userStore.userData.id;
+      const userId = userStore.userData.id;
 
       try {
-        let response = await axios.get(
+        const response = await axios.get(
           `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_kurzfrageb/?meta_key=uniqueUserId&meta_value=${userStore.uniqueUserId}&per_page=1`
         );
 
         // JSON responses are automatically parsed.
         console.log('questionsStore - getLastShortAnswer - response', response);
 
-        if (response.data.length != 0) {
+        if (response.status === 200) {
           this.lastQuestionShort = response.data[0].acf.dateLong_k;
           const storage = new Storage();
           await storage.create();
@@ -318,7 +342,11 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
           if (response.data[0].acf.dateLong_k) {
             // above write if statement to check if 30min over
-            userStore.showQuestions = true;
+            if (userStore.showInitial == true) {
+              userStore.showQuestions = false;
+            } else {
+              userStore.showQuestions = true;
+            }
           }
           return new Promise((resolve) => {
             console.log(
@@ -342,7 +370,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
       const userStore = useUserStore();
 
       try {
-        let response = await axios.get(
+        const response = await axios.get(
           `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_kurzfrageb/?meta_key=uniqueUserId&meta_value=${userStore.uniqueUserId}&per_page=100`
         );
 
@@ -355,11 +383,11 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
         let counter = 0;
 
-        let today = dayjs().format('DD.MM.YY');
+        const today = dayjs().format('DD.MM.YY');
         console.log('questionStore - Today ;:', today);
 
-        for (let post of response.data) {
-          let postDay = dayjs(post.acf.dateLong_k).format('DD.MM.YY');
+        for (const post of response.data) {
+          const postDay = dayjs(post.acf.dateLong_k).format('DD.MM.YY');
           console.log('questionStore - PostDay ;:', postDay);
           if (today === postDay) {
             counter++;

@@ -1,11 +1,11 @@
 <template>
-  <base-layout ref="baseComp" :fullscreen="true">
+  <base-layout ref="baseComp">
     <div class="wrapper_h100" ref="myContent">
       <div class="sheets">
         <TransitionGroup name="list">
           <li class="sheet" v-if="currentSheet != Object.keys(sheets).length">
             <div class="progress" v-if="activeSheet.itemId">
-              {{ activeSheet.randomOrder }}/{{ Object.keys(questions).length }}
+              {{ activeSheet.itemId }}/{{ Object.keys(questions).length }}
             </div>
 
             <div class="development">
@@ -16,7 +16,7 @@
               </div>
             </div>
             <p class="item_text" v-if="activeSheet.item">
-              <span v-html="activeSheet.randomOrder"></span>.
+              <span v-html="activeSheet.itemId"></span>.
               <span
                 style="white-space: pre-line"
                 v-html="activeSheet.item"
@@ -28,7 +28,6 @@
               class="battery_text"
               v-if="activeSheet.batteryText"
               v-html="activeSheet.batteryText"
-              style="white-space: pre-line"
             ></p>
             <!-- Range  1-7 -->
             <div
@@ -181,7 +180,7 @@
                   :class="`radio ${activeSheet.scaleId} ${input.value}`"
                   v-for="(input, index) in scales[activeSheet.scaleId]
                     .scaleRepeater"
-                  :key="input.key"
+                  :key="input.value"
                   v-show="
                     activeSheet.scaleId !== 10 ||
                     (activeSheet.scaleId === 10 && input.value !== 11)
@@ -194,13 +193,13 @@
                   "
                 >
                   <input
-                    :id="input.key"
+                    :id="input.value"
                     type="checkbox"
                     :value="input.value"
                     v-model="answers.entries[activeSheet.itemId]"
                   />
 
-                  <label :for="input.key">{{ input.key }}</label>
+                  <label :for="input.value">{{ input.key }}</label>
                 </div>
                 <div class="display_none">
                   answers.entries[activeSheet.itemId] :
@@ -233,8 +232,7 @@
             <div
               class="missing_text"
               v-if="
-                (Object.keys(missingFields).length != 0 &&
-                  answers.entries[2] != 2) ||
+                Object.keys(missingFields).length != 0 ||
                 answers.entries[1] === ''
               "
             >
@@ -259,6 +257,8 @@
                 color="primary"
                 @click="sendShortAnswers()"
                 :disabled="
+                  Object.keys(questions).length !=
+                    Object.keys(answers.entries).length ||
                   answers.entries[1] === '' ||
                   Object.keys(answers.entries).length === 0
                 "
@@ -276,7 +276,6 @@
       Development
       <ion-button @click="scroll">2 Top</ion-button>
       <div>
-        {{ sheetsRandom }}
         <div
           v-if="activeSheet != undefined && activeSheet.batteryId != undefined"
         >
@@ -360,31 +359,13 @@
 
   function nextSheet() {
     if (currentSheet.value <= Object.keys(sheets.value).length) {
-      if (
-        activeSheet.value.itemId != undefined &&
-        activeSheet.value.itemId == 2 &&
-        answers.entries[2] == 2
-      ) {
-        currentSheet.value = 8;
-      } else {
-        currentSheet.value++;
-      }
+      currentSheet.value++;
       scroll();
     }
   }
 
   function previousSheet() {
-    if (currentSheet.value > 0) {
-      if (
-        currentSheet.value != undefined &&
-        currentSheet.value == 8 &&
-        answers.entries[2] == 2
-      ) {
-        currentSheet.value = 1;
-      } else {
-        currentSheet.value--;
-      }
-    }
+    currentSheet.value > 0 && currentSheet.value--;
   }
 
   onMounted(() => {
@@ -396,73 +377,35 @@
     console.log('QuestionsShortPage on Mounted');
   }
 
-  let sheetsNoRandom = computed(() => {
+  let sheets = computed(() => {
     let sheetsArray: any = [];
     let sheets: any = {};
 
     let lastBatteryId = 1;
 
-    for (let [key, question] of Object.entries(questionsStore.questionsShort)) {
-      // console.log('QuestionShortPage - question', question);
-      let currentBatteryId = question.batteryId;
-      if (
-        lastBatteryId != currentBatteryId &&
-        batteries.value[question.batteryId].batteryText != ''
-      ) {
-        sheetsArray.push(batteries.value[currentBatteryId]);
-      }
-      sheetsArray.push(question);
-      lastBatteryId = currentBatteryId;
-    }
-
-    for (let [key, sheet] of Object.entries(sheetsArray)) {
-      // console.log('QuestionShortPage - key, sheet', key, sheet);
-
-      sheets[key] = sheet;
-    }
-    // console.log('QuestionShortPage - sheets', sheets);
-
-    return sheets;
-  });
-
-  let sheets = computed(() => {
-    console.log('QuestionShortPage - SheetsRandom', sheets);
-    console.log('QuestionShortPage - SheetsRandom', sheets.value);
-    let sheets2: any = [];
-    let sheetsArray: any = [];
     let batteryArray = [];
     let randomBatteryArray = [];
 
-    for (let [index, sheet] of Object.entries(sheetsNoRandom.value)) {
-      let currentBatteryId = sheet.batteryId;
-      console.log('QuestionShortPage - SheetsRandom -sheet', sheet);
+    for (let [key, question] of Object.entries(questionsStore.questionsShort)) {
+      // console.log('QuestionShortPage - question', question);
+      let currentBatteryId = question.batteryId;
 
-      if (
-        batteries.value[currentBatteryId] != undefined &&
-        (batteries.value[currentBatteryId].batteryMeta === 'items' ||
-          batteries.value[currentBatteryId].batteryMeta === 'items,scale')
-      ) {
-        batteryArray.push(sheet);
+      //
+      // // randomizing Items of Batterie
+      if (lastBatteryId != currentBatteryId) {
+        if (
+          lastBatteryId != currentBatteryId &&
+          (batteries.value[lastBatteryId].batteryMeta === 'items' ||
+            batteries.value[lastBatteryId].batteryMeta === 'items,scale')
+        ) {
+          // there was a battery change and last Battery was a random, we need to randomize the batteryArray and write it to sheets
 
-        console.log(
-          'QuestionShortPage - SheetsRandom - CHECKKKKKKKKKK',
-          sheet.itemId,
-          Object.keys(questions.value).length,
-          batteryArray
-        );
-
-        if (sheet.itemId == Object.keys(questions.value).length) {
-          // lastQuestion
-          randomBatteryArray = shuffleFixed(batteryArray);
-          console.log(
-            'QuestionShortPage - SheetsRandom - randomBatteryArray',
-            randomBatteryArray,
-            batteryArray
-          );
+          randomBatteryArray = shuffle(batteryArray);
           for (let [key, entry] of Object.entries(randomBatteryArray)) {
             // entry.randomOrder = randomOrder;
             console.log(
-              'QuestionShortPage - SheetsRandom - entry',
+              'QuestionInitialPage - RANDOMIZED - entry',
+
               entry.itemId,
               entry.item.slice(0, 15)
             );
@@ -472,62 +415,65 @@
           randomBatteryArray = [];
           batteryArray = [];
         }
-      } else {
-        sheetsArray.push(sheet);
+
+        if (batteries.value[question.batteryId].batteryText != '') {
+          sheetsArray.push(batteries.value[currentBatteryId]);
+        }
       }
 
-      let randomOrder = 1;
+      if (
+        batteries.value[currentBatteryId] != undefined &&
+        (batteries.value[currentBatteryId].batteryMeta === 'items' ||
+          batteries.value[currentBatteryId].batteryMeta === 'items,scale')
+      ) {
+        // There was No battery change, but current item is a randomized one
+        batteryArray.push(question);
 
-      for (let [key, sheet] of Object.entries(sheetsArray)) {
-        // console.log('QuestionShortPage - key, sheet', key, sheet);
-        if (sheet && sheet.item != undefined) {
-          // If sheet is an question, give it an randomOrderId
-          sheet.randomOrder = randomOrder;
-          randomOrder++;
+        // last Question
+        if (key + 1 == Object.entries(questionsStore.questionsShort).length) {
+          randomBatteryArray = shuffle(batteryArray);
+          for (let [key, entry] of Object.entries(randomBatteryArray)) {
+            // entry.randomOrder = randomOrder;
+            console.log(
+              'QuestionInitialPage - RANDOMIZED - entry',
+
+              entry.itemId,
+              entry.item.slice(0, 15)
+            );
+            sheetsArray.push(entry);
+            // randomOrder++;
+          }
+          randomBatteryArray = [];
+          batteryArray = [];
         }
 
-        sheets2[key] = sheet;
+        // END last Question
+      } else {
+        // no randomisation
+
+        //
+
+        sheetsArray.push(question);
       }
+      lastBatteryId = currentBatteryId;
     }
 
-    return sheets2;
+    let randomOrder = 1;
+
+    for (let [key, sheet] of Object.entries(sheetsArray)) {
+      // console.log('QuestionShortPage - key, sheet', key, sheet);
+      if (sheet && sheet.item != undefined) {
+        // If sheet is an question, give it an randomOrderId
+        sheet.randomOrder = randomOrder;
+        randomOrder++;
+      }
+
+      sheets[key] = sheet;
+    }
+    // console.log('QuestionShortPage - sheets', sheets);
+
+    return sheets;
   });
-
-  // randomizer Function Fisher-Yates
-  function shuffle(array) {
-    var m = array.length,
-      t,
-      i;
-
-    // While there remain elements to shuffle…
-    while (m) {
-      // Pick a remaining element…
-      i = Math.floor(Math.random() * m--);
-
-      // And swap it with the current element.
-      t = array[m];
-      array[m] = array[i];
-      array[i] = t;
-    }
-
-    return array;
-  }
-
-  function shuffleFixed(array) {
-    var arr = [];
-    for (let [key, arrayEntry] of Object.entries(array)) {
-      arr.push({ order: userStore.randomArray[key], arrayEntry: arrayEntry });
-    }
-    arr.sort((a, b) => a.order - b.order); // b - a for reverse sort
-
-    let newArray = [];
-    for (let [key, entry] of Object.entries(arr)) {
-      newArray.push(entry.arrayEntry);
-    }
-    return newArray;
-  }
-
-  // END randomizer Function Fisher-Yates
 
   let activeSheet = computed(() => {
     let activeSheet: any = {};
@@ -572,8 +518,7 @@
     if (
       currentScaleMeta.value &&
       currentScaleMeta.value[0] === 'slider' &&
-      currentScaleMeta.value[2] == 100 &&
-      answers.entries[7] == undefined
+      currentScaleMeta.value[2] == 100
     ) {
       console.log('currentScaleMeta ITS Slider');
       answers.entries[activeSheet.value.itemId] = 50;
@@ -581,6 +526,28 @@
   });
 
   // END Scale Meta
+
+  // randomizer Function Fisher-Yates
+  function shuffle(array) {
+    var m = array.length,
+      t,
+      i;
+
+    // While there remain elements to shuffle…
+    while (m) {
+      // Pick a remaining element…
+      i = Math.floor(Math.random() * m--);
+
+      // And swap it with the current element.
+      t = array[m];
+      array[m] = array[i];
+      array[i] = t;
+    }
+
+    return array;
+  }
+
+  // END randomizer Function Fisher-Yates
 
   function setAnswer(itemId, value) {
     console.log('QuestionShortPage - setAnswer', itemId, value);
@@ -597,14 +564,7 @@
         answers.entries[key] === '' ||
         answers.entries[key].length === 0
       ) {
-        if (
-          question.scaleId != undefined &&
-          scales[question.scaleId] != undefined &&
-          scales[question.scaleId].choiceId != undefined &&
-          scales[question.scaleId].choiceId != 'multiple' &&
-          scales[question.scaleId].choiceId != 'multiple,random'
-        )
-          fields.push(key);
+        fields.push(key);
       }
     }
 
@@ -614,17 +574,12 @@
   function setAllAnswers() {
     for (let [key, question] of Object.entries(questions.value)) {
       // console.log('QuestionShortPage - setAllAnswers', key, question);
-      if (key == 3 || key == 4 || key == 6) {
-        answers.entries[key] = [1, 2];
-      } else {
-        answers.entries[key] = 1;
-      }
+      answers.entries[key] = 1;
     }
   }
 
   function resetAllAnswers() {
     // console.log('QuestionShortPage - setAllAnswers', key, question);
-
     answers.entries = { 1: 4, 3: [], 4: [], 6: [] };
     answers.unchangeable = {};
     currentSheet.value = 0;
@@ -696,7 +651,7 @@
     margin-bottom: 20px;
     display: flex;
     flex-direction: column;
-    min-height: 94vh;
+    min-height: 80vh;
   }
   .radios {
     display: flex;
@@ -784,7 +739,6 @@
     justify-items: center;
     align-items: center;
     line-height: 1;
-    width: 100%;
   }
 
   .radio,
@@ -1027,9 +981,5 @@
   .radio_fieldset {
     display: flex;
     flex-direction: column;
-  }
-
-  .timer3 .timer {
-    font-size: 40px;
   }
 </style>

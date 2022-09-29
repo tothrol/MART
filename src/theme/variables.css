@@ -13,6 +13,7 @@ http://ionicframework.com/docs/theming/ */
 
   /** secondary **/
   --ion-color-secondary: #0a3367ff;
+  --ion-color-secondary-opacy: rgba(10, 50, 103, 0.692);
   --ion-color-secondary-rgb: 61, 194, 255;
   --ion-color-secondary-contrast: #ffffff;
   --ion-color-secondary-contrast-rgb: 255, 255, 255;

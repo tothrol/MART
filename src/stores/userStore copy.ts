@@ -2,6 +2,9 @@ import { defineStore } from 'pinia';
 import { validValue } from '../composables/ValidValue';
 import axios from 'axios';
 import { Storage } from '@ionic/storage';
+import { useQuestionsStore } from '@/stores/questionsStore';
+
+// import { useQuestionsStore } from '@/stores/questionsStore';
 
 export const useUserStore = defineStore('userStore', {
   state: () => {
@@ -15,9 +18,10 @@ export const useUserStore = defineStore('userStore', {
         token: '',
       },
       showInitial: false,
-      showQuestions: true,
+      showQuestions: false,
       showDevbox: false,
       uniqueUserId: 'startId',
+      randomArray: [] as Array<number>,
     };
   },
   actions: {
@@ -58,16 +62,17 @@ export const useUserStore = defineStore('userStore', {
         token: '',
       };
       this.showInitial = false;
-      this.showQuestions = true;
+      this.showQuestions = false;
       this.showDevbox = false;
 
       const storage = new Storage();
+
       await storage.create();
       await storage.remove('token');
       await storage.remove('email');
       await storage.remove('username');
       await storage.remove('id');
-      await storage.remove('uniqueUserId');
+      // await storage.remove('uniqueUserId');
     },
 
     async login(username: any, password: any, uniqueUserId: any) {
@@ -87,7 +92,14 @@ export const useUserStore = defineStore('userStore', {
         this.userData.email = response.data.user_email;
         this.userData.username = response.data.user_display_name;
         this.userData.id = response.data.user_id;
-        this.uniqueUserId = uniqueUserId;
+        if (this.uniqueUserId != uniqueUserId) {
+          const storage = new Storage();
+          await storage.create();
+          await storage.remove('randomArray');
+          this.createRandomArray();
+          console.log('NewUniqueUserID');
+          this.uniqueUserId = uniqueUserId;
+        }
 
         const storage = new Storage();
         await storage.create();
@@ -96,6 +108,12 @@ export const useUserStore = defineStore('userStore', {
         await storage.set('username', response.data.user_display_name);
         await storage.set('id', response.data.user_id);
         await storage.set('uniqueUserId', uniqueUserId);
+
+        const questionsStore = useQuestionsStore();
+
+        questionsStore.checkIfInitalAnswerExists();
+        questionsStore.getLastShortAnswer();
+        questionsStore.countShortAnswers();
 
         return new Promise((resolve) => {
           // if (response.status == 200) {
@@ -121,6 +139,7 @@ export const useUserStore = defineStore('userStore', {
       const email = await storage.get('email');
       const username = await storage.get('username');
       const uniqueUserId = await storage.get('uniqueUserId');
+      this.uniqueUserId = uniqueUserId;
       if (token) {
         const userData: any = {
           id: id,
@@ -130,8 +149,41 @@ export const useUserStore = defineStore('userStore', {
           uniqueUserId: uniqueUserId,
         };
         this.updateUserData(userData);
+        this.createRandomArray();
         return true;
       } else return false;
+    },
+
+    async createRandomArray() {
+      // Randomize Skala
+
+      const storage = new Storage();
+      await storage.create();
+      const randomArray = [];
+
+      const rs = await storage.get('randomArray');
+      console.log('randomArray rs', rs);
+      if (rs === null) {
+        console.log('NEW randomArray');
+
+        for (let i = 0; i <= 30; i++) {
+          const entry = Math.floor(Math.random() * 100);
+          console.log('NEW randomArray - entry', entry);
+
+          randomArray.push(entry);
+        }
+        const unique = [...new Set(randomArray)];
+
+        await storage.set('randomArray', unique);
+        this.randomArray = unique;
+      } else {
+        console.log('Load randomArray');
+        this.randomArray = await storage.get('randomArray');
+      }
+
+      console.log('randomArray:', randomArray);
+
+      // END Randomize Skala
     },
   },
   getters: {

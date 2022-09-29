@@ -1,5 +1,5 @@
 .dev {
-  /* display: none !important; */
+  display: none !important;
 }
 
 .box.blue {
@@ -128,6 +128,14 @@ ion-button.auto_width {
 
 .box.green {
   background-color: var(--ion-color-primary);
+}
+
+.box.green a {
+  color: var(--ion-color-secondary);
+}
+
+.info_text {
+  font-size: 20px;
 }
 
 .box.blue {
