@@ -4,17 +4,18 @@
     ><div class="box green">
       <h1>{{ infoStore.welcomeText.title }}</h1>
       <p class="info_text" v-html="infoStore.welcomeText.text"></p>
-      <div v-if="userStore.complianceAccepted === false">
+      <div class="flex_row" v-if="userStore.complianceAccepted === false">
         <input
           value="true"
           id="compliance"
           type="checkbox"
           v-model="accepted"
         />
-        <label for="compliance"
-          >Ich stimme der
+        <label for="compliance"></label
+        ><span class="compliance_text"
+          >Ich stimme der <br />
           <router-link to="/compliance">Datenschutzverordnung</router-link>
-          zu</label
+          zu</span
         >
       </div>
 
@@ -73,5 +74,17 @@
     /* width: 50px;
     height: 50px; */
     font-size: 40px;
+  }
+
+  .flex_row {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .flex_row input[type='checkbox']:checked + label::before,
+  .flex_row input[type='radio']:checked + label::before {
+    background: var(--ion-color-secondary);
+    /* background: #0a3367ff; */
+    box-shadow: inset 0 0 0 2px white;
   }
 </style>

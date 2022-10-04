@@ -10,6 +10,7 @@
               activeSheet != undefined
             "
           >
+            <div class="dev" @click="shortcut()">set answers</div>
             <div
               class="progress"
               v-if="activeSheet != undefined && activeSheet.item != undefined"
@@ -323,7 +324,8 @@
                   Object.keys(questions).length !=
                     Object.keys(answers.entries).length ||
                   answers.entries[1] === '' ||
-                  Object.keys(answers.entries).length === 0
+                  Object.keys(answers.entries).length === 0 ||
+                  questionsStore.initialAnswerExist === true
                 "
                 >Fragebogen absenden</ion-button
               ><ion-button @click="previousSheet()" color="tertiary"
@@ -805,9 +807,8 @@
       showSpinner.value = false;
 
       console.log('QuestionInitialPage - sendInitialAnswers', response);
-      userStore.showInitial = false;
       resetAllAnswers();
-      router.push('/success');
+      router.replace('/success');
     });
   }
 
@@ -903,6 +904,11 @@
       return false;
     }
   });
+
+  function shortcut() {
+    setAllAnswers();
+    currentSheet.value = 105;
+  }
 </script>
 
 <!-- <style scoped>

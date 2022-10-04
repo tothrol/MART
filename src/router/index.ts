@@ -1,5 +1,6 @@
 import pinia from '../stores/store';
 import { useUserStore } from '@/stores/userStore';
+import { useQuestionsStore } from '@/stores/questionsStore';
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
 import HomePage from '../pages/HomePage.vue';
@@ -74,20 +75,62 @@ const router = createRouter({
   routes,
 });
 
+let programmatic = false;
+['push', 'replace', 'go', 'back', 'forward'].forEach((methodName) => {
+  const method = router[methodName];
+  router[methodName] = (...args) => {
+    programmatic = true;
+    method.apply(router, args);
+  };
+});
+
 // Needet to use Pinia outside of a component
 const userStore = useUserStore(pinia);
+const questionsStore = useQuestionsStore(pinia);
 router.beforeEach(async (to: any, from: any) => {
-  const userData = userStore.getUserData;
+  // const userData = userStore.getUserData;
   // console.log('Navigation guard ', userStore.userData.token);
   // console.log('Navigation guard to:', to, from, userStore.userData.token);
   // console.log('Navigation guard from:', from);
   // console.log('Navigation guard token:', userStore.userData);
   // console.log('Navigation guard userData:', userData);
-  console.log('Navigation guard token:', userStore.userData.token);
-  console.log('Navigation guard token 2:', userData.token);
+  // console.log('Navigation guard token:', userStore.userData.token);
+  // console.log('Navigation guard token:', userData.token);
   if (userStore.userData.token === '' && to.path !== '/login') {
     console.log('Navigation guard - no token');
     return '/login';
+  } else {
+    console.log('Navigation guard - token Exists');
+    if (!from.name === null || !programmatic) {
+      // do stuff you want to do when hitting back/forward or reloading page
+      console.log('Navigation guard programmatic', to.path);
+      if (to.path === '/questionsInitial') {
+        if (questionsStore.initialAnswerExist === true) {
+          console.log(
+            'Navigation guard - token Exists questionsStore.initialAnswerExist === true'
+          );
+          return '/home';
+          // next({ path: '/home' });
+          // router.push('/home');
+          // return '/home';
+        }
+      }
+    }
+    programmatic = false; // clear flag
+  }
+});
+
+router.afterEach((to, from) => {
+  console.log('Navigation guard - afterEach - 1');
+  if (to.path === '/questionsInitial') {
+    console.log('Navigation guard - afterEach - 2');
+    if (questionsStore.initialAnswerExist === true) {
+      console.log('Navigation guard - afterEach - 3');
+      router.push('/home');
+      // next({ path: '/home' });
+      // router.push('/home');
+      // return '/home';
+    }
   }
 });
 

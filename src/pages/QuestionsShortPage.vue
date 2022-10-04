@@ -260,7 +260,8 @@
                 @click="sendShortAnswers()"
                 :disabled="
                   answers.entries[1] === '' ||
-                  Object.keys(answers.entries).length === 0
+                  Object.keys(answers.entries).length === 0 ||
+                  questionsStore.timerShortQuestionsRuns === true
                 "
                 >Fragebogen absenden</ion-button
               ><ion-button @click="previousSheet()" color="tertiary"
@@ -639,7 +640,7 @@
       console.log('QuestionShortPage - sendShortAnswers', response);
       userStore.showShort = false;
       resetAllAnswers();
-      router.push('/success');
+      router.replace('/success');
     });
   }
 

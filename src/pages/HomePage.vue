@@ -3,10 +3,10 @@
     ><div class="box blue">
       <div class="info">
         <div class="uiqueUserId">
-          Benutzerkennung: <span class="big">{{ userStore.uniqueUserId }}</span>
+          Teilnehmer Id: <span class="big">{{ userStore.uniqueUserId }}</span>
         </div>
         <div class="total_nr_answers">
-          Insgesammt ausgefüllte Fragebögen.:
+          Insgesammt ausgefüllte Fragebögen:
           <span class="big">{{ questionsStore.totalShortAnswers }}</span>
         </div>
         <div class="today_nr_answers">
@@ -33,7 +33,7 @@
       <router-link
         class="link_button"
         to="/questionsinitial"
-        v-if="userStore.showInitial"
+        v-if="questionsStore.initialAnswerExist === false"
       >
         <ion-button>Initialen Fragebogen starten</ion-button>
       </router-link>
@@ -42,7 +42,7 @@
         @click="onStartQuestionsShort()"
         v-if="
           userStore.complianceAccepted === true &&
-          userStore.showQuestions === true
+          questionsStore.initialAnswerExist === true
         "
         :disabled="secToNext >= 1 || questionsStore.todayShortAnswers >= 6"
         >Fragebogen starten</ion-button
@@ -63,15 +63,17 @@
       >
       <ion-button
         color="medium"
-        @click="userStore.showInitial = !userStore.showInitial"
-        >Toggel showInitial</ion-button
-      >{{ userStore.showInitial }}
+        @click="
+          questionsStore.initialAnswerExist = !questionsStore.initialAnswerExist
+        "
+        >Toggel initialAnswerExist</ion-button
+      >{{ questionsStore.initialAnswerExist }}
 
       <ion-button
         color="medium"
         @click="questionsStore.checkIfInitalAnswerExists"
         >checkIfInitalAnswersExists</ion-button
-      >{{ userStore.showInitial }}
+      >{{ questionsStore.initialAnswerExist }}
       <router-link class="link_button" to="/questionsinitial">
         <ion-button color="medium">Initialen Fragebogen starten</ion-button>
       </router-link>
@@ -97,6 +99,7 @@
   import dayjs from 'dayjs';
   import relativeTime from 'dayjs/plugin/relativeTime';
   import router from '@/router';
+  import { App } from '@capacitor/app';
 
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
@@ -108,7 +111,7 @@
   // let welcome = ref();
   // welcome.value = infoStore.welcomeText;
 
-  // watch(questionsStore.lastQuestionShort, (newValue, oldValue) => {});
+  // watch(questionsStore.lastShortAnswer, (newValue, oldValue) => {});
 
   function onStartQuestionsShort() {
     if (userStore.briefingShortChecked === false) {
@@ -118,8 +121,13 @@
     }
   }
 
+  App.addListener('appStateChange', ({ isActive }) => {
+    console.log('App state changed. Is active?', isActive);
+    initDate();
+  });
+
   watch(
-    () => questionsStore.lastQuestionShort,
+    () => questionsStore.lastShortAnswer,
     (oldValue, newValue) => {
       console.log('Home - changes detected', oldValue, newValue);
       initDate();
@@ -145,27 +153,30 @@
 
   dayjs.extend(relativeTime);
 
-  async function timer() {
-    // let dateNextMinSec = dayjs(dateNext).format('mm/ss');
+  // async function timer() {
+  //   // let dateNextMinSec = dayjs(dateNext).format('mm/ss');
 
-    // let timeNext = dayjsdateNext.value;
+  //   // let timeNext = dayjsdateNext.value;
 
-    if (minToNext.value >= 1) {
-      minToNext.value = minToNext.value - 1;
+  //   if (minToNext.value >= 1) {
+  //     minToNext.value = minToNext.value - 1;
 
-      // let time = dayjs(dateNow).to(dateNext, true);
+  //     // let time = dayjs(dateNow).to(dateNext, true);
 
-      setTimeout(timer, 1000 * 60); /* replicate wait 1 second */
-    }
-  }
+  //     setTimeout(timer, 1000 * 60); /* replicate wait 1 second */
+  //   }
+  // }
 
   let secT;
 
   async function secTimer() {
     if (secToNext.value >= 1) {
+      questionsStore.timerShortQuestionsRuns = true;
       secToNext.value = secToNext.value - 1;
 
       secT = window.setTimeout(secTimer, 1000); /* replicate wait 1 second */
+    } else {
+      questionsStore.timerShortQuestionsRuns = false;
     }
   }
 
@@ -188,17 +199,17 @@
 
   async function initDate() {
     // let lastShortAnswer = await questionsStore.getLastShortAnswer();
-    let lastShortAnswer = questionsStore.lastQuestionShort;
+    let lastShortAnswer = questionsStore.lastShortAnswer;
     if (lastShortAnswer != undefined) {
       dateNow.value = dayjs();
       dateLast.value = dayjs(lastShortAnswer);
-      dateNext.value = dayjs(dateLast.value).add(1, 'minute');
-      minToNext.value = dateNext.value.diff(dateNow.value, 'm');
+      dateNext.value = dayjs(dateLast.value).add(2, 'minute');
+      // minToNext.value = dateNext.value.diff(dateNow.value, 'm');
       secToNext.value = dateNext.value.diff(dateNow.value, 's');
       console.log('Home - timer - lastShortAnswer', lastShortAnswer);
       console.log('Home - timer - dateLast', dateLast.value);
       console.log('Home - timer - dateNext', dateNext.value);
-      timer();
+      // timer();
 
       clearTimeout(secT);
       secTimer();
@@ -208,7 +219,7 @@
   onMounted(async () => {
     questionsStore.checkIfInitalAnswerExists();
     initDate();
-    questionsStore.countShortAnswers();
+    // questionsStore.countShortAnswers();
   });
 </script>
 

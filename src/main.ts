@@ -27,6 +27,24 @@ import '@ionic/vue/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 import './assets/styles/main.css';
+// import { SplashScreen } from '@capacitor/splash-screen';
+
+// async function initSplash() {
+//   // Hide the splash (you should do this on app launch)
+//   await SplashScreen.hide();
+
+//   // // Show the splash for an indefinite amount of time:
+//   // await SplashScreen.show({
+//   //   autoHide: false,
+//   // });
+
+//   // Show the splash for two seconds and then automatically hide it:
+//   await SplashScreen.show({
+//     showDuration: 2000,
+//     autoHide: true,
+//   });
+// }
+// initSplash();
 
 const options = {
   animated: false,

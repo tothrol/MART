@@ -68,8 +68,8 @@
   const questionsStore = useQuestionsStore();
 
   function updateShort() {
-    questionsStore.getLastShortAnswer();
-    questionsStore.countShortAnswers();
+    // questionsStore.getLastShortAnswer();
+    // questionsStore.countShortAnswers();
   }
 </script>
 

@@ -48,27 +48,26 @@
   }
 
   async function login() {
-    console.log('LoginPage - 1');
+    console.log('LoginPage - login');
     const response = await userStore.login(
       loginData.value.name,
       loginData.value.password,
       loginData.value.uniqueUserId
     );
-    console.log('LoginPage - 2');
-    console.log('LoginPage - response', response);
+
+    console.log('LoginPage - login - response', response);
     if (response.status == 200) {
       console.log('LoginPage - 3');
 
-      const initialAnswerResponse =
-        await questionsStore.checkIfInitalAnswerExists();
-      if (initialAnswerResponse.status == 200) {
-        console.log('LoginPage - 4', initialAnswerResponse);
-        console.log('LoginPage - Before Route -', userStore.userData.token);
-        if (userStore.complianceAccepted === false) {
-          router.push('/welcome');
-        } else {
-          router.push('/home');
-        }
+      // const initialAnswerResponse =
+      // await questionsStore.checkIfInitalAnswerExists();
+      if (questionsStore.initialAnswerExist === true) {
+        console.log('LoginPage - initialAnswerExist === true');
+        // console.log('LoginPage - Before Route -', userStore.userData.token);
+
+        router.push('/home');
+      } else {
+        router.push('/welcome');
       }
     }
   }
@@ -94,7 +93,7 @@
     console.log('Login', isAuth);
 
     if (isAuth == true) {
-      console.log('Login - push', isAuth);
+      console.log('Login - Token exists', isAuth);
       if (userStore.complianceAccepted === false) {
         router.push('/welcome');
       } else {

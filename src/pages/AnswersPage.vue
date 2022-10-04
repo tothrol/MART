@@ -27,15 +27,17 @@
     <div class="devbox" v-if="userStore.showDevbox">
       <ion-button
         color="medium"
-        @click="userStore.showInitial = !userStore.showInitial"
-        >Toggel showInitial</ion-button
-      >{{ userStore.showInitial }}
+        @click="
+          questionsStore.initialAnswerExist = !questionsStore.initialAnswerExist
+        "
+        >Toggel initialAnswerExistl</ion-button
+      >{{ questionsStore.initialAnswerExist }}
 
       <ion-button
         color="medium"
         @click="questionsStore.checkIfInitalAnswerExists"
         >checkIfInitalAnswersExists</ion-button
-      >{{ userStore.showInitial }}
+      >{{ questionsStore.initialAnswerExist }}
     </div>
   </base-layout>
 </template>

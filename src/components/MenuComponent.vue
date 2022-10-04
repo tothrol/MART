@@ -73,5 +73,6 @@
   .menu_entry {
     text-decoration: none;
     padding: 5px 0px;
+    font-weight: 400;
   }
 </style>

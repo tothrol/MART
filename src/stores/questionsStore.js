@@ -19,7 +19,10 @@ export const useQuestionsStore = defineStore('questionsStore', {
       batteriesShort: {},
       scalesShort: {},
 
-      lastQuestionShort: '',
+      initialAnswerExist: false,
+      timerShortQuestionsRuns: false,
+
+      lastShortAnswer: '',
       todayShortAnswers: 0,
       totalShortAnswers: 0,
     };
@@ -30,7 +33,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
         .get(`https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen`)
         .then((response) => {
           // JSON responses are automatically parsed.
-          console.log('RRRRR', response);
+          // console.log('RRRRR', response);
 
           const questions = response.data[1].acf.questionsRepeater;
           const batteries = response.data[1].acf.batteries;
@@ -60,13 +63,13 @@ export const useQuestionsStore = defineStore('questionsStore', {
     async sendInitialAnswers(answers) {
       // try {
       this.showSpinner = true;
-      console.log('questionsStore - sendInitialAnswers - answers', answers);
+      // console.log('questionsStore - sendInitialAnswers - answers', answers);
 
       const userStore = useUserStore();
-      console.log(
-        'questionsStore - sendInitialAnswers - answers - user',
-        userStore.userData
-      );
+      // console.log(
+      //   'questionsStore - sendInitialAnswers - answers - user',
+      //   userStore.userData
+      // );
       const token = userStore.userData.token;
 
       const answersString = JSON.stringify(answers);
@@ -89,8 +92,8 @@ export const useQuestionsStore = defineStore('questionsStore', {
           dateLong: dateLong,
           uniqueUserId: userStore.uniqueUserId,
         },
-        slug: `${userStore.userData.username}_${today}_${now}`,
-        title: `${userStore.userData.username}_${today}_${now}`,
+        slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${now}`,
+        title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${now}`,
         status: 'publish',
         meta: {
           uniqueUserId: userStore.uniqueUserId,
@@ -105,14 +108,19 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
       // JSON responses are automatically parsed.
 
-      console.log('questionsStore - sendInitialAnswers - response', response);
+      // console.log('questionsStore - sendInitialAnswers - response', response);
 
       if (response.status === 201) {
-        console.log('questionsStore - sendInitialAnswers - response = 201');
-        userStore.showQuestions = true;
+        // console.log('questionsStore - sendInitialAnswers - response = 201');
+        // userStore.showQuestions = true;
+
+        this.initialAnswerExist = true;
+        const storage = new Storage();
+        await storage.create();
+        await storage.set('initialAnswerExist', true);
       } else {
         // Error handling here
-        console.log('questionsStore - sendInitialAnswers - response = NOT 201');
+        // console.log('questionsStore - sendInitialAnswers - response = NOT 201');
       }
 
       return response;
@@ -133,10 +141,12 @@ export const useQuestionsStore = defineStore('questionsStore', {
     },
     async checkIfInitalAnswerExists() {
       const userStore = useUserStore();
-      console.log(
-        'questionsStore - checkIfInitalAnswersExists - userID',
-        userStore.uniqueUserId
-      );
+      const storage = new Storage();
+      await storage.create();
+      // console.log(
+      //   'questionsStore - checkIfInitalAnswersExists - userID',
+      //   userStore.uniqueUserId
+      // );
 
       if (userStore.uniqueUserId === 'startId') {
         console.log('UNIQUE USER ID = startId');
@@ -147,17 +157,15 @@ export const useQuestionsStore = defineStore('questionsStore', {
             `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_initial/?meta_key=uniqueUserId&meta_value=${userStore.uniqueUserId}`
           );
 
-          console.log(
-            'questionsStore - checkIfInitalAnswersExists - response',
-            response
-          );
+          // console.log(
+          //   'questionsStore - checkIfInitalAnswersExists - response',
+          //   response
+          // );
           if (response.data.length >= 1) {
-            userStore.showInitial = false;
-            userStore.showQuestions = true;
-            console.log(
-              'questionsStore - checkIfInitalAnswersExists - DOES EXIST -  userStore.showInitial',
-              userStore.showInitial
-            );
+            userStore.initialAnswerExist = true;
+
+            await storage.set('initialAnswerExist', true);
+            // userStore.showQuestions = true;
 
             return new Promise((resolve) => {
               // if (response.status == 200) {
@@ -165,11 +173,9 @@ export const useQuestionsStore = defineStore('questionsStore', {
               // }
             });
           } else {
-            userStore.showInitial = true;
-            console.log(
-              'questionsStore - checkIfInitalAnswersExists - DOES NOT Exist - userStore.showInitial',
-              userStore.showInitial
-            );
+            userStore.initialAnswerExist = false;
+            await storage.set('initialAnswerExist', false);
+
             return new Promise((resolve) => {
               // if (response.status == 200) {
               resolve(response);
@@ -235,25 +241,25 @@ export const useQuestionsStore = defineStore('questionsStore', {
             };
           }
 
-          console.log(
-            'questionsStore - getShortQuestions - response',
-            response
-          );
+          // console.log(
+          //   'questionsStore - getShortQuestions - response',
+          //   response
+          // );
 
           return;
         })
         .catch((e) => {
-          console.log('questionsStore - getShortQuestions - error', e);
+          // console.log('questionsStore - getShortQuestions - error', e);
           return e;
         });
     },
     async sendShortAnswers(answers) {
       // try {
       this.showSpinner = true;
-      console.log('questionsStore - sendShortAnswers - answers', answers);
+      // console.log('questionsStore - sendShortAnswers - answers', answers);
       const userStore = useUserStore();
       const token = userStore.userData.token;
-      console.log('questionsStore - sendShortAnswers - token', token);
+      // console.log('questionsStore - sendShortAnswers - token', token);
 
       const answersString = JSON.stringify(answers);
 
@@ -277,8 +283,8 @@ export const useQuestionsStore = defineStore('questionsStore', {
           dateLong_k: dateLong,
           uniqueUserId_k: userStore.uniqueUserId,
         },
-        slug: `${userStore.userData.username}_${today}_${now}`,
-        title: `${userStore.userData.username}_${today}_${now}`,
+        slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${now}`,
+        title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${now}`,
         status: 'publish',
         meta: {
           uniqueUserId: userStore.uniqueUserId,
@@ -296,27 +302,28 @@ export const useQuestionsStore = defineStore('questionsStore', {
       console.log('questionsStore - sendShortAnswers - response', response);
 
       if (response.status === 201) {
-        this.lastQuestionShort = dateLong;
+        console.log('sendShortAnswers - response = 201');
+        this.lastShortAnswer = dateLong;
         const storage = new Storage();
         await storage.create();
-        await storage.set('lastShortQuestion', dateLong);
+        await storage.set('lastShortAnswer', dateLong);
         this.todayShortAnswers++;
+        await storage.set('todayShortAnswers', this.todayShortAnswers);
+        this.totalShortAnswers++;
+        await storage.set('totalShortAnswers', this.totalShortAnswers);
 
-        this.lastQuestionShort = dateLong;
-        console.log();
-
-        await storage.create();
-        await storage.set('lastShortQuestion', dateLong);
+        this.lastShortAnswer = dateLong;
       }
-      await this.countShortAnswers();
+      // await this.countShortAnswers();
 
       return response;
     },
     todayShortPlus() {
+      // For Testing
       this.todayShortAnswers++;
 
       const dateLong = dayjs().format();
-      this.lastQuestionShort = dateLong;
+      this.lastShortAnswer = dateLong;
     },
     async getLastShortAnswer() {
       const userStore = useUserStore();
@@ -332,27 +339,24 @@ export const useQuestionsStore = defineStore('questionsStore', {
         console.log('questionsStore - getLastShortAnswer - response', response);
 
         if (response.status === 200) {
-          this.lastQuestionShort = response.data[0].acf.dateLong_k;
+          this.lastShortAnswer = response.data[0].acf.dateLong_k;
           const storage = new Storage();
           await storage.create();
-          await storage.set(
-            'lastShortQuestion',
-            response.data[0].acf.dateLong_k
-          );
+          await storage.set('lastShortAnswer', response.data[0].acf.dateLong_k);
 
-          if (response.data[0].acf.dateLong_k) {
-            // above write if statement to check if 30min over
-            if (userStore.showInitial == true) {
-              userStore.showQuestions = false;
-            } else {
-              userStore.showQuestions = true;
-            }
-          }
+          // if (response.data[0].acf.dateLong_k) {
+          //   // above write if statement to check if 30min over
+          //   if (userStore.initialAnswerExist == true) {
+          //     userStore.showQuestions = true;
+          //   } else {
+          //     userStore.showQuestions = false;
+          //   }
+          // }
           return new Promise((resolve) => {
-            console.log(
-              'questionsStore - getLastShortAnswer - resolve',
-              response
-            );
+            // console.log(
+            //   'questionsStore - getLastShortAnswer - resolve',
+            //   response
+            // );
             resolve(response.data[0].acf.dateLong_k);
             // }
           });
@@ -384,16 +388,15 @@ export const useQuestionsStore = defineStore('questionsStore', {
         let counter = 0;
 
         const today = dayjs().format('DD.MM.YY');
-        console.log('questionStore - Today ;:', today);
 
         for (const post of response.data) {
           const postDay = dayjs(post.acf.dateLong_k).format('DD.MM.YY');
-          console.log('questionStore - PostDay ;:', postDay);
+
           if (today === postDay) {
             counter++;
           }
         }
-        console.log('questionStore - counter :', counter);
+
         this.todayShortAnswers = counter;
 
         return new Promise((resolve) => {
