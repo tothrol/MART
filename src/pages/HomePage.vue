@@ -58,6 +58,9 @@
       >
     </Transition>
     <div class="devbox" v-if="userStore.showDevbox">
+      <ion-button color="medium" @click="statsStore.getStats"
+        >get Stats</ion-button
+      >
       <ion-button color="medium" @click="questionsStore.todayShortPlus"
         >shortanswer ++</ion-button
       >
@@ -93,6 +96,7 @@
   import { reactive, watch } from 'vue';
   import { ref, onMounted, computed } from 'vue';
   import { useUserStore } from '@/stores/userStore';
+  import { useStatsStore } from '@/stores/statsStore';
   import { useQuestionsStore } from '@/stores/questionsStore';
   import messageBoxComponent from '@/components/MessageboxComponent.vue';
   import MessageboxComponent from '../components/MessageboxComponent.vue';
@@ -102,6 +106,7 @@
   import { App } from '@capacitor/app';
 
   const userStore = useUserStore();
+  const statsStore = useStatsStore();
   const questionsStore = useQuestionsStore();
 
   let showMessage = ref(false);
