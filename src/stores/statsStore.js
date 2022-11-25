@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import { validValue } from '../composables/ValidValue';
 import axios from 'axios';
 import { echo } from 'echo';
+import { useUserStore } from '@/stores/userStore';
+// import { useQuestionsStore } from '@/stores/questionsStore';
 // import cordova from 'cordova';
 // import getUsageStatistics from 'cordova-plugin-usage-stats-manager';
 // import { Storage } from '@ionic/storage';
@@ -13,42 +15,124 @@ export const useStatsStore = defineStore('statsStore', {
     return {};
   },
   actions: {
-    async getStats() {
-      console.log('getStats');
-      // queryUsageStats('test');
-      // queryUsageStats('tt');
-      // let stats = await echo.echo({ value: 'test' });
+    // getStats from Android
+    async getStats(today, time, dateLong) {
+      try {
+        console.log('getStats');
 
-      let permission = await echo.checkForUsageStatsPermission();
-      console.log('STATSPermission', permission);
-      let stats = await echo.getStats();
+        let permission = await echo.checkForUsageStatsPermission();
 
-      // let statsString = JSON.stringify(stats).replace(/\\/g, '');
-      // let statsString2 = statsString.replace;
-      // console.log('STATS 1: ' + stats);
-      // console.log('STATS 2: ' + stats.androidUsageStats);
+        // queryUsageStats
+        console.log('STATSPermission', permission);
+        let queryUsageStats = await echo.getStats();
+        // console.log('queryUsageStats - stats: ', queryUsageStats);
+        let queryUsageStatsJSON = JSON.parse(queryUsageStats.androidUsageStats);
+        let queryUsageStatsStringify = JSON.stringify(queryUsageStatsJSON);
+        // console.log('queryUsageStats - parse: ', queryUsageStatsJSON);
 
-      // let myObject = JSON.parse(stats.androidUsageStats);
-      // console.log('STATS 6: ' + myObject);
+        // delete first and last letter which is "
+        let queryUsageStatsString = queryUsageStatsStringify.substring(
+          1,
+          queryUsageStatsStringify.length - 1
+        );
+        console.log('queryUsageStats - string: ', queryUsageStatsString);
+        // END queryUsageStats
 
-      let newString = stats.androidUsageStats.slice(
-        2,
-        stats.androidUsageStats.length - 2
+        // queryEventStats
+        let queryEventStats = await echo.getEventStats();
+        // console.log('getEventStats - stats: ', queryEventStats);
+        let queryEventStatsJSON = JSON.parse(queryEventStats.androidEventStats);
+        let queryEventStatsStringify = JSON.stringify(queryEventStatsJSON);
+        // console.log('getEventStats - parse: ', queryEventStatsJSON);
+        // console.log('getEventStats - stringify: ', queryEventStatsStringify);
+
+        let queryEventStatsString = queryEventStatsStringify.substring(
+          1,
+          queryEventStatsStringify.length - 1
+        );
+        console.log('getEventStats - string: ', queryEventStatsString);
+        // End queryEventStats
+
+        // for (let i = 0; i<= queryEventStatsJSON.length(); i++){
+        //   queryEventStatsString += ' ';
+        //   queryEventStatsString += '|';
+
+        // }
+
+        await this.sendStatistics(
+          today,
+          time,
+          dateLong,
+          queryUsageStatsString,
+          queryEventStatsString
+        );
+
+        return new Promise((resolve) => {
+          // if (response.status == 200) {
+          resolve('Stats were send');
+          // }
+        });
+      } catch (e) {
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          reject(e);
+          // }
+        });
+      }
+    },
+
+    async sendStatistics(
+      today,
+      time,
+      dateLong,
+      queryUsageStatsString,
+      queryEventStatsString
+    ) {
+      const userStore = useUserStore();
+      // const statsStore = useStatsStore();
+
+      const token = userStore.userData.token;
+
+      // const queryUsageStatsString = queryUsageStats.toString();
+      // const queryEventStatsString = queryEventStats.toString();
+
+      const config = {
+        headers: { Authorization: `Bearer ${token}` },
+      };
+
+      const body = {
+        acf: {
+          userIdStats: userStore.userData.id,
+          queryUsageStats: queryUsageStatsString,
+          queryEventStats: queryEventStatsString,
+          userNameStats: userStore.userData.username,
+          dateStats: today,
+          timeStats: time,
+          dateLongStats: dateLong,
+          uniqueUserIdStats: userStore.uniqueUserId,
+        },
+        slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
+        title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
+        status: 'publish',
+        meta: {
+          uniqueUserId: userStore.uniqueUserId,
+        },
+      };
+
+      const response = await axios.post(
+        `https://fuberlin.nvii-dev.com/wp-json/wp/v2/nutzungsstatistik`,
+        body,
+        config
       );
-      // console.log('STATS 1: ', newString);
 
-      let statsArray = newString.split('},{');
-      console.log('STATS 2: ', statsArray);
-      // console.log('STATS 3: ', statsArray[1]);
+      // JSON responses are automatically parsed.
 
-      // let statsString = newString.replace(/({})/g, '');
-      // console.log('STATS 8: ' + statsString);
+      console.log('questionsStore - sendShortAnswers - response', response);
 
-      // var newJson = stats.replace(/([a-zA-Z0-9]+?):/g, '"$1":');
-      // newJson = newJson.replace(/'/g, '"');
-
-      // var data = JSON.parse(newJson);
-      // console.log('STATS 7: ' + data);
+      if (response.status === 201) {
+        console.log('questionsStore - sendShortAnswers - response', response);
+        return response;
+      }
     },
   },
   getters: {},

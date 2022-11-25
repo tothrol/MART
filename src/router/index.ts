@@ -10,6 +10,7 @@ import DayJS from '../pages/examples/DayJSPage.vue';
 import QuestionsInitial from '../pages/QuestionsInitialPage.vue';
 import QuestionsShort from '../pages/QuestionsShortPage.vue';
 import Answers from '../pages/AnswersPage.vue';
+import Statistics from '../pages/StatisticsPage.vue';
 import Success from '../pages/SuccessPage.vue';
 import Welcome from '../pages/WelcomePage.vue';
 import Compliance from '../pages/CompliancePage.vue';
@@ -51,6 +52,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/answers',
     component: Answers,
+  },
+  {
+    path: '/statistics',
+    component: Statistics,
   },
   {
     path: '/user',

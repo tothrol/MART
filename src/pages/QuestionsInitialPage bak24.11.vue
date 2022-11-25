@@ -1,0 +1,1111 @@
+<template>
+  <base-layout ref="baseComp" :fullscreen="true">
+    <div class="wrapper_h100">
+      <div class="sheets">
+        <TransitionGroup name="list">
+          <li
+            class="sheet"
+            v-if="
+              currentSheet != Object.keys(sheets).length &&
+              activeSheet != undefined
+            "
+          >
+            <div class="dev" @click="shortcut()">set answers</div>
+            <div
+              class="progress"
+              v-if="activeSheet != undefined && activeSheet.item != undefined"
+            >
+              {{ activeSheet.randomOrder }}/{{ Object.keys(questions).length }}
+              <span
+                class="development grey display_none"
+                v-if="
+                  activeSheet != undefined && activeSheet.itemId != undefined
+                "
+                >(ItemId: {{ activeSheet.itemId }})</span
+              >
+            </div>
+            <div class="timer">Timer: {{ time.toFixed(1) }}</div>
+
+            <div class="development">
+              <div
+                class="display_none"
+                v-if="
+                  activeSheet != undefined && activeSheet.itemId != undefined
+                "
+              >
+                activeSheet:
+                {{}}, activeSheet.itemId:
+                {{ activeSheet.itemId }}
+              </div>
+            </div>
+            <p class="item_text" v-if="activeSheet.item">
+              <span v-html="activeSheet.randomOrder"></span>.
+              <span
+                style="white-space: pre-line"
+                v-html="activeSheet.item"
+              ></span>
+            </p>
+
+            <p
+              style="white-space: pre-line"
+              class="battery_text"
+              v-if="activeSheet.batteryText"
+              v-html="activeSheet.batteryText"
+            ></p>
+            <p
+              style="white-space: pre-line"
+              class="battery_text"
+              v-if="activeSheet.text"
+              v-html="activeSheet.text"
+            ></p>
+            <div
+              class="timer3"
+              v-if="
+                activeSheet != undefined &&
+                activeSheet.itemId != undefined &&
+                activeSheet.itemId == 99
+              "
+            >
+              <div class="timer" v-if="showTimer3 && showNext == false">
+                {{ time3.toFixed(1) }}
+              </div>
+            </div>
+            <!-- Dropdown -->
+            <div
+              class="number"
+              v-if="currentScaleMeta && currentScaleMeta[0] === 'dropdown'"
+            >
+              <select
+                class="dropdown"
+                :id="`${activeSheet.itemId}_${
+                  scales[activeSheet.scaleId].scaleRepeater.value
+                }`"
+                type="number"
+                :name="`${activeSheet.itemId}`"
+                v-model="answers.entries[activeSheet.scaleId]"
+              >
+                <option v-for="n in getRange(1900, 2010)" :key="n">
+                  {{ n }}
+                </option>
+              </select>
+            </div>
+            <!-- END Dropdown -->
+            <!-- Number input -->
+            <div
+              class="number"
+              v-if="currentScaleMeta && currentScaleMeta[0] === 'number'"
+            >
+              <input
+                :class="activeSheet.itemId === 9 ? 'no_margin_right' : ''"
+                :id="`${activeSheet.itemId}_${
+                  scales[activeSheet.scaleId].scaleRepeater.value
+                }`"
+                :name="`${activeSheet.itemId}`"
+                :value="answers.entries[activeSheet.itemId]"
+                @input="validateNrInput($event.target, activeSheet.itemId)"
+                min="0"
+                max="999"
+                :maxlength="currentScaleMeta[1]"
+                type="number"
+              />
+              <span class="minuten" v-if="activeSheet.itemId === 9"
+                >Minuten</span
+              >
+            </div>
+            <!-- END Number input -->
+            <!-- Range Slider -->
+            <div
+              class="range_slider_wrapper"
+              v-if="currentScaleMeta && currentScaleMeta[0] === 'slider'"
+            >
+              <div
+                class="display_none"
+                v-html="scales[currentScaleId].scaleRepeater[0].key"
+              ></div>
+              <div class="range_slider_current_value">
+                <span
+                  class="questionOneState"
+                  v-if="answers.entries[activeSheet.itemId] != undefined"
+                >
+                  {{ answers.entries[activeSheet.itemId] }}%</span
+                >
+              </div>
+
+              <input
+                class="range_slider"
+                :id="`${activeSheet.itemId}_${
+                  scales[activeSheet.scaleId].scaleRepeater.value
+                }`"
+                type="range"
+                :min="currentScaleMeta[1]"
+                :max="currentScaleMeta[2]"
+                step="1"
+                :name="`${activeSheet.itemId}`"
+                v-model="answers.entries[activeSheet.itemId]"
+              />
+            </div>
+            <!-- END Range Slider -->
+            <!-- Normal radios -->
+            <div
+              class="radios"
+              v-if="
+                activeSheet != undefined &&
+                activeSheet.item != undefined &&
+                activeSheet.scaleId != 1 &&
+                activeSheet.scaleId != 6 &&
+                currentScaleMeta[0] != 'slider' &&
+                currentScaleMeta[0] != 'multiple'
+              "
+            >
+              <fieldset class="radio_fieldset">
+                <div
+                  :class="`radio ${activeSheet.scaleId} ${input.value}`"
+                  v-for="(input, index) in scales[activeSheet.scaleId]
+                    .scaleRepeater"
+                  :key="input.value"
+                  v-show="
+                    activeSheet.scaleId !== 10 ||
+                    (activeSheet.scaleId === 10 && input.value !== 11)
+                  "
+                  :style="
+                    currentScaleMeta[0] === 'random' ||
+                    currentScaleMeta[1] === 'random'
+                      ? 'order:' + randomScale[index]
+                      : ''
+                  "
+                >
+                  <input
+                    :id="`${activeSheet.itemId}_${input.value}`"
+                    type="radio"
+                    :value="input.value"
+                    v-model="answers.entries[activeSheet.itemId]"
+                    :disabled="disableInput"
+                  />
+
+                  <label :for="`${activeSheet.itemId}_${input.value}`">{{
+                    input.key
+                  }}</label>
+                </div>
+                <div class="display_none">
+                  answers.entries[activeSheet.itemId] :
+                  {{ answers.entries[activeSheet.itemId] }}
+                </div>
+              </fieldset>
+            </div>
+            <!--END normal radios -->
+            <!-- Multiple radios -->
+            <div
+              class="radios"
+              v-if="
+                activeSheet.item &&
+                activeSheet.scaleId != 1 &&
+                activeSheet.scaleId != 6 &&
+                currentScaleMeta[0] === 'multiple'
+              "
+            >
+              <fieldset>
+                <div
+                  :class="`radio ${activeSheet.scaleId} ${input.value}`"
+                  v-for="input in scales[activeSheet.scaleId].scaleRepeater"
+                  :key="input.key"
+                  v-show="
+                    activeSheet.scaleId !== 10 ||
+                    (activeSheet.scaleId === 10 && input.value !== 11)
+                  "
+                >
+                  <input
+                    :id="input.key"
+                    type="checkbox"
+                    :value="input.value"
+                    v-model="answers.entries[activeSheet.itemId]"
+                  />
+
+                  <label :for="input.key">{{ input.key }}</label>
+                </div>
+                <div class="display_none">
+                  answers.entries[activeSheet.itemId] :
+                  {{ answers.entries[activeSheet.itemId] }}
+                </div>
+              </fieldset>
+            </div>
+            <!--END Multiple radios -->
+            <div class="buttons">
+              <ion-button
+                @click="nextSheet()"
+                color="primary"
+                :disabled="
+                  (answers.entries[activeSheet.itemId] === '' ||
+                    answers.entries[activeSheet.itemId] === undefined) &&
+                  activeSheet.batteryText === undefined &&
+                  activeSheet.text === undefined
+                "
+                v-if="
+                  (activeSheet.itemId != 99 && activeSheet.batteryId != 7) ||
+                  (activeSheet.batteryId == 7 &&
+                    activeSheet.item == undefined) ||
+                  (activeSheet.batteryId == 7 && showNext) ||
+                  (activeSheet.itemId == 99 && showNext)
+                "
+                >weiter</ion-button
+              >
+              <div
+                class="timer3"
+                v-if="
+                  activeSheet != undefined &&
+                  activeSheet.itemId != undefined &&
+                  activeSheet.itemId == 99
+                "
+              >
+                <div class="buttons">
+                  <ion-button v-if="showTimer3 == false" @click="timer3()"
+                    >Ja</ion-button
+                  >
+                </div>
+              </div>
+              <ion-button
+                @click="previousSheet()"
+                color="tertiary"
+                :disabled="disablePreviousButton"
+                v-if="
+                  (activeSheet.batteryId != 7 && activeSheet.itemId != 1) ||
+                  (activeSheet.batteryId == 7 &&
+                    activeSheet.item == undefined) ||
+                  (activeSheet.batteryId == 7 && time <= 0.1 && showNext) ||
+                  (activeSheet.itemId == 99 &&
+                    time3 <= 0.1 &&
+                    showNext &&
+                    time3 >= 2.9)
+                "
+                >zurück</ion-button
+              >
+            </div>
+          </li>
+          <li class="sheet" v-if="currentSheet == Object.keys(sheets).length">
+            <div class="absenden_text">Bereit zum Absenden?</div>
+            <div
+              class="missing_text"
+              v-if="
+                Object.keys(missingFields).length != 0 ||
+                answers.entries[1] === ''
+              "
+            >
+              Es fehlen Angaben zu folgenden Fragen:
+
+              <div class="missing_fields">
+                <span
+                  class="missing_field"
+                  v-for="(key, field) of missingFields"
+                  :key="field"
+                >
+                  {{ key
+                  }}<span
+                    v-if="field != Object.entries(missingFields).length - 1"
+                    >,
+                  </span>
+                </span>
+              </div>
+            </div>
+            <div class="buttons">
+              <ion-button
+                color="primary"
+                @click="sendInitialAnswers()"
+                :disabled="
+                  Object.keys(questions).length !=
+                    Object.keys(answers.entries).length ||
+                  answers.entries[1] === '' ||
+                  Object.keys(answers.entries).length === 0 ||
+                  questionsStore.initialAnswerExist === true
+                "
+                >Fragebogen absenden</ion-button
+              ><ion-button @click="previousSheet()" color="tertiary"
+                >zurück</ion-button
+              >
+            </div>
+          </li>
+        </TransitionGroup>
+      </div>
+    </div>
+    <div class="development devbox" v-if="userStore.showDevbox">
+      <div>
+        <div
+          v-if="activeSheet != undefined && activeSheet.batteryId != undefined"
+        >
+          <div class="">ItemId: {{ activeSheet.itemId }}</div>
+          <div class="">batteryId: {{ activeSheet.batteryId }}</div>
+          <div
+            class=""
+            v-if="batteries[activeSheet.batteryId].batteryName != undefined"
+          >
+            batteryName: {{ batteries[activeSheet.batteryId].batteryName }}
+          </div>
+          <div
+            class=""
+            v-if="batteries[activeSheet.batteryId].batteryMeta != undefined"
+          >
+            batteryMeta: {{ batteries[activeSheet.batteryId].batteryMeta }}
+          </div>
+          attentionTestSheetNr: {{ attentionTestSheetNr }}
+          <div
+            class=""
+            v-if="batteries[activeSheet.batteryId].batteryMeta != undefined"
+          >
+            currentSheet: {{ currentSheet }}
+          </div>
+        </div>
+
+        <ion-button @click="getQuestionsInitial"
+          >Axios get Questions Initial</ion-button
+        >
+        <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
+        <ion-button @click="answers.entries[7] = 6">inputNr.value=6</ion-button>
+      </div>
+      <div>answers.entries: {{ answers.entries }}</div>
+      <div class="spinner" v-if="showSpinner">
+        <ion-spinner name="dots"></ion-spinner>
+      </div>
+      <div>currentSheet: {{ currentSheet }}</div>
+      <input placeholder="currentSheet" type="number" v-model="currentSheet" />
+    </div>
+    <spinner-component v-if="showSpinner"
+      >Daten werden gesendet.</spinner-component
+    >
+  </base-layout>
+</template>
+
+<script setup lang="ts">
+  import { reactive } from 'vue';
+  import { ref, onMounted, computed, watch, nextTick, watchEffect } from 'vue';
+  import { useUserStore } from '@/stores/userStore';
+  import { useQuestionsStore } from '@/stores/questionsStore';
+  import axios from 'axios';
+  import { IonSpinner } from '@ionic/vue';
+  import SpinnerComponent from '@/components/SpinnerComponent.vue';
+  import { useRouter, useRoute } from 'vue-router';
+  import { Storage } from '@ionic/storage';
+
+  const userStore = useUserStore();
+  const questionsStore = useQuestionsStore();
+  const router = useRouter();
+
+  // let questions = ref(questionsStore.questionsInitial);
+  let scales = ref(questionsStore.scalesInitial);
+  let batteries = ref(questionsStore.batteriesInitial);
+  let questions = ref(questionsStore.questionsInitial);
+  let additionalText = ref(questionsStore.additionalTextInitial);
+
+  let answers = reactive({ entries: { 6: [] }, unchangeable: {} });
+
+  let errors = ref({});
+
+  let showSpinner = ref(false);
+
+  let currentSheet = ref(0);
+
+  // let currentScaleId = ref(0)
+
+  // insert scroll from Base Component
+  const baseComp = ref(null);
+  function scroll() {
+    baseComp.value.scrollTop();
+  }
+
+  // End insert scroll from Base Component
+
+  function getRange(start, end) {
+    let arr = [];
+    for (var i = end; i >= start; i--) arr.push(i);
+    console.log('getRange', arr);
+    return arr;
+  }
+
+  async function validateNrInput(target: any, itemId: any) {
+    const value = target.value;
+    console.log('target', target);
+    console.log('target.maxlength', target.getAttribute('maxlength'));
+    console.log('itemId', itemId);
+
+    if (value.length <= target.getAttribute('maxlength')) {
+      console.log('value <=', value);
+      answers.entries[itemId] = value;
+    } else {
+      target.value = answers.entries[itemId];
+    }
+  }
+
+  function disableNumberInput() {
+    if (String(answers.entries[7]).length >= 3) {
+      console.log('disableNumberInput');
+      return true;
+    } else return false;
+  }
+
+  function nextSheet() {
+    if (currentSheet.value <= Object.keys(sheets.value).length) {
+      currentSheet.value++;
+      scroll();
+    }
+    if (currentScaleId.value === 10) {
+      // Might start the timer even though its already the scaleId 8 as thes gets triggert on nextSheet click
+      console.log(
+        'QuestionInitialPage - nextSheet - call To Timer',
+        time.value
+      );
+      // // setting timerStopped to true to stop the looping
+      // timerStopped.value = true;
+      // // setting timerStopped to false to allow the looping
+      // // It works here coz
+      // timerStopped.value = false;
+      if (
+        activeSheet.value != undefined &&
+        activeSheet.value.itemId != undefined &&
+        answers.unchangeable[activeSheet.value.itemId] === undefined
+      ) {
+        time.value = 5;
+        timer();
+      }
+    }
+    if (
+      activeSheet.value != undefined &&
+      activeSheet.value.itemId != undefined &&
+      activeSheet.value.itemId == 99
+    ) {
+      time3.value = 3;
+    }
+  }
+
+  function previousSheet() {
+    currentSheet.value > 0 && currentSheet.value--;
+  }
+
+  // onMounted(() => {});
+
+  function getQuestionsInitial() {
+    questionsStore.getInitialQuestions();
+  }
+  getQuestionsInitial();
+
+  // get a random number to put in Attention test Question
+  let attentionTestSheetNr = computed(() => {
+    let questionLength = Object.entries(questionsStore.questionsInitial).length;
+    let nr;
+
+    console.log('attentionTestSheetNr - questionLength: ', questionLength);
+
+    nr = Math.floor(Math.random() * questionLength - 2) + 2;
+    console.log('attentionTestSheetNr: ', nr);
+
+    return nr;
+  });
+
+  // END get a random number to put in Attention test Question
+
+  let sheets = computed(() => {
+    let sheetsArray: any = [];
+    let sheets: any = {};
+
+    let lastBatteryId = 1;
+
+    let batteryArray = [];
+    let randomBatteryArray = [];
+
+    if (questionsStore.questionsInitial) {
+      for (let [key, question] of Object.entries(
+        questionsStore.questionsInitial
+      )) {
+        // Looping through all questions
+        if (additionalText.value[question.itemId] != undefined) {
+          // there is a additional text sheet to put infront of current question
+          console.log(
+            'Additional text: ',
+            additionalText.value[question.itemId]
+          );
+          sheetsArray.push(additionalText.value[question.itemId]);
+        }
+        // console.log('QuestionInitialPage - question', question);
+        let currentBatteryId = question.batteryId;
+        if (lastBatteryId != currentBatteryId) {
+          // Its a new battery
+
+          // // randomizing Items of Batterie
+          if (
+            lastBatteryId != currentBatteryId &&
+            (batteries.value[lastBatteryId].batteryMeta === 'items' ||
+              batteries.value[lastBatteryId].batteryMeta === 'items,scale')
+          ) {
+            // there was a battery change and last Battery was a random, we need to randomize the batteryArray and write it to sheets
+
+            randomBatteryArray = shuffle(batteryArray);
+            for (let [key, entry] of Object.entries(randomBatteryArray)) {
+              // entry.randomOrder = randomOrder;
+              console.log(
+                'QuestionInitialPage - RANDOMIZED - entry',
+
+                entry.itemId,
+                entry.item.slice(0, 15)
+              );
+              sheetsArray.push(entry);
+              // randomOrder++;
+            }
+            randomBatteryArray = [];
+            batteryArray = [];
+          }
+
+          if (batteries.value[currentBatteryId].batteryText != '') {
+            // there is a additional battery text sheet to put infront of current question
+
+            sheetsArray.push(batteries.value[currentBatteryId]);
+            if (currentBatteryId == 7) {
+              // Also add additional Timer Sheet
+              sheetsArray.push(additionalText.value[99]);
+            }
+          }
+        }
+
+        if (
+          batteries.value[currentBatteryId] != undefined &&
+          (batteries.value[currentBatteryId].batteryMeta === 'items' ||
+            batteries.value[currentBatteryId].batteryMeta === 'items,scale')
+        ) {
+          // There was No battery change, but current item is a randomized one
+          batteryArray.push(question);
+        } else {
+          // no randomisation
+          // question.randomOrder = randomOrder;
+          console.log(
+            'QuestionInitialPage - NOO- RANDOMIZED - question',
+
+            question.itemId,
+            question.item.slice(0, 15)
+          );
+
+          if (
+            batteries.value[question.batteryId].batteryMeta == 'attentionCheck'
+          ) {
+            // its the last Question which we had put into the array before, so we exit the loop without putting it to the sheetsArray
+            console.log('Found attentionCheck', question);
+            break;
+          }
+          sheetsArray.push(question);
+        }
+
+        // end randomizing Items of Batterie
+        // sheetsArray.push(question);
+
+        lastBatteryId = currentBatteryId;
+      }
+
+      console.log(
+        'QuestionInitialPage - NOO- RANDOMIZED - sheetsArray',
+        sheetsArray
+      );
+
+      // Attention
+      // write attentionQuestion to sheetsArray
+      let questionLength = Object.entries(
+        questionsStore.questionsInitial
+      ).length;
+      console.log('QuestionInitialPage - questionLength', questionLength);
+
+      let attentionQuestion = questionsStore.questionsInitial[questionLength];
+      console.log('QuestionInitialPage - sheetsArray', sheetsArray);
+      console.log(
+        'QuestionInitialPage - attentionQuestion',
+
+        attentionQuestion
+      );
+
+      console.log('QuestionInitialPage - sheetsArray', sheetsArray);
+
+      sheetsArray.splice(attentionTestSheetNr.value, 0, attentionQuestion);
+      // End Attention
+
+      console.log('QuestionInitialPage - sheetsArray 2', sheetsArray);
+
+      let randomOrder = 1;
+
+      for (let [key, sheet] of Object.entries(sheetsArray)) {
+        console.log('QuestionInitialPage - key, sheet', key, sheet);
+
+        if (sheet && sheet.item != undefined) {
+          // If sheet is an question, give it an randomOrderId
+          sheet.randomOrder = randomOrder;
+          randomOrder++;
+        }
+        sheets[key] = sheet;
+      }
+      // console.log('QuestionInitialPage - sheets', sheets);
+
+      return sheets;
+    } else return {};
+  });
+
+  // randomizer Function Fisher-Yates
+  function shuffle(array) {
+    var m = array.length,
+      t,
+      i;
+
+    // While there remain elements to shuffle…
+    while (m) {
+      // Pick a remaining element…
+      i = Math.floor(Math.random() * m--);
+
+      // And swap it with the current element.
+      t = array[m];
+      array[m] = array[i];
+      array[i] = t;
+    }
+
+    return array;
+  }
+
+  let randomScale = userStore.randomArray;
+
+  let activeSheet = computed(() => {
+    // let activeSheet: any = {};
+
+    // for (let [key, sheet] of Object.entries(sheets.value)) {
+    //   if (key == currentSheet.value) {
+    //     // This If Statement ensures that only the active enty is in the activeSheet object
+
+    //     activeSheet = sheet;
+    //     console.log('activeSheet', activeSheet);
+    //   }
+    // }
+
+    return sheets.value[currentSheet.value];
+  });
+
+  let currentScaleId = computed(() => {
+    let currentScale = '';
+
+    console.log('Q - activeSheet', activeSheet.value);
+    if (
+      activeSheet.value != undefined &&
+      activeSheet.value.scaleId != undefined
+    ) {
+      currentScale = activeSheet.value.scaleId;
+    }
+
+    return currentScale;
+  });
+
+  // scale
+
+  let currentScaleMeta = ref('');
+
+  watchEffect(() => {
+    console.log('currentScale', currentScaleId.value);
+
+    if (
+      scales.value[currentScaleId.value] != undefined &&
+      scales.value[currentScaleId.value].choiceId != undefined &&
+      scales.value[currentScaleId.value].choiceId != ''
+    ) {
+      console.log('currentScale IF', currentScaleId.value);
+
+      currentScaleMeta.value =
+        scales.value[currentScaleId.value].choiceId.split(',');
+      console.log('currentScaleMeta IF', currentScaleMeta.value);
+    } else {
+      currentScaleMeta.value = '';
+      console.log('currentScaleMeta Else', currentScaleMeta.value);
+    }
+    if (
+      activeSheet.value != undefined &&
+      currentScaleMeta.value &&
+      currentScaleMeta.value[0] === 'slider'
+    ) {
+      console.log('currentScaleMeta ITS Slider');
+      answers.entries[activeSheet.value.itemId] = 50;
+    }
+  });
+
+  // END Scale
+
+  let showTimer = computed(() => {
+    let currentScale = currentScaleId.value;
+    if (currentScale === 10) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+
+  // let showNext = computed(() => {
+  //   if (answers.entries[39]) {
+  //     return true;
+  //   } else {
+  //     return false;
+  //   }
+  // });
+
+  let showNext = ref(false);
+
+  watch(activeSheet, (newValue) => {
+    if (
+      newValue != undefined &&
+      newValue.batteryId != undefined &&
+      newValue.batteryId == 8
+    ) {
+      showNext.value = true;
+    }
+  });
+
+  let showTimer3 = ref(false);
+
+  function setAnswer(itemId, value) {
+    console.log('QuestionInitialPage - setAnswer', itemId, value);
+    if (answers.entries) {
+      answers.entries[itemId] = value;
+    }
+  }
+
+  let missingFields = computed(() => {
+    let fields = [];
+
+    for (let [key, question] of Object.entries(questions.value)) {
+      // console.log('QuestionInitialPage - missingFields', key, question);
+      if (
+        answers.entries[key] === undefined ||
+        answers.entries[key] === '' ||
+        answers.entries[key].length === 0
+      ) {
+        fields.push(key);
+      }
+    }
+
+    return fields;
+  });
+
+  function setAllAnswers() {
+    for (let [key, question] of Object.entries(questions.value)) {
+      // console.log('QuestionInitialPage - setAllAnswers', key, question);
+      if (key == 6) {
+        answers.entries[key] = [1];
+      } else {
+        answers.entries[key] = 1;
+      }
+    }
+  }
+
+  function sendInitialAnswers() {
+    showSpinner.value = true;
+
+    questionsStore.sendInitialAnswers(answers.entries).then((response) => {
+      showSpinner.value = false;
+
+      console.log('QuestionInitialPage - sendInitialAnswers', response);
+      resetAllAnswers();
+      router.replace('/success');
+    });
+  }
+
+  function resetAllAnswers() {
+    // console.log('QuestionShortPage - setAllAnswers', key, question);
+    answers.entries = { 6: [] };
+    answers.unchangeable = {};
+    currentSheet.value = 0;
+  }
+
+  let time = ref(5.0);
+  let time3 = ref(3.0);
+
+  // let timerStopped = ref(false);
+
+  function timer() {
+    console.log('QuestionInitialPage - timer - time', time.value);
+    // if (timerStopped.value === true) {
+    //   // timerStopped gets set to true with click on weiter or zurück
+    //   return;
+    // }
+
+    if (time.value >= 0.1) {
+      time.value = time.value - 0.1;
+      //console.log(timer);
+      setTimeout(timer, 100); /* replicate wait 1 second */
+    } else {
+      nextSheet();
+    }
+  }
+
+  function timer3() {
+    showTimer3.value = true;
+    console.log('QuestionInitialPage - timer - time', time3.value);
+
+    if (time3.value >= 0.1) {
+      time3.value = time3.value - 0.1;
+      //console.log(timer);
+      setTimeout(timer3, 100); /* replicate wait 1 second */
+    } else {
+      nextSheet();
+    }
+  }
+
+  // function stopTimer() {
+  //   // gets triggered by click on weiter or zurück
+  //   timerStopped.value = true;
+
+  //   console.log('QuestionInitialPage - stopTimer');
+  // }
+
+  let disableInput = computed(() => {
+    if (
+      (activeSheet.value != undefined &&
+        currentScaleId.value === 10 &&
+        time.value <= 0.1) ||
+      answers.unchangeable[activeSheet.value.itemId] == true
+    ) {
+      setUnchangeableValue();
+      if (answers.entries[activeSheet.value.itemId] == undefined) {
+        // There was no Input at Timeout
+        setTimeoutValue();
+      }
+      return true;
+    } else return false;
+  });
+
+  function setTimeoutValue() {
+    // There was no Input at Timeout, Value gets set to 11
+    console.log('QuestionInitialPage -setTimeoutValue');
+    if (
+      activeSheet.value != undefined &&
+      activeSheet.value.itemId != undefined
+    ) {
+      answers.entries[activeSheet.value.itemId] = 11;
+    }
+  }
+
+  function setUnchangeableValue() {
+    // ones the value got set, it cant be changed again
+    if (
+      activeSheet.value != undefined &&
+      activeSheet.value.itemId != undefined
+    ) {
+      answers.unchangeable[activeSheet.value.itemId] = true;
+    }
+  }
+
+  let disablePreviousButton = computed(() => {
+    if (time.value > 0.1 && activeSheet.value.scaleId === 10) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+
+  function shortcut() {
+    setAllAnswers();
+    currentSheet.value = 105;
+  }
+</script>
+
+<!-- <style scoped>
+  .wrapper_h100 {
+  }
+
+  .sheets {
+  }
+
+  .buttons {
+    margin-top: auto;
+  }
+  .sheet {
+    padding: 25px 15px;
+    border-radius: 15px;
+    background-color: var(--light_light_grey);
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 80vh;
+  }
+  .radios {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .radio input {
+    appearance: none;
+    border: none;
+    border-radius: 0;
+    font-size: 1em;
+    width: 100%;
+  }
+
+  /* graceful degradation for ie8 */
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: auto;
+    float: left;
+    margin-right: 0.75em;
+    background: transparent;
+    border: none;
+  }
+
+  input[type='checkbox']:checked,
+  input[type='checkbox']:not(:checked),
+  input[type='radio']:checked,
+  input[type='radio']:not(:checked) {
+    background: transparent;
+    position: relative;
+    visibility: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  input[type='checkbox'] + label,
+  input[type='radio'] + label {
+    cursor: pointer;
+  }
+
+  input[type='checkbox']:checked + label::before,
+  input[type='checkbox']:not(:checked) + label::before,
+  input[type='radio']:checked + label::before,
+  input[type='radio']:not(:checked) + label::before {
+    content: ' ';
+    display: inline-block;
+    width: 17px;
+    height: 17px;
+    position: relative;
+
+    border: 1px solid #bbb;
+    background: white;
+    margin-right: 1em;
+    box-shadow: inset 0 1px 1px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  input[type='radio']:checked + label::before,
+  input[type='radio']:not(:checked) + label::before {
+    border-radius: 30px;
+  }
+
+  input[type='checkbox']:hover + label::before,
+  input[type='radio']:hover + label::before {
+    background: #ddd;
+    box-shadow: inset 0 0 0 2px white;
+  }
+
+  input[type='checkbox']:checked + label::before,
+  input[type='radio']:checked + label::before {
+    background: var(--ion-color-primary);
+    /* background: #0a3367ff; */
+    box-shadow: inset 0 0 0 2px white;
+  }
+
+  .radio input {
+    margin-right: 15px;
+    /* color: var(--ion-color-secondary); */
+  }
+  .radio label {
+    color: var(--ion-color-secondary);
+    font-weight: 500;
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-items: center;
+    align-items: center;
+    line-height: 1;
+  }
+
+  .radio,
+  .number {
+    width: auto;
+    background-color: var(--light_grey);
+    margin-bottom: 15px;
+    border-radius: 10px;
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-items: center;
+    align-items: center;
+    line-height: 1;
+  }
+
+  .number > input {
+    border-radius: 5px;
+    border-color: var(--light_grey);
+    box-shadow: none !important;
+    margin-right: auto;
+    margin-left: auto;
+    height: 40px;
+    width: 100px;
+    font-weight: 500;
+    color: var(--ion-color-secondary);
+    text-align: center;
+    background: white;
+  }
+
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .item_text,
+  .battery_text,
+  .absenden_text {
+    font-size: 20px;
+    color: var(--ion-color-primary);
+    font-family: 'Roboto-Slab';
+    margin-bottom: 20px;
+  }
+
+  .missing_text {
+    color: var(--ion-color-secondary);
+    font-weight: 500;
+    font-size: 20px;
+  }
+
+  .missing_fields {
+    margin-top: 20px;
+    margin-bottom: 40px;
+  }
+
+  .progress {
+    margin-right: auto;
+    margin-left: auto;
+    color: var(--ion-color-primary);
+    width: max-content;
+    font-size: 17px;
+    margin-top: 20px;
+    font-weight: 500;
+  }
+
+  fieldset {
+    border: none;
+  }
+
+  .list-leave-active {
+    transition: all 0s ease;
+  }
+  .list-enter-active {
+    transition: all 0.3s ease;
+  }
+  .list-enter-from,
+  .list-leave-to {
+    opacity: 0;
+    /* transform: translateX(30px); */
+  }
+
+  .timer {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: 500;
+    color: var(--ion-color-secondary);
+    font-size: 20px;
+  }
+
+  .display_none {
+    display: none;
+  }
+</style> -->
+
+<style scoped>
+  .buttons {
+    position: sticky !important;
+  }
+</style>

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { validValue } from '../composables/ValidValue';
 import { useUserStore } from '@/stores/userStore';
+import { useStatsStore } from '@/stores/statsStore';
 import axios from 'axios';
 import { toDisplayString } from 'vue';
 import dayjs from 'dayjs';
@@ -9,12 +10,13 @@ import { Storage } from '@ionic/storage';
 export const useQuestionsStore = defineStore('questionsStore', {
   state: () => {
     return {
+      sheetsInitial: {},
       questionsInitial: {},
-
       batteriesInitial: {},
       scalesInitial: {},
       additionalTextInitial: {},
 
+      sheetsShort: {},
       questionsShort: {},
       batteriesShort: {},
       scalesShort: {},
@@ -35,13 +37,18 @@ export const useQuestionsStore = defineStore('questionsStore', {
           // JSON responses are automatically parsed.
           // console.log('RRRRR', response);
 
-          const questions = response.data[1].acf.questionsRepeater;
-          const batteries = response.data[1].acf.batteries;
-          const scales = response.data[1].acf.scalesRepeater;
-          const additionalText = response.data[1].acf.additionalText;
+          const sheets = response.data[0].acf.questionsRepeater;
+          const batteries = response.data[0].acf.batteries;
+          const scales = response.data[0].acf.scalesRepeater;
+          const additionalText = response.data[0].acf.additionalText;
 
-          for (const question of questions) {
-            this.questionsInitial[question.itemId] = question;
+          for (let i = 0; i < sheets.length; i++) {
+            this.sheetsInitial[i + 1] = sheets[i];
+          }
+
+          for (const sheet of sheets) {
+            if (sheet.itemId != undefined && sheet.itemId != '')
+              this.questionsInitial[sheet.itemId] = sheet;
           }
           for (const battery of batteries) {
             this.batteriesInitial[battery.batteryId] = battery;
@@ -79,7 +86,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
       };
 
       const today = dayjs().format('DD.MM.YYYY');
-      const now = dayjs().format('HH:mm');
+      const time = dayjs().format('HH:mm');
       const dateLong = dayjs().format();
 
       const body = {
@@ -87,13 +94,13 @@ export const useQuestionsStore = defineStore('questionsStore', {
           userId: userStore.userData.id,
           userName: userStore.userData.username,
           date: today,
-          time: now,
+          time: time,
           answers: answersString,
           dateLong: dateLong,
           uniqueUserId: userStore.uniqueUserId,
         },
-        slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${now}`,
-        title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${now}`,
+        slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
+        title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
         status: 'publish',
         meta: {
           uniqueUserId: userStore.uniqueUserId,
@@ -122,6 +129,12 @@ export const useQuestionsStore = defineStore('questionsStore', {
         // Error handling here
         // console.log('questionsStore - sendInitialAnswers - response = NOT 201');
       }
+
+      const statsStore = useStatsStore();
+
+      await statsStore.getStats(today, time, dateLong);
+
+      // await this.sendStatistics(today, time, dateLong);
 
       return response;
 
@@ -203,18 +216,50 @@ export const useQuestionsStore = defineStore('questionsStore', {
             response
           );
 
-          const questions = response.data[1].acf.questionRepeater_k;
-          const batteries = response.data[1].acf.batteries_k;
-          const scales = response.data[1].acf.scalesRepeater_k;
+          const sheets = response.data[0].acf.questionRepeater_k;
+          const batteries = response.data[0].acf.batteries_k;
+          const scales = response.data[0].acf.scalesRepeater_k;
 
-          for (const question of questions) {
-            this.questionsShort[question.itemId_k] = {
-              batteryId: question.batteryId_k,
-              choiceId: question.choiceId_k,
-              itemId: question.itemId_k,
-              item: question.item_k,
-              scaleId: question.skaleId_k,
-            };
+          console.log(
+            'questionsStore - getShortQuestions - response ---',
+            response
+          );
+
+          console.log('questionsStore - getShortQuestions - sheets', sheets);
+
+          // this.sheetsShort = sheets;
+          // let i = 0;
+          // sheets.forEach(function (item, index) {
+          //   i++;
+
+          //   console.log(
+          //     'questionsStore - getShortQuestions - sheet',
+          //     item,
+          //     index,
+          //     i
+          //   );
+          //   this.sheetsShort[item.itemId_k] = item;
+          // });
+
+          for (let i = 0; i < sheets.length; i++) {
+            this.sheetsShort[i + 1] = sheets[i];
+          }
+
+          console.log(
+            'questionsStore - getShortQuestions - sheetsShort',
+            this.sheetsShort
+          );
+
+          for (const sheet of sheets) {
+            if (sheet.itemId_k != undefined && sheet.itemId_k != '') {
+              this.questionsShort[sheet.itemId_k] = {
+                batteryId: sheet.batteryId_k,
+                choiceId: sheet.choiceId_k,
+                itemId: sheet.itemId_k,
+                item: sheet.item_k,
+                scaleId: sheet.skaleId_k,
+              };
+            }
           }
           for (const battery of batteries) {
             this.batteriesShort[battery.batteryId_k] = {
@@ -264,7 +309,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
       const answersString = JSON.stringify(answers);
 
       const today = dayjs().format('DD.MM.YYYY');
-      const now = dayjs().format('HH:mm');
+      const time = dayjs().format('HH:mm');
       const dateLong = dayjs().format();
       console.log('DateLong', dateLong);
 
@@ -276,15 +321,14 @@ export const useQuestionsStore = defineStore('questionsStore', {
         acf: {
           userId_k: userStore.userData.id,
           answers_k: answersString,
-          userId: userStore.userData.id,
           userName_k: userStore.userData.username,
           date_k: today,
-          time_k: now,
+          time_k: time,
           dateLong_k: dateLong,
           uniqueUserId_k: userStore.uniqueUserId,
         },
-        slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${now}`,
-        title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${now}`,
+        slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
+        title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
         status: 'publish',
         meta: {
           uniqueUserId: userStore.uniqueUserId,
@@ -315,6 +359,12 @@ export const useQuestionsStore = defineStore('questionsStore', {
         this.lastShortAnswer = dateLong;
       }
       // await this.countShortAnswers();
+
+      const statsStore = useStatsStore();
+
+      await statsStore.getStats(today, time, dateLong);
+
+      // await this.sendStatistics(today, time, dateLong);
 
       return response;
     },

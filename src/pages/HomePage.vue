@@ -6,7 +6,7 @@
           Teilnehmer Id: <span class="big">{{ userStore.uniqueUserId }}</span>
         </div>
         <div class="total_nr_answers">
-          Insgesammt ausgefüllte Fragebögen:
+          Insgesamt ausgefüllte Fragebögen:
           <span class="big">{{ questionsStore.totalShortAnswers }}</span>
         </div>
         <div class="today_nr_answers">
@@ -50,6 +50,9 @@
 
       <router-link class="link_button" to="/answers">
         <ion-button color="medium">Auswertung ansehen</ion-button>
+      </router-link>
+      <router-link class="link_button" to="/statistics">
+        <ion-button color="medium">Nutzungsstatistiken</ion-button>
       </router-link>
     </div>
     <Transition>

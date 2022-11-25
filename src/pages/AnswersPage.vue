@@ -58,6 +58,7 @@
   onMounted(async () => {
     evaluationStore.getInitialAnswers();
     evaluationStore.getShortAnswers();
+
     questionsStore.getInitialQuestions();
     questionsStore.getShortQuestions();
   });
