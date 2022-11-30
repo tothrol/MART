@@ -6,7 +6,12 @@
         <ion-button @click="evaluationStore.getStatistics()" color="medium"
           >Aktualisieren</ion-button
         ><ion-button class="csv_download"
-          ><a ref="csvUsageStats">Download CSV usageStats</a></ion-button
+          ><a
+            :href="allUsageStatsCsv"
+            download="csvUsageStats.csv"
+            ref="csvUsageStats"
+            >Download CSV usageStats</a
+          ></ion-button
         >
       </div>
 
@@ -57,7 +62,12 @@
         <ion-button @click="evaluationStore.getStatistics()" color="medium"
           >Aktualisieren</ion-button
         ><ion-button class="csv_download"
-          ><a ref="csvEventStats">Download CSV eventStats</a></ion-button
+          ><a
+            :href="allEventStatsCsv"
+            download="csvEventStats.csv"
+            ref="csvEventStats"
+            >Download CSV eventStats</a
+          ></ion-button
         >
       </div>
 
@@ -319,10 +329,10 @@
     let csvContent = 'data:text/csv;charset=utf-8,' + csvString;
 
     let encodeUri = encodeURI(csvContent);
-    csvUsageStats.value.setAttribute('href', encodeUri);
-    csvUsageStats.value.setAttribute('download', 'csvUsageStats.csv');
+    // csvUsageStats.value.setAttribute('href', encodeUri);
+    // csvUsageStats.value.setAttribute('download', 'csvUsageStats.csv');
 
-    return csvContent;
+    return encodeUri;
   });
 
   // Event Stats
@@ -484,10 +494,10 @@
     let csvContent = 'data:text/csv;charset=utf-8,' + csvString;
 
     let encodeUri = encodeURI(csvContent);
-    csvEventStats.value.setAttribute('href', encodeUri);
-    csvEventStats.value.setAttribute('download', 'csvEventStats.csv');
+    // csvEventStats.value.setAttribute('href', encodeUri);
+    // csvEventStats.value.setAttribute('download', 'csvEventStats.csv');
 
-    return csvContent;
+    return encodeUri;
   });
 
   // END Event Stats

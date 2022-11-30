@@ -26,6 +26,7 @@
   import { useUserStore } from '@/stores/userStore';
   import { useRouter, useRoute } from 'vue-router';
   import { useQuestionsStore } from '@/stores/questionsStore';
+  import { Capacitor } from '@capacitor/core';
 
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
@@ -61,7 +62,9 @@
 
       // const initialAnswerResponse =
       // await questionsStore.checkIfInitalAnswerExists();
-      if (questionsStore.initialAnswerExist === true) {
+      let platform = Capacitor.getPlatform();
+      console.log('Platform: ', platform);
+      if (questionsStore.initialAnswerExist === true || platform === 'web') {
         console.log('LoginPage - initialAnswerExist === true');
         // console.log('LoginPage - Before Route -', userStore.userData.token);
 

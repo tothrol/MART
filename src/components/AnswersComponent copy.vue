@@ -4,14 +4,11 @@
     <div class="answers_count">
       Anzahl Antworten: {{ Object.entries(allAnswers).length }}
     </div>
-    <div class="button_wrapper">
-      <ion-button class="csv_download"
-        ><a :href="initialCsv" :download="downloadFileName" ref="csvLinkRef"
-          >Download CSV {{ answerTypeGerman }}</a
-        ></ion-button
-      >
-    </div>
-
+    <ion-button class="csv_download"
+      ><a :href="initialCsv" :download="downloadFileName" ref="csvLinkRef"
+        >Download CSV {{ answerTypeGerman }}</a
+      ></ion-button
+    >
     <!-- <ion-button class="csv_download"
       ><a :href="shortCsv" download="shortCsv.csv" ref="shortCsvRef"
         >Download CSV Kurz</a
@@ -19,27 +16,29 @@
     > -->
     <div class="answers">
       <div class="row heading" v-if="Object.entries(allAnswers).length >= 1">
-        <div
-          class="cell"
-          :class="headline"
-          v-for="headline of headlines"
-          :key="headline"
-        >
-          {{ headline }}
+        <div class="userName cell">userName</div>
+        <div class="userId cell">userId</div>
+        <div class="uniqueUserId cell">uniqueUserId</div>
+        <div class="postId cell">postId</div>
+        <div class="date cell">Datum</div>
+        <div class="time cell">Zeit</div>
+        <div class="cell answer" v-for="(count, key) of questions" :key="key">
+          {{ key }}
         </div>
       </div>
-      <div
-        class="row"
-        v-for="(row, key) of allAnswersOneDimentional"
-        :key="key"
-      >
+      <div class="row" v-for="(answerSheet, key) of allAnswers" :key="key">
+        <div class="userName cell">{{ answerSheet.userName }}</div>
+        <div class="userId cell">{{ answerSheet.userId }}</div>
+        <div class="uniqueUserId cell">{{ answerSheet.uniqueUserId }}</div>
+        <div class="postId cell">{{ answerSheet.postId }}</div>
+        <div class="date cell">{{ answerSheet.date }}</div>
+        <div class="time cell">{{ answerSheet.time }}</div>
         <div
-          class="cell"
-          :class="headline"
-          v-for="(headline, key2) of headlines"
-          :key="key2"
+          class="cell answer"
+          v-for="(answer, key) of answerSheet.answers"
+          :key="key"
         >
-          {{ row[headline] }}
+          {{ answer }}
         </div>
       </div>
     </div>
@@ -282,10 +281,6 @@
       return 'Initial';
     } else return 'noFile';
   });
-
-  function download(url) {
-    window.open(url, '_blank');
-  }
 </script>
 
 <style scoped>
@@ -293,8 +288,7 @@
     margin-top: 55px;
   }
   .answers,
-  .scales,
-  .questions {
+  .scales {
     overflow: auto;
     width: 90vw;
     min-height: 300px;
@@ -310,23 +304,6 @@
   .row .cell {
     padding: 5px 5px;
     border: 1px solid var(--ion-color-medium);
-    width: 40px;
-    min-width: 40px;
-  }
-
-  .row .userName,
-  .row .uniqueUserId,
-  .row .date,
-  .row .dateLong,
-  .row .time {
-    width: 150px !important;
-    min-width: 150px !important;
-  }
-
-  .row .userId,
-  .row .postId {
-    width: 60px !important;
-    min-width: 60px !important;
   }
 
   .userName {
@@ -378,6 +355,9 @@
     font-size: 20px;
   }
 
+  .questions {
+  }
+
   .questions .itemId {
     width: 60px;
     min-width: 60px;
@@ -389,9 +369,8 @@
   }
 
   .questions .question {
-    max-width: 250px;
-    width: 250px;
-    min-width: 250px;
+    width: 100%;
+    min-width: 60px;
   }
 
   .scales .scaleRepeater {
@@ -434,15 +413,7 @@
     width: 60px;
   }
 
-  .csv_download {
-    margin-bottom: 25px;
-  }
-
   .csv_download a {
     color: white;
-  }
-
-  .button_wrapper {
-    display: flex;
   }
 </style>

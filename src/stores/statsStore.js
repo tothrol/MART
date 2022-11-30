@@ -16,6 +16,25 @@ export const useStatsStore = defineStore('statsStore', {
   },
   actions: {
     // getStats from Android
+
+    async checkAndroidPermissions() {
+      try {
+        let permission = await echo.checkForUsageStatsPermission();
+        console.log('STATSPermission', permission);
+
+        return new Promise((resolve) => {
+          // if (response.status == 200) {
+          resolve('Stats were send');
+          // }
+        });
+      } catch (e) {
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          reject(e);
+          // }
+        });
+      }
+    },
     async getStats(today, time, dateLong) {
       try {
         console.log('getStats');

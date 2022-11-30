@@ -21,7 +21,7 @@ export const useUserStore = defineStore('userStore', {
       },
 
       // showQuestions: false,
-      showDevbox: true,
+      showDevbox: false,
       uniqueUserId: '',
       randomArray: [],
       complianceAccepted: false,

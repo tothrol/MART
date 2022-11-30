@@ -14,7 +14,6 @@ export const useQuestionsStore = defineStore('questionsStore', {
       questionsInitial: {},
       batteriesInitial: {},
       scalesInitial: {},
-      additionalTextInitial: {},
 
       sheetsShort: {},
       questionsShort: {},
@@ -40,7 +39,6 @@ export const useQuestionsStore = defineStore('questionsStore', {
           const sheets = response.data[0].acf.questionsRepeater;
           const batteries = response.data[0].acf.batteries;
           const scales = response.data[0].acf.scalesRepeater;
-          const additionalText = response.data[0].acf.additionalText;
 
           for (let i = 0; i < sheets.length; i++) {
             this.sheetsInitial[i + 1] = sheets[i];
@@ -55,10 +53,6 @@ export const useQuestionsStore = defineStore('questionsStore', {
           }
           for (const scale of scales) {
             this.scalesInitial[scale.scaleId] = scale;
-          }
-
-          for (const text of additionalText) {
-            this.additionalTextInitial[text.itemId] = text;
           }
 
           return;
@@ -225,41 +219,25 @@ export const useQuestionsStore = defineStore('questionsStore', {
             response
           );
 
-          console.log('questionsStore - getShortQuestions - sheets', sheets);
-
-          // this.sheetsShort = sheets;
-          // let i = 0;
-          // sheets.forEach(function (item, index) {
-          //   i++;
-
-          //   console.log(
-          //     'questionsStore - getShortQuestions - sheet',
-          //     item,
-          //     index,
-          //     i
-          //   );
-          //   this.sheetsShort[item.itemId_k] = item;
-          // });
-
           for (let i = 0; i < sheets.length; i++) {
-            this.sheetsShort[i + 1] = sheets[i];
-          }
-
-          console.log(
-            'questionsStore - getShortQuestions - sheetsShort',
-            this.sheetsShort
-          );
-
-          for (const sheet of sheets) {
-            if (sheet.itemId_k != undefined && sheet.itemId_k != '') {
-              this.questionsShort[sheet.itemId_k] = {
-                batteryId: sheet.batteryId_k,
-                choiceId: sheet.choiceId_k,
-                itemId: sheet.itemId_k,
-                item: sheet.item_k,
-                scaleId: sheet.skaleId_k,
+            if (sheets[i].itemId_k != undefined && sheets[i].itemId_k != '') {
+              this.questionsShort[sheets[i].itemId_k] = {
+                batteryId: sheets[i].batteryId_k,
+                choiceId: sheets[i].choiceId_k,
+                itemId: sheets[i].itemId_k,
+                item: sheets[i].item_k,
+                scaleId: sheets[i].skaleId_k,
+                options: sheets[i].options,
               };
             }
+            this.sheetsShort[i + 1] = {
+              batteryId: sheets[i].batteryId_k,
+              choiceId: sheets[i].choiceId_k,
+              itemId: sheets[i].itemId_k,
+              item: sheets[i].item_k,
+              scaleId: sheets[i].skaleId_k,
+              options: sheets[i].options,
+            };
           }
           for (const battery of batteries) {
             this.batteriesShort[battery.batteryId_k] = {
@@ -267,6 +245,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
               batteryName: battery.batteryName_k,
               batteryText: battery.batteryText_k,
               batteryMeta: battery.batteryMeta_k,
+              options: battery.options,
             };
           }
           for (const scale of scales) {
@@ -283,6 +262,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
               choiceId: scale.choiceId_k,
               scaleRepeater: scaleRep,
               scaleId: scale.skaleId_k,
+              options: scale.options,
             };
           }
 
@@ -465,5 +445,10 @@ export const useQuestionsStore = defineStore('questionsStore', {
     },
   },
 
-  getters: {},
+  getters: {
+    // sheetsShortG: (state) => state.sheetsShort,
+    // questionsShortG: (state) => state.questionsShort,
+    // batteriesShortG: (state) => state.batteriesShort,
+    // scalesShortG: (state) => state.scalesShort,
+  },
 });

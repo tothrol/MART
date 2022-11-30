@@ -37,11 +37,13 @@
   import { Icon } from '@iconify/vue';
   import heart from '@iconify-icons/codicon/heart-filled';
   import { useUserStore } from '@/stores/userStore';
+  import { useStatsStore } from '@/stores/statsStore';
   import router from '@/router';
   import { Storage } from '@ionic/storage';
 
   const infoStore = useInfoStore();
   const userStore = useUserStore();
+  const statsStore = useStatsStore();
 
   onMounted(() => {
     infoStore.getWelcomeText();
@@ -55,6 +57,8 @@
 
     await storage.create();
     await storage.set('complianceAccepted', true);
+
+    await statsStore.checkAndroidPermissions();
     router.push('/questionsInitial');
   }
 </script>

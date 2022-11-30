@@ -6,15 +6,17 @@
           class="sheet"
           v-if="activeSheet != undefined && currentSheet != sheets.length"
         >
-          <div class="progress">
+          <div
+            class="progress"
+            v-if="
+              activeSheet.itemId === '' ||
+              (activeSheet.scale != undefined &&
+                activeSheet.scale.options != undefined &&
+                activeSheet.scale.options.showTimer != true)
+            "
+          >
             {{ Math.round((activeSheet.sheetId / sheets.length) * 100) }} %
           </div>
-          <p class="item_text">
-            <span
-              style="white-space: pre-line"
-              v-html="activeSheet.item"
-            ></span>
-          </p>
           <!-- 5secTimer -->
           <div
             class="timer"
@@ -39,6 +41,7 @@
             v-if="
               activeSheet != undefined &&
               activeSheet.itemId != undefined &&
+              activeSheet.options != undefined &&
               activeSheet.options.timer === 3 &&
               showTimer3 === true
             "
@@ -49,11 +52,19 @@
             </div>
           </div>
           <!-- END 3sec Timer  -->
+          <p class="item_text">
+            <span
+              style="white-space: pre-line"
+              v-html="activeSheet.item"
+            ></span>
+          </p>
+
           <!-- number with dropdown -->
           <div
             class="number"
             v-if="
               activeSheet.itemId != '' &&
+              activeSheetScaleOptions &&
               activeSheet.scale.options.fieldType === 'number' &&
               activeSheet.scale.options.dropdown === true
             "
@@ -82,10 +93,17 @@
           <!-- Normal radios -->
           <div
             class="radios"
+            :class="
+              activeSheetScaleOptions &&
+              activeSheet.scale.options.showTimer === true
+                ? 'margin-top'
+                : ''
+            "
             v-if="
               activeSheet != undefined &&
               activeSheet.scaleId != undefined &&
               activeSheet.scaleId != '' &&
+              activeSheet.scale != undefined &&
               activeSheet.scale.options != undefined &&
               activeSheet.scale.options.fieldType != undefined &&
               activeSheet.scale.options.fieldType === 'radio'
@@ -117,6 +135,57 @@
             </fieldset>
           </div>
           <!--END normal radios -->
+          <!-- radios with Freifeld -->
+          <div
+            class="radios"
+            :class="
+              activeSheetScaleOptions &&
+              activeSheet.scale.options.showTimer === true
+                ? 'margin-top'
+                : ''
+            "
+            v-if="
+              activeSheet != undefined &&
+              activeSheet.scaleId != undefined &&
+              activeSheet.scaleId != '' &&
+              activeSheetScaleOptions &&
+              activeSheet.scale.options.fieldType != undefined &&
+              activeSheet.scale.options.fieldType === 'radioAndFree'
+            "
+          >
+            <input
+              :id="`${activeSheet.itemId}_freifeld`"
+              class="freeFieldToAnswers"
+              type="text"
+              @input="
+                freeFieldToAnswers($event.target.value, activeSheet.itemId)
+              "
+              :disabled="disableInput"
+              v-model="freeFieldToAnswersValue"
+              :placeholder="activeSheet.options.placeholder"
+            />
+            <fieldset class="radio_fieldset">
+              <div
+                :class="`radio ${activeSheet.scaleId} ${input.value}`"
+                v-for="(input, key) in scales[activeSheet.scaleId]
+                  .scaleRepeater"
+                :key="key"
+              >
+                <input
+                  :id="`${activeSheet.itemId}_${input.value}`"
+                  type="radio"
+                  :value="input.value"
+                  v-model="answers.entries[activeSheet.itemId][0]"
+                  :disabled="disableInput"
+                />
+
+                <label :for="`${activeSheet.itemId}_${input.value}`">{{
+                  input.key
+                }}</label>
+              </div>
+            </fieldset>
+          </div>
+          <!--END radios with Freifeld -->
           <!-- Multiple radios -->
           <div
             class="radios"
@@ -172,10 +241,36 @@
               max="999"
               :maxlength="activeSheet.scale.options.fieldDigits"
               type="number"
+              :class="
+                activeSheet.options.scaleText != undefined
+                  ? 'no_margin_right'
+                  : ''
+              "
             />
-            <span class="minuten" v-if="activeSheet.itemId === 9">Minuten</span>
+            <span
+              class="scaleText"
+              v-if="activeSheet.options.scaleText != undefined"
+              >{{ activeSheet.options.scaleText }}</span
+            >
           </div>
           <!-- END Number input -->
+          <!-- Text input -->
+          <!-- <div
+            class="text"
+            v-if="
+              activeSheet != undefined &&
+              activeSheet.itemId != undefined &&
+              activeSheet.itemId != '' &&
+              activeSheet.scale.options.fieldType === 'text'
+            "
+          >
+            <span
+              class="scaleText"
+              v-if="activeSheet.options.scaleText != undefined"
+              >{{ activeSheet.options.scaleText }}</span
+            >
+          </div> -->
+          <!-- END Text input -->
           <!-- Range Slider -->
           <div
             class="range_slider_wrapper"
@@ -209,14 +304,38 @@
           </div>
           <!-- END Range Slider -->
 
-          <div class="buttons">
+          <div
+            class="buttons"
+            :class="
+              activeSheetScaleOptions &&
+              activeSheet.scale.options.showTimer === true
+                ? 'margin-top-zero'
+                : ''
+            "
+          >
             <ion-button
+              class="next"
               @click="nextSheet()"
               color="primary"
-              :disabled="false"
+              :disabled="
+                (activeSheet.itemId != '' &&
+                  answers.entries[activeSheet.itemId] === undefined) ||
+                (activeSheet.itemId != '' &&
+                  activeSheet.scale.options != undefined &&
+                  activeSheet.scale.options.fieldType === 'multi' &&
+                  answers.entries[activeSheet.itemId].length === 0)
+                // ||
+                // (activeSheet.itemId != '' &&
+                //   activeSheet.scale.options != undefined &&
+                //   activeSheet.scale.options.fieldType === 'radioAndFree' &&
+                //   answers.entries[activeSheet.itemId].length === 0)
+              "
               v-if="
-                activeSheet.options.startTimer3 != true ||
-                (activeSheet.options.startTimer3 === true && time3 <= 0.1)
+                (time == 0 && time3 == 0) ||
+                (time == 5 &&
+                  time3 === 3 &&
+                  activeSheetOptions &&
+                  activeSheet.options.startTimer3 != true)
               "
             >
               weiter
@@ -227,20 +346,29 @@
               v-if="
                 activeSheet != undefined &&
                 activeSheet.itemId != undefined &&
+                activeSheetOptions &&
                 activeSheet.options.startTimer3 === true
               "
             >
               <div class="buttons">
-                <ion-button v-if="showTimer3 == false" @click="timer3()"
+                <ion-button
+                  class="next"
+                  v-if="showTimer3 == false"
+                  @click="nextSheet()"
                   >Ja</ion-button
                 >
               </div>
             </div>
 
             <ion-button
+              class="previous"
               @click="previousSheet()"
               color="tertiary"
               :disabled="false"
+              v-if="
+                (activeSheet.sheetId != 1 && time == 0 && time3 == 0) ||
+                (activeSheet.sheetId != 1 && time == 5 && time3 === 3)
+              "
             >
               zurück
             </ion-button>
@@ -322,6 +450,7 @@
   import { ref, onMounted, computed, watch, nextTick, watchEffect } from 'vue';
   import { useUserStore } from '@/stores/userStore';
   import { useQuestionsStore } from '@/stores/questionsStore';
+  import { useStatsStore } from '@/stores/statsStore';
   import axios from 'axios';
   import { IonSpinner } from '@ionic/vue';
   import SpinnerComponent from '@/components/SpinnerComponent.vue';
@@ -330,9 +459,15 @@
 
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
+  const statsStore = useStatsStore();
   const router = useRouter();
 
-  let answers = reactive({ entries: { 6: [] }, unchangeable: {} });
+  onMounted(async () => {
+    statsStore.checkAndroidPermissions();
+  });
+
+  // let answers = reactive({ entries: { 6: [], 53: [] }, unchangeable: {} });
+  let answers = reactive({ entries: {}, unchangeable: {} });
 
   let errors = ref({});
 
@@ -365,6 +500,76 @@
     baseComp.value.scrollTop();
   }
 
+  let activeSheetOptions = computed(() => {
+    if (
+      activeSheet.value != undefined &&
+      activeSheet.value.options != undefined
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+
+  let activeSheetScaleOptions = computed(() => {
+    if (
+      activeSheet.value != undefined &&
+      activeSheet.value.scale != undefined &&
+      activeSheet.value.scale.options != undefined
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+
+  let scales = computed(() => {
+    let scalesObject = {};
+    let allScales = questionsStore.scalesInitial;
+
+    for (const [key, scale] of Object.entries(allScales)) {
+      let newSheet = scale;
+      console.log('options - scale', scale);
+
+      // Adding the options string as an Object
+      if (
+        scale != undefined &&
+        scale.options != undefined &&
+        scale.options != '' &&
+        typeof scale.options != 'object'
+      ) {
+        console.log('options - scale.options', scale.options);
+        newSheet['options'] = JSON.parse(scale.options);
+      }
+
+      scalesObject[key] = newSheet;
+    }
+    return scalesObject;
+  });
+  let batteries = computed(() => {
+    let batteriesObject = {};
+    let allBatteries = questionsStore.batteriesInitial;
+
+    for (const [index, battery] of Object.entries(allBatteries)) {
+      let newBattery = battery;
+
+      // Adding the options string as an Object
+      if (
+        battery != undefined &&
+        battery.options != undefined &&
+        battery.options != '' &&
+        typeof battery.options != 'object'
+      ) {
+        console.log('options - battery.options', battery.options);
+        newBattery['options'] = JSON.parse(battery.options);
+        console.log('options - battery.options - done', battery.options);
+      }
+
+      batteriesObject[newBattery.batteryId] = newBattery;
+    }
+    return batteriesObject;
+  });
+
   let sheetsNoRandom = computed(() => {
     let sheetsArray = [];
     let allSheets = questionsStore.sheetsInitial;
@@ -376,14 +581,19 @@
       if (
         sheet != undefined &&
         sheet.options != undefined &&
-        sheet.options != ''
+        sheet.options != '' &&
+        typeof sheet.options != 'object'
       ) {
         console.log('options - sheet.options', sheet.options);
         newSheet['options'] = JSON.parse(sheet.options);
       }
 
       // Adding scales to each sheet
-      if (sheet.scaleId != undefined && sheet.scaleId != '') {
+      if (
+        scales.value != undefined &&
+        sheet.scaleId != undefined &&
+        sheet.scaleId != ''
+      ) {
         sheet['scale'] = scales.value[sheet.scaleId];
       }
 
@@ -404,13 +614,26 @@
 
     let allSheetLength = Object.keys(allSheets).length;
     let i = 1;
+    let attentionPageIndex;
 
     for (const [key, sheet] of Object.entries(allSheets)) {
       console.log('QInitial - sheets 2 - key:', key, sheet);
       let battery = batteries.value[sheet.batteryId];
 
-      if (lastBatteryId != sheet.batteryId) {
-        // a new Battery starts
+      // getting the Index of the attentioncheck Page
+      if (sheet.options != undefined && sheet.options.attentionCheck === true) {
+        console.log('attentionPageOriginalIndex:', key);
+        attentionPageIndex = key;
+      }
+      //END getting the Index of the attentioncheck Page
+
+      if (lastBatteryId != sheet.batteryId || i == allSheetLength) {
+        // a new Battery starts or its last battery
+        // if its last item, add last item to batteryArray
+        if (i === allSheetLength) {
+          // last item gets put in batteryArray
+          batteryArray.push(sheet);
+        }
         if (Object.keys(batteryArray).length != 0) {
           // putting entries from batteryArray to sheetsArray
           if (
@@ -431,13 +654,18 @@
         }
       }
 
-      batteryArray.push(sheet);
+      // batteryArray.push(sheet);
 
-      if (i == allSheetLength) {
-        // its the last sheet
-        for (battery of batteryArray) {
-          sheetsArray.push(battery);
-        }
+      // if (i == allSheetLength) {
+      //   // its the last sheet
+      //   for (battery of batteryArray) {
+      //     sheetsArray.push(battery);
+      //   }
+      // }
+
+      if (i != allSheetLength) {
+        // If not Last item, Item gets put in batteryArray. If it was last Item it was put in batteryArray further up
+        batteryArray.push(sheet);
       }
 
       lastBatteryId = sheet.batteryId;
@@ -445,8 +673,18 @@
     }
     // randomInt for putting the random page somewhere
     let randomInt = getRandomInt(sheetsArray.length - 1);
-    let attentionPageIndex;
+    // let randomInt = 32;
+
     console.log('randomInt:', randomInt);
+    // putting the random page somewhere
+
+    // splice(start,deleteCount, item1, item2 ...)
+    if (attentionPageIndex != undefined) {
+      sheetsArray.splice(randomInt, 0, sheetsArray[attentionPageIndex]);
+      sheetsArray.splice(Number(attentionPageIndex) + 1, 1);
+    }
+
+    // End putting the random page somewhere
 
     let j = 1;
     for (const [index, sheet] of Object.entries(sheetsArray)) {
@@ -457,23 +695,7 @@
         sheet['orderId'] = j;
         j++;
       }
-
-      // getting the random pageIndex
-      if (sheet.options != undefined && sheet.options.attentionCheck === true) {
-        console.log('attentionPageOriginalIndex:', index);
-        attentionPageIndex = index;
-      }
-      //END getting the random pageIndex
     }
-
-    // putting the random page somewhere
-
-    // splice(start,deleteCount, item1, item2 ...)
-
-    sheetsArray.splice(randomInt, 0, sheetsArray[attentionPageIndex]);
-    sheetsArray.splice(Number(attentionPageIndex) + 1, 1);
-
-    // End putting the random page somewhere
 
     return sheetsArray;
   });
@@ -485,9 +707,23 @@
       newValue.options.defaultValue != undefined &&
       answers.entries[newValue.itemId] === undefined
     ) {
-      // sets a default value if the item has the option defaultValue, for example a slider to 50
+      // sets a default value if the item has the option defaultValue, for example a slider to 50 or multi Questions to [] or radio+free field to []
       answers.entries[newValue.itemId] = newValue.options.defaultValue;
     }
+
+    // start timer 3
+    if (
+      newValue != undefined &&
+      newValue.options != undefined &&
+      newValue.options.timer === 3 &&
+      time3.value != 0
+    ) {
+      console.log('timer3 trigger');
+      timer3();
+    }
+    // end start timer 3
+
+    // sets default value
   });
 
   let numberOfItems = computed(() => {
@@ -503,51 +739,19 @@
     return counter;
   });
 
-  let batteries = computed(() => {
-    let batteriesObject = {};
-    let allBatteries = questionsStore.batteriesInitial;
+  //  watch(sheets, (newValue) => {
 
-    for (const [index, battery] of Object.entries(allBatteries)) {
-      let newBattery = battery;
+  //   if (
+  //     newValue != undefined &&
+  //     newValue.options != undefined &&
+  //     newValue.options.defaultValue != undefined &&
+  //     answers.entries[newValue.itemId] === undefined
+  //   ) {
+  //     // sets a default value if the item has the option defaultValue, for example a slider to 50
+  //     answers.entries[newValue.itemId] = newValue.options.defaultValue;
+  //   }
 
-      // Adding the options string as an Object
-      if (
-        battery != undefined &&
-        battery.options != undefined &&
-        battery.options != ''
-      ) {
-        console.log('options - battery.options', battery.options);
-        newBattery['options'] = JSON.parse(battery.options);
-        console.log('options - battery.options - done', battery.options);
-      }
-
-      batteriesObject[newBattery.batteryId] = newBattery;
-    }
-    return batteriesObject;
-  });
-
-  let scales = computed(() => {
-    let scalesObject = {};
-    let allScales = questionsStore.scalesInitial;
-
-    for (const [key, scale] of Object.entries(allScales)) {
-      let newSheet = scale;
-      console.log('options - scale', scale);
-
-      // Adding the options string as an Object
-      if (
-        scale != undefined &&
-        scale.options != undefined &&
-        scale.options != ''
-      ) {
-        console.log('options - scale.options', scale.options);
-        newSheet['options'] = JSON.parse(scale.options);
-      }
-
-      scalesObject[key] = newSheet;
-    }
-    return scalesObject;
-  });
+  //  })
 
   // randomizer Function Fisher-Yates
   function shuffle(array) {
@@ -619,8 +823,11 @@
       console.log('QuestionInitialPage - setAllAnswers', key, question);
 
       if (question.itemId != '') {
-        if (question.itemId == 6) {
-          answers.entries[question.itemId] = [1];
+        if (
+          question.options != undefined &&
+          question.options.defaultValue != undefined
+        ) {
+          answers.entries[question.itemId] = question.options.defaultValue;
         } else {
           answers.entries[question.itemId] = 1;
         }
@@ -657,6 +864,18 @@
     } else return false;
   });
 
+  let showTimer = computed(() => {
+    if (
+      activeSheet.value.scale != undefined &&
+      activeSheet.value.scale.options != undefined &&
+      activeSheet.value.scale.options.showTimer === true
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+
   function timer() {
     console.log('QuestionInitialPage - timer - time', time.value);
     // if (timerStopped.value === true) {
@@ -669,15 +888,12 @@
       //console.log(timer);
       setTimeout(timer, 100); /* replicate wait 1 second */
     } else {
+      time.value = 0;
       nextSheet();
     }
   }
 
   function timer3() {
-    if (time3.value === 3) {
-      nextSheet();
-    }
-
     showTimer3.value = true;
     console.log('QuestionInitialPage - timer - time', time3.value);
 
@@ -686,6 +902,7 @@
       //console.log(timer);
       setTimeout(timer3, 100); /* replicate wait 1 second */
     } else {
+      time3.value = 0;
       nextSheet();
     }
   }
@@ -719,13 +936,14 @@
 
       console.log('QuestionInitialPage - sendInitialAnswers', response);
       resetAllAnswers();
-      router.replace('/success');
+      router.replace('/briefing-short');
     });
   }
 
   function resetAllAnswers() {
     // console.log('QuestionShortPage - setAllAnswers', key, question);
-    answers.entries = { 6: [] };
+    // answers.entries = { 6: [], 53: [] };
+    answers.entries = {};
     answers.unchangeable = {};
     currentSheet.value = 0;
   }
@@ -733,6 +951,19 @@
   function getRandomInt(max) {
     return Math.floor(Math.random() * max);
   }
+
+  function freeFieldToAnswers(value, itemId) {
+    console.log('question2', value);
+    answers.entries[itemId][1] = value;
+    freeFieldToAnswersValue.value = value;
+  }
+
+  let freeFieldToAnswersValue = ref('');
+
+  // function setQuestion2input() {
+  //   console.log('setQuestion2input');
+  //   answers.entries[2] = freeFieldToAnswersValue.value;
+  // }
 </script>
 
 <!-- <style scoped>
@@ -941,6 +1172,32 @@
 
 <style scoped>
   .buttons {
-    position: sticky !important;
+    position: sticky;
+    bottom: 10px;
+  }
+  .buttons .next,
+  .buttons .previous {
+    /* position: sticky !important; */
+  }
+
+  .buttons .next {
+    /* bottom: 150px; */
+  }
+
+  .scaleText {
+    margin-right: auto;
+    margin-left: 10px;
+  }
+
+  .margin-top {
+    margin-top: auto;
+  }
+
+  .margin-top-zero {
+    margin-top: 0 !important;
+  }
+
+  .freeFieldToAnswers {
+    margin-bottom: 20px;
   }
 </style>
