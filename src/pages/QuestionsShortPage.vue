@@ -18,7 +18,7 @@
             {{ Math.round((activeSheet.sheetId / sheets.length) * 100) }} %
           </div>
           <!-- 5secTimer -->
-          <!-- <div
+          <div
             class="timer"
             v-if="
               time != undefined &&
@@ -33,10 +33,10 @@
             "
           >
             Timer: {{ time.toFixed(1) }}
-          </div> -->
+          </div>
           <!-- End 5sec Timer -->
           <!-- 3sec Timer  -->
-          <!-- <div
+          <div
             class="timer3"
             v-if="
               activeSheet != undefined &&
@@ -50,7 +50,7 @@
               <span v-if="time3 >= 0.1">{{ time3.toFixed(1) }} </span>
               <span v-if="time3 < 0.1"> 0.0 </span>
             </div>
-          </div> -->
+          </div>
           <!-- END 3sec Timer  -->
           <p class="item_text">
             <span
@@ -135,7 +135,7 @@
           </div>
           <!--END normal radios -->
           <!-- radios with Freifeld -->
-          <!-- <div
+          <div
             class="radios"
             :class="
               activeSheetScaleOptions &&
@@ -185,8 +185,8 @@
                 }}</label>
               </div>
             </fieldset>
-          </div> -->
-          <!--END radios with Freifeld -->
+          </div>
+          <!--END radios with Freifeld-->
           <!-- Multiple radios -->
           <div
             class="radios"
@@ -259,7 +259,7 @@
           </div>
           <!-- END Number input -->
           <!-- Text input -->
-          <!-- <div
+          <div
             class="text"
             v-if="
               activeSheet != undefined &&
@@ -273,7 +273,7 @@
               v-if="activeSheet.options.scaleText != undefined"
               >{{ activeSheet.options.scaleText }}</span
             >
-          </div> -->
+          </div>
           <!-- END Text input -->
           <!-- Range Slider -->
           <div
@@ -410,6 +410,12 @@
               color="tertiary"
               >zurück</ion-button
             >
+            <ion-button
+              color="tertiary"
+              @click="backHome()"
+              v-if="showBackHomeButton"
+              >Startseite</ion-button
+            >
           </div>
         </li>
       </div>
@@ -462,6 +468,11 @@
     <spinner-component v-if="showSpinner"
       >Daten werden gesendet.</spinner-component
     >
+
+    <permission-component
+      v-if="showPermissionModal === true"
+      :closeModal="closePermissionModal"
+    ></permission-component>
   </base-layout>
 </template>
 
@@ -484,6 +495,8 @@
   import { useRouter, useRoute } from 'vue-router';
   import { Storage } from '@ionic/storage';
   import { useStatsStore } from '@/stores/statsStore';
+  import PermissionComponent from '@/components/PermissionComponent.vue';
+  import { Capacitor } from '@capacitor/core';
 
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
@@ -491,9 +504,36 @@
 
   const statsStore = useStatsStore();
 
+  let showPermissionModal = ref(false);
+
+  console.log('QuestionsShort NoMounted');
+
   onMounted(async () => {
-    statsStore.checkAndroidPermissions();
+    console.log('QuestionsShort Mounted');
+    let platform = Capacitor.getPlatform();
+    console.log('QuestionsShort Platform: ', platform);
+
+    if (platform === 'web' || platform === 'android') {
+      // web has no effect here as further down there is a check for 'NoPermission'
+      var result = await statsStore.checkAndroidPermissions();
+      console.log('QuestionsShort - result', result);
+
+      if (
+        result.permission != undefined &&
+        result.permission === 'NoPermission'
+      ) {
+        console.log(
+          'QuestionsShort - permission - NoPermission',
+          result.permission
+        );
+        showPermissionModal.value = true;
+      }
+    }
   });
+
+  function closePermissionModal() {
+    showPermissionModal.value = false;
+  }
 
   let answers = reactive({ entries: {}, unchangeable: {} });
 
@@ -979,13 +1019,36 @@
       showSpinner.value = false;
 
       console.log('QuestionShortPage - sendShortAnswers', response);
+
+      if (response.status != 200 && response.status != 201) {
+        userStore.appMessage =
+          'Es gab einen Fehler!<br> Bitte senden Sie den Fragebogen erneut und überprüfen Sie ob Sie online sind. <br><br> Code: ' +
+          response.code +
+          '<br>Message: ' +
+          response.message +
+          '';
+
+        // router.push('/login');
+        showBackHomeButton.value = true;
+        return;
+      }
+
       resetAllAnswers();
       router.replace('/success');
     });
   }
+  const showBackHomeButton = ref(false);
+
+  function backHome() {
+    console.log('QuestionShortPage - backHome');
+    showBackHomeButton.value = false;
+    resetAllAnswers();
+
+    router.replace('/home');
+  }
 
   function resetAllAnswers() {
-    // console.log('QuestionShortPage - setAllAnswers', key, question);
+    console.log('QuestionShortPage - resetAllAnswers');
     // answers.entries = { 6: [], 53: [] };
     answers.entries = {};
     answers.unchangeable = {};
@@ -1045,7 +1108,7 @@
   }
 
   .buttons {
-    margin-top: auto;
+    /* margin-top: auto; */
   }
   .sheet {
     padding: 25px 15px;
@@ -1059,6 +1122,7 @@
   .radios {
     display: flex;
     flex-direction: column;
+    margin-top: auto;
   }
 
   .radio input {
@@ -1194,7 +1258,7 @@
     font-size: 20px;
     color: var(--ion-color-primary);
     font-family: 'Roboto-Slab';
-    margin-bottom: 20px;
+    margin-bottom: auto;
   }
 
   .missing_text {

@@ -30,37 +30,71 @@
           <div>{{ minutes }}:{{ seconds }}</div>
         </div>
       </div>
-      <router-link
-        class="link_button"
-        to="/questionsinitial"
-        v-if="questionsStore.initialAnswerExist === false"
+
+      <div class="timeframe_messages">
+        {{ timeframeMessage }}
+      </div>
+      <div class="dailytime_messages" v-if="timeframeMessage === ''">
+        {{ dailyTimeMessage }}
+      </div>
+
+      <ion-button
+        @click="onStartQuestionsInitial()"
+        v-if="
+          questionsStore.initialAnswerExist === false && timeframe && dailyTime
+        "
+        >Initialen Fragebogen starten</ion-button
       >
-        <ion-button>Initialen Fragebogen starten</ion-button>
-      </router-link>
 
       <ion-button
         @click="onStartQuestionsShort()"
         v-if="
           userStore.complianceAccepted === true &&
-          questionsStore.initialAnswerExist === true
+          questionsStore.initialAnswerExist === true &&
+          timeframe &&
+          dailyTime
         "
         :disabled="secToNext >= 1 || questionsStore.todayShortAnswers >= 6"
         >Fragebogen starten</ion-button
       >
-
-      <router-link class="link_button" to="/answers">
-        <ion-button color="medium">Auswertung ansehen</ion-button>
-      </router-link>
-      <router-link class="link_button" to="/statistics">
-        <ion-button color="medium">Nutzungsstatistiken</ion-button>
-      </router-link>
-    </div>
-    <Transition>
-      <MessageboxComponent v-if="showMessage" @click="showMessage = false"
-        >Here is a message</MessageboxComponent
+      <div
+        class="result_buttons"
+        v-if="
+          userStore.userData.username === 'nviiadmin' ||
+          userStore.userData.username === 'RolandToth'
+        "
       >
-    </Transition>
+        <router-link class="link_button" to="/answers">
+          <ion-button color="medium">Auswertung ansehen</ion-button>
+        </router-link>
+        <router-link class="link_button" to="/statistics">
+          <ion-button color="medium">Nutzungsstatistiken</ion-button>
+        </router-link>
+      </div>
+    </div>
+
+    <div
+      class="adminbox"
+      v-if="
+        userStore.userData.username === 'nviiadmin' ||
+        userStore.userData.username === 'RolandToth'
+      "
+    >
+      <ion-button
+        color="medium"
+        @click="
+          questionsStore.initialAnswerExist = !questionsStore.initialAnswerExist
+        "
+        >Change Fragebogen</ion-button
+      >
+
+      <ion-button color="medium" @click="secToNext = 0">Skip Timer</ion-button>
+    </div>
+
     <div class="devbox" v-if="userStore.showDevbox">
+      <ion-button color="medium" @click="secToNext = 5">Skip Timer</ion-button>
+
+      getOptionsCounter: {{ infoStore.testCounter }}
       <ion-button color="medium" @click="statsStore.getStats"
         >get Stats</ion-button
       >
@@ -100,6 +134,7 @@
   import { ref, onMounted, computed } from 'vue';
   import { useUserStore } from '@/stores/userStore';
   import { useStatsStore } from '@/stores/statsStore';
+  import { useInfoStore } from '@/stores/infoStore';
   import { useQuestionsStore } from '@/stores/questionsStore';
   import messageBoxComponent from '@/components/MessageboxComponent.vue';
   import MessageboxComponent from '../components/MessageboxComponent.vue';
@@ -121,12 +156,65 @@
 
   // watch(questionsStore.lastShortAnswer, (newValue, oldValue) => {});
 
-  function onStartQuestionsShort() {
+  async function onStartQuestionsShort() {
+    // check for validToken
+    let answer = await userStore.validateToken();
+    console.log('Home await validateToken - answer', answer);
+    if (answer.code === 'ERR_NETWORK') {
+      userStore.appMessage =
+        'Bitte stellen Sie sicher das eine Internetverbindung besteht! <br><br> Code: ' +
+        answer.code +
+        '<br>Message:' +
+        answer.message +
+        '';
+      return;
+    } else if (answer.status != 200 && answer.status != 201) {
+      userStore.appMessage =
+        'Bitte melden Sie sich erneut an! <br><br> Code: ' +
+        answer.code +
+        '<br>Message:' +
+        answer.message +
+        '';
+
+      router.push('/login');
+      return;
+    }
+
+    // end check for validToken
+
     if (userStore.briefingShortChecked === false) {
       router.push('/briefing-short');
     } else {
       router.push('/questionsshort');
     }
+  }
+
+  async function onStartQuestionsInitial() {
+    // check for validToken
+    let answer = await userStore.validateToken();
+    console.log('Home await validateToken - answer', answer);
+    if (answer.code === 'ERR_NETWORK') {
+      userStore.appMessage =
+        'Bitte stellen Sie sicher das eine Internetverbindung besteht! <br><br> Code: ' +
+        answer.code +
+        '<br>Message:' +
+        answer.message +
+        '';
+      return;
+    } else if (answer.status != 200 && answer.status != 201) {
+      userStore.appMessage =
+        'Bitte melden Sie sich erneut an! <br><br> Code: ' +
+        answer.code +
+        '<br>Message:' +
+        answer.message +
+        '';
+
+      router.push('/login');
+      return;
+    }
+
+    // end check for validToken
+    router.push('/questionsinitial');
   }
 
   App.addListener('appStateChange', ({ isActive }) => {
@@ -211,7 +299,7 @@
     if (lastShortAnswer != undefined) {
       dateNow.value = dayjs();
       dateLast.value = dayjs(lastShortAnswer);
-      dateNext.value = dayjs(dateLast.value).add(2, 'minute');
+      dateNext.value = dayjs(dateLast.value).add(20, 'minute');
       // minToNext.value = dateNext.value.diff(dateNow.value, 'm');
       secToNext.value = dateNext.value.diff(dateNow.value, 's');
       console.log('Home - timer - lastShortAnswer', lastShortAnswer);
@@ -229,9 +317,99 @@
     initDate();
     // questionsStore.countShortAnswers();
   });
+
+  const infoStore = useInfoStore();
+
+  let timeframe = computed(() => {
+    let nowMs = dayjs().valueOf();
+    let startDateMs = infoStore.startDate.ms;
+    let endDateMs = infoStore.endDate.ms;
+    if (startDateMs != '' && endDateMs != '') {
+      if (nowMs < startDateMs) {
+        // project timeframe has not started
+        // userStore.appMessage = 'Der Projektzeitraum startet am' + infoStore.startDate.string + '.'
+        checkTimeframe('notStarted');
+        return false;
+      } else if (nowMs > endDateMs) {
+        // Project timeframe is over
+        checkTimeframe('over');
+
+        return false;
+      } else {
+        resetTimeMessage();
+        return true;
+      }
+    } else {
+      resetTimeMessage();
+      return true;
+    }
+  });
+
+  let dailyTime = computed(() => {
+    let nowMs = dayjs().valueOf();
+    let startTimeMs = infoStore.dailyStartTime.todayStartTimeMs;
+    let endTimeMs = infoStore.dailyEndTime.todayEndTimeMs;
+
+    if (startTimeMs != '' && endTimeMs != '') {
+      if (nowMs < startTimeMs) {
+        // project timeframe has not started
+        // userStore.appMessage = 'Der Projektzeitraum startet am' + infoStore.startDate.string + '.'
+        setDailyTimeMessage();
+        return false;
+      } else if (nowMs > endTimeMs) {
+        // Project timeframe is over
+        setDailyTimeMessage();
+
+        return false;
+      } else {
+        resetTimeMessage();
+        return true;
+      }
+    } else {
+      resetTimeMessage();
+      return true;
+    }
+  });
+
+  let timeframeMessage = ref('');
+  let dailyTimeMessage = ref('');
+
+  function checkTimeframe(value) {
+    if (value === 'notStarted') {
+      let message =
+        'Der Projektzeitraum startet am: ' + infoStore.startDate.string + '.';
+      userStore.appMessage = message;
+      timeframeMessage.value = message;
+    }
+    if (value === 'over') {
+      let message =
+        'Der Projektzeitraum endete am: ' + infoStore.endDate.string + '.';
+      userStore.appMessage = message;
+      timeframeMessage.value = message;
+    }
+  }
+
+  function setDailyTimeMessage() {
+    let message =
+      'Der Fragebogen ist täglich von ' +
+      infoStore.dailyStartTime.string +
+      ' bis ' +
+      infoStore.dailyEndTime.string +
+      ' Uhr ausfüllbar.';
+    userStore.appMessage = message;
+    dailyTimeMessage.value = message;
+  }
+  function resetTimeMessage() {
+    timeframeMessage.value = '';
+    dailyTimeMessage.value = '';
+  }
 </script>
 
 <style scoped>
+  .timeframe_messages,
+  .dailytime_messages {
+    margin-bottom: 25px;
+  }
   .timer {
     color: var(--ion-color-danger);
   }
@@ -255,5 +433,12 @@
 
   .uiqueUserId {
     margin-bottom: 50px;
+  }
+
+  .result_buttons {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 </style>

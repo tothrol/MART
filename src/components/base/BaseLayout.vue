@@ -1,6 +1,6 @@
 <template>
   <ion-page id="main-content">
-    <transition>
+    <transition name="menu">
       <menu-component
         content-id="main-content"
         v-if="showMenu"
@@ -19,6 +19,11 @@
       </div>
     </ion-content>
     <footer-component v-if="props.fullscreen != true"></footer-component>
+    <transition>
+      <messagebox-component name="fade" v-if="userStore.appMessage != ''"
+        ><p v-html="userStore.appMessage" style="white-space: pre-line"></p
+      ></messagebox-component>
+    </transition>
   </ion-page>
 </template>
 
@@ -33,8 +38,12 @@
   } from 'ionicons/icons';
   import HeaderComponent from '@/components/base/HeaderComponent.vue';
   import FooterComponent from '@/components/base/FooterComponent.vue';
+  import MessageboxComponent from '@/components/MessageboxComponent.vue';
   import type { InjectionKey } from 'vue';
   import MenuComponent from '../MenuComponent.vue';
+  import { useUserStore } from '@/stores/userStore';
+
+  const userStore = useUserStore();
 
   // Scroll
   const myContent = ref(null);
@@ -76,16 +85,26 @@
     margin: 0;
   }
 
-  .v-enter-active,
-  .v-leave-active {
+  .menu-enter-active,
+  .menu-leave-active {
     transition: all 0.3s ease;
   }
 
-  .v-enter-from {
+  .menu-enter-from {
     transform: translateX(100vw);
   }
-  .v-leave-to {
+  .menu-leave-to {
     transform: translateX(100vw);
+  }
+
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity 0.5s ease;
+  }
+
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
   }
 
   /* END Menu */

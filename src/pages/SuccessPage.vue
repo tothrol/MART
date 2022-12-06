@@ -3,7 +3,7 @@
     ><div class="box green">
       <Icon class="heart" :icon="heart" />
       <p class="text_big">
-        Danke,<br />dass Du dir<br />die Zeit<br />Genommen<br />hast!
+        Danke,<br />dass Sie sich<br />die Zeit<br />genommen<br />haben!
       </p>
       <router-link class="link_button" to="/home">
         <ion-button color="secondary">Startseite</ion-button>

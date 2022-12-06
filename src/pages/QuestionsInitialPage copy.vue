@@ -6,7 +6,7 @@
         v-if="userStore.userData.username === 'nviiadmin'"
         @click="userStore.showDevbox = !userStore.showDevbox"
       >
-        <ion-button color="medium">admin</ion-button>
+        adm
       </div>
       <div class="sheets">
         <li
@@ -165,7 +165,7 @@
               class="freeFieldToAnswers"
               type="text"
               @input="
-                freeFieldToAnswers($event.target, activeSheet.itemId, $event)
+                freeFieldToAnswers($event.target.value, activeSheet.itemId)
               "
               :disabled="disableInput"
               v-model="freeFieldToAnswersValue"
@@ -243,9 +243,7 @@
               }`"
               :name="`${activeSheet.itemId}`"
               :value="answers.entries[activeSheet.itemId]"
-              @input="
-                validateNrInput($event.target, activeSheet.itemId, $event)
-              "
+              @input="validateNrInput($event.target, activeSheet.itemId)"
               min="0"
               max="999"
               :maxlength="activeSheet.scale.options.fieldDigits"
@@ -672,7 +670,6 @@
         // a new Battery starts or its last battery
         // if its last item, add last item to batteryArray
 
-        // function batteryArrayToSheetsArray(){
         if (Object.keys(batteryArray).length != 0) {
           // putting entries from batteryArray to sheetsArray
           if (
@@ -691,29 +688,9 @@
           }
           batteryArray = [];
         }
-        // }
         if (i === allSheetLength) {
           // last item gets put in batteryArray
           batteryArray.push(sheet);
-
-          if (Object.keys(batteryArray).length != 0) {
-            // putting entries from batteryArray to sheetsArray
-            if (
-              batteries.value[lastBatteryId] != undefined &&
-              batteries.value[lastBatteryId].options != undefined &&
-              batteries.value[lastBatteryId].options.randomizeItems !=
-                undefined &&
-              batteries.value[lastBatteryId].options.randomizeItems === true
-            ) {
-              // randomization
-              batteryArray = shuffle(batteryArray);
-            }
-
-            for (battery of batteryArray) {
-              sheetsArray.push(battery);
-            }
-            batteryArray = [];
-          }
         }
       }
 
@@ -736,7 +713,7 @@
     }
     // randomInt for putting the random page somewhere
     // let randomInt = getRandomInt(sheetsArray.length - 1);
-    let randomInt = 20;
+    let randomInt = 37;
 
     console.log('randomInt:', randomInt);
     // putting the random page somewhere
@@ -752,8 +729,12 @@
         attentionPageIndex
       );
       console.log('SheetsArray - allSheets: ', allSheets);
-      sheetsArray.splice(randomInt, 0, sheetsArray[Number(attentionPageIndex)]);
-      sheetsArray.splice(Number(attentionPageIndex) + 1, 1);
+      // sheetsArray.splice(
+      //   randomInt,
+      //   0,
+      //   sheetsArray[Number(attentionPageIndex) + 1]
+      // );
+      // sheetsArray.splice(Number(attentionPageIndex) + 1, 1);
     }
 
     // End putting the random page somewhere
@@ -876,23 +857,15 @@
     return arr;
   }
 
-  async function validateNrInput(target: any, itemId: any, event: any) {
+  async function validateNrInput(target: any, itemId: any) {
     const value = target.value;
-    console.log('validateNrInput - target', target);
-    console.log('validateNrInput - event', event);
-    console.log(
-      'validateNrInput - target.maxlength',
-      target.getAttribute('maxlength')
-    );
-    console.log('validateNrInput - itemId', itemId);
+    console.log('target', target);
+    console.log('target.maxlength', target.getAttribute('maxlength'));
+    console.log('itemId', itemId);
 
     if (value.length <= target.getAttribute('maxlength')) {
       console.log('value <=', value);
-      if (event.data >= 0 && event.data <= 9) {
-        answers.entries[itemId] = value;
-      } else {
-        target.value = answers.entries[itemId];
-      }
+      answers.entries[itemId] = value;
     } else {
       target.value = answers.entries[itemId];
     }
@@ -1055,16 +1028,10 @@
     return Math.floor(Math.random() * max);
   }
 
-  function freeFieldToAnswers(target, itemId, event) {
-    let value = target.value;
-    console.log('freeFieldToAnswers - value', value);
-    console.log('freeFieldToAnswers - event', event);
-    if (/^[a-zA-Z ]+$/.test(event.data)) {
-      answers.entries[itemId][1] = value;
-      freeFieldToAnswersValue.value = value;
-    } else {
-      target.value = answers.entries[itemId][1];
-    }
+  function freeFieldToAnswers(value, itemId) {
+    console.log('question2', value);
+    answers.entries[itemId][1] = value;
+    freeFieldToAnswersValue.value = value;
   }
 
   let freeFieldToAnswersValue = ref('');
@@ -1104,11 +1071,5 @@
 
   .freeFieldToAnswers {
     margin-bottom: 20px;
-  }
-
-  .admin {
-    position: absolute;
-    top: 0;
-    left: 0;
   }
 </style>

@@ -1,8 +1,15 @@
 <template>
   <base-layout
     ><div class="box green">
-      <h1>{{ infoStore.briefingShort.title }}</h1>
-      <p class="info_text" v-html="infoStore.briefingShort.text"></p>
+      <div v-if="userStore.briefingShortChecked === false">
+        <h1>{{ infoStore.briefingShort.title }}</h1>
+        <p class="info_text" v-html="infoStore.briefingShort.text"></p>
+      </div>
+
+      <div v-if="userStore.briefingShortChecked === true">
+        <h1>{{ infoStore.briefingShortMenu.title }}</h1>
+        <p class="info_text" v-html="infoStore.briefingShortMenu.text"></p>
+      </div>
 
       <ion-button
         v-if="userStore.briefingShortChecked === false"
@@ -29,6 +36,7 @@
 
   onMounted(() => {
     infoStore.getBriefingShort();
+    infoStore.getBriefingShortMenu();
   });
 
   async function checkBriefing() {
@@ -56,5 +64,9 @@
     /* width: 50px;
     height: 50px; */
     font-size: 40px;
+  }
+
+  h1 {
+    text-align: center;
   }
 </style>

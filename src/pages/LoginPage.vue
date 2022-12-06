@@ -72,6 +72,16 @@
       } else {
         router.push('/welcome');
       }
+    } else if (response.status != 200) {
+      userStore.appMessage =
+        'Fehler bei der Anmeldung. Bitte versuchen Sie es erneut! <br><br> Code: ' +
+        response.code +
+        '<br>Message: ' +
+        response.message +
+        '';
+
+      router.push('/login');
+      return;
     }
   }
 
@@ -131,5 +141,9 @@
 
   .text_big {
     margin-bottom: 50px;
+  }
+
+  .home {
+    display: none !important;
   }
 </style>

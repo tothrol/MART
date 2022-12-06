@@ -58,7 +58,7 @@
     await storage.create();
     await storage.set('complianceAccepted', true);
 
-    await statsStore.checkAndroidPermissions();
+    // await statsStore.checkAndroidPermissions();
     router.push('/questionsInitial');
   }
 </script>

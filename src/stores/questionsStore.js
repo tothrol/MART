@@ -62,89 +62,89 @@ export const useQuestionsStore = defineStore('questionsStore', {
         });
     },
     async sendInitialAnswers(answers) {
-      // try {
-      this.showSpinner = true;
-      // console.log('questionsStore - sendInitialAnswers - answers', answers);
+      try {
+        this.showSpinner = true;
+        // console.log('questionsStore - sendInitialAnswers - answers', answers);
 
-      const userStore = useUserStore();
-      // console.log(
-      //   'questionsStore - sendInitialAnswers - answers - user',
-      //   userStore.userData
-      // );
-      const token = userStore.userData.token;
+        const userStore = useUserStore();
+        // console.log(
+        //   'questionsStore - sendInitialAnswers - answers - user',
+        //   userStore.userData
+        // );
+        const token = userStore.userData.token;
 
-      const answersString = JSON.stringify(answers);
+        const answersString = JSON.stringify(answers);
 
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
+        const config = {
+          headers: { Authorization: `Bearer ${token}` },
+        };
 
-      const today = dayjs().format('DD.MM.YYYY');
-      const time = dayjs().format('HH:mm');
-      const dateLong = dayjs().format();
+        const today = dayjs().format('DD.MM.YYYY');
+        const time = dayjs().format('HH:mm');
+        const dateLong = dayjs().format();
 
-      const body = {
-        acf: {
-          userId: userStore.userData.id,
-          userName: userStore.userData.username,
-          date: today,
-          time: time,
-          answers: answersString,
-          dateLong: dateLong,
-          uniqueUserId: userStore.uniqueUserId,
-        },
-        slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
-        title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
-        status: 'publish',
-        meta: {
-          uniqueUserId: userStore.uniqueUserId,
-        },
-      };
+        const body = {
+          acf: {
+            userId: userStore.userData.id,
+            userName: userStore.userData.username,
+            date: today,
+            time: time,
+            answers: answersString,
+            dateLong: dateLong,
+            uniqueUserId: userStore.uniqueUserId,
+          },
+          slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
+          title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
+          status: 'publish',
+          meta: {
+            uniqueUserId: userStore.uniqueUserId,
+          },
+        };
 
-      const response = await axios.post(
-        `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_initial`,
-        body,
-        config
-      );
+        const response = await axios.post(
+          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_initial`,
+          body,
+          config
+        );
 
-      // JSON responses are automatically parsed.
+        // JSON responses are automatically parsed.
 
-      // console.log('questionsStore - sendInitialAnswers - response', response);
+        // console.log('questionsStore - sendInitialAnswers - response', response);
 
-      if (response.status === 201) {
-        // console.log('questionsStore - sendInitialAnswers - response = 201');
-        // userStore.showQuestions = true;
+        if (response.status === 201) {
+          // console.log('questionsStore - sendInitialAnswers - response = 201');
+          // userStore.showQuestions = true;
 
-        this.initialAnswerExist = true;
-        const storage = new Storage();
-        await storage.create();
-        await storage.set('initialAnswerExist', true);
-      } else {
-        // Error handling here
-        // console.log('questionsStore - sendInitialAnswers - response = NOT 201');
+          this.initialAnswerExist = true;
+          const storage = new Storage();
+          await storage.create();
+          await storage.set('initialAnswerExist', true);
+        } else {
+          // Error handling here
+          // console.log('questionsStore - sendInitialAnswers - response = NOT 201');
+        }
+
+        const statsStore = useStatsStore();
+
+        await statsStore.getStats(today, time, dateLong);
+
+        // await this.sendStatistics(today, time, dateLong);
+
+        // return response;
+
+        return new Promise((resolve) => {
+          console.log(
+            'questionsStore - sendInitialAnswers - resolv - response: ',
+            response
+          );
+          resolve(response);
+        });
+      } catch (e) {
+        return new Promise((reject) => {
+          console.log('questionsStore - sendInitialAnswers - reject - e: ', e);
+          reject(e);
+        });
       }
-
-      const statsStore = useStatsStore();
-
-      await statsStore.getStats(today, time, dateLong);
-
-      // await this.sendStatistics(today, time, dateLong);
-
-      return response;
-
-      // new Promise((resolve) => {
-      //   if (response.status == 201) {
-      //     return resolve(response);
-      //   }
-      // });
-      // } catch (e) {
-      //   new Promise((reject) => {
-      //     // if (response.status == 200) {
-
-      //     return reject(e);
-      //     // }
-      //   });
-      // }
     },
     async checkIfInitalAnswerExists() {
       const userStore = useUserStore();
@@ -279,74 +279,86 @@ export const useQuestionsStore = defineStore('questionsStore', {
         });
     },
     async sendShortAnswers(answers) {
-      // try {
-      this.showSpinner = true;
-      // console.log('questionsStore - sendShortAnswers - answers', answers);
-      const userStore = useUserStore();
-      const token = userStore.userData.token;
-      // console.log('questionsStore - sendShortAnswers - token', token);
+      try {
+        this.showSpinner = true;
+        // console.log('questionsStore - sendShortAnswers - answers', answers);
+        const userStore = useUserStore();
+        const token = userStore.userData.token;
+        // console.log('questionsStore - sendShortAnswers - token', token);
 
-      const answersString = JSON.stringify(answers);
+        const answersString = JSON.stringify(answers);
 
-      const today = dayjs().format('DD.MM.YYYY');
-      const time = dayjs().format('HH:mm');
-      const dateLong = dayjs().format();
-      console.log('DateLong', dateLong);
+        const today = dayjs().format('DD.MM.YYYY');
+        const time = dayjs().format('HH:mm');
+        const dateLong = dayjs().format();
+        console.log('DateLong', dateLong);
 
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
+        const config = {
+          headers: { Authorization: `Bearer ${token}` },
+        };
 
-      const body = {
-        acf: {
-          userId_k: userStore.userData.id,
-          answers_k: answersString,
-          userName_k: userStore.userData.username,
-          date_k: today,
-          time_k: time,
-          dateLong_k: dateLong,
-          uniqueUserId_k: userStore.uniqueUserId,
-        },
-        slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
-        title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
-        status: 'publish',
-        meta: {
-          uniqueUserId: userStore.uniqueUserId,
-        },
-      };
+        const body = {
+          acf: {
+            userId_k: userStore.userData.id,
+            answers_k: answersString,
+            userName_k: userStore.userData.username,
+            date_k: today,
+            time_k: time,
+            dateLong_k: dateLong,
+            uniqueUserId_k: userStore.uniqueUserId,
+          },
+          slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
+          title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
+          status: 'publish',
+          meta: {
+            uniqueUserId: userStore.uniqueUserId,
+          },
+        };
 
-      const response = await axios.post(
-        `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_kurzfrageb`,
-        body,
-        config
-      );
+        const response = await axios.post(
+          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_kurzfrageb`,
+          body,
+          config
+        );
 
-      // JSON responses are automatically parsed.
+        // JSON responses are automatically parsed.
 
-      console.log('questionsStore - sendShortAnswers - response', response);
+        console.log('questionsStore - sendShortAnswers - response', response);
 
-      if (response.status === 201) {
-        console.log('sendShortAnswers - response = 201');
-        this.lastShortAnswer = dateLong;
-        const storage = new Storage();
-        await storage.create();
-        await storage.set('lastShortAnswer', dateLong);
-        this.todayShortAnswers++;
-        await storage.set('todayShortAnswers', this.todayShortAnswers);
-        this.totalShortAnswers++;
-        await storage.set('totalShortAnswers', this.totalShortAnswers);
+        if (response.status === 201) {
+          console.log('sendShortAnswers - response = 201');
+          this.lastShortAnswer = dateLong;
+          const storage = new Storage();
+          await storage.create();
+          await storage.set('lastShortAnswer', dateLong);
+          this.todayShortAnswers++;
+          await storage.set('todayShortAnswers', this.todayShortAnswers);
+          this.totalShortAnswers++;
+          await storage.set('totalShortAnswers', this.totalShortAnswers);
 
-        this.lastShortAnswer = dateLong;
+          this.lastShortAnswer = dateLong;
+        }
+        // await this.countShortAnswers();
+
+        const statsStore = useStatsStore();
+
+        await statsStore.getStats(today, time, dateLong);
+
+        // await this.sendStatistics(today, time, dateLong);
+
+        return new Promise((resolve) => {
+          console.log('questionsStore - sendShortAnswers - resolve', response);
+          resolve(response);
+          // }
+        });
+      } catch (e) {
+        console.log('questionsStore - sendShortAnswers - error', e);
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          reject(e);
+          // }
+        });
       }
-      // await this.countShortAnswers();
-
-      const statsStore = useStatsStore();
-
-      await statsStore.getStats(today, time, dateLong);
-
-      // await this.sendStatistics(today, time, dateLong);
-
-      return response;
     },
     todayShortPlus() {
       // For Testing

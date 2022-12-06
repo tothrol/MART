@@ -162,9 +162,23 @@ ion-button.auto_width {
   border-radius: 10px;
 }
 
-.devbox ion-button {
+.devbox ion-button,
+.adminbox ion-button,
+.admin ion-button {
   width: auto;
   opacity: 0.8;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  margin: 0 !important;
+  padding: 3px !important;
+}
+
+.devbox .button,
+.adminbox .button,
+.admin .button {
+  font-size: 10px;
+  padding: 8px;
+  height: auto;
 }
 
 .development {

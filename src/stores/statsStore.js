@@ -19,12 +19,27 @@ export const useStatsStore = defineStore('statsStore', {
 
     async checkAndroidPermissions() {
       try {
-        let permission = await echo.checkForUsageStatsPermission();
-        console.log('STATSPermission', permission);
+        let permission = await echo.checkUsageStatsPermission();
+        console.log('checkAndroidPermissionss', permission);
+
+        // let data = await permission.json();
+        // console.log('checkAndroidPermissionss data', data);
+        // let data2 = JSON.parse(data);
+        // console.log('checkAndroidPermissionss data2', data2);
+
+        return permission;
+      } catch (e) {
+        return e;
+      }
+    },
+    async checkAndSetAndroidPermissions() {
+      try {
+        let permission = await echo.checkAndSetUsageStatsPermission();
+        console.log('checkAndSetAndroidPermissions', permission);
 
         return new Promise((resolve) => {
           // if (response.status == 200) {
-          resolve('Stats were send');
+          resolve('resolved');
           // }
         });
       } catch (e) {
@@ -39,10 +54,10 @@ export const useStatsStore = defineStore('statsStore', {
       try {
         console.log('getStats');
 
-        let permission = await echo.checkForUsageStatsPermission();
+        // let permission = await echo.checkAndSetUsageStatsPermission();
 
         // queryUsageStats
-        console.log('STATSPermission', permission);
+        // console.log('getStats -STATSPermission', permission);
         let queryUsageStats = await echo.getStats();
         // console.log('queryUsageStats - stats: ', queryUsageStats);
         let queryUsageStatsJSON = JSON.parse(queryUsageStats.androidUsageStats);

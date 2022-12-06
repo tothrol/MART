@@ -1,39 +1,66 @@
 <template>
   <div class="messagebox">
     <slot></slot>
-
-    <div class="ok">OK</div>
+    <div class="buttons">
+      <div class="ok" @click="onOk()">OK</div>
+      <div class="home display_none" @click="onHome()">Home</div>
+    </div>
   </div>
 </template>
 
 <script setup>
   import {} from '@ionic/vue';
+  import { useUserStore } from '@/stores/userStore';
+  import router from '@/router';
+
+  const userStore = useUserStore();
+
+  function onOk() {
+    userStore.appMessage = '';
+  }
+
+  function onHome() {
+    userStore.appMessage = '';
+    router.push('/home');
+  }
 </script>
 
 <style scoped>
   .messagebox {
-    width: 85%;
-        max-width: 560px;
-    background: rgba(255, 255, 255, 0.371);
-    border-radius: 5px;
+    width: 95%;
+    max-width: 560px;
+    background: #0d0d0dbf;
+    border-radius: 15px;
     padding: 10px 20px;
     position: fixed;
-    bottom: 90px;
+    bottom: 5px;
     z-index: 99999;
     right: 0;
     left: 0;
     margin-right: auto;
     margin-left: auto;
     display: flex;
+    flex-direction: column;
     align-items: center;
+    color: white;
   }
 
-  .ok {
-    margin-left: auto;
+  .buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .ok,
+  .home {
+    /* margin-left: auto; */
     padding: 5px 20px;
-    background: rgba(255, 255, 255, 0.334);
+    background: var(--ion-color-primary);
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 50px;
+    text-align: center;
+    margin-bottom: 10px;
+    margin-right: 10px;
   }
 
   .v-enter-active,

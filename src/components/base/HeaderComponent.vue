@@ -11,7 +11,7 @@
           ></ion-icon
         ></router-link>
       </ion-buttons>
-      <div id="logo">
+      <div id="logo" @click="adminMode()">
         <router-link to="/home">
           <img
             @click="updateShort()"
@@ -65,12 +65,40 @@
   import { ref, onMounted, watch } from 'vue';
 
   import { useQuestionsStore } from '@/stores/questionsStore';
+  import { useUserStore } from '@/stores/userStore';
   const questionsStore = useQuestionsStore();
+  const userStore = useUserStore();
 
   function updateShort() {
     // questionsStore.getLastShortAnswer();
     // questionsStore.countShortAnswers();
   }
+
+  // START AdminMode
+  let counterAdminMode = 0;
+
+  function timeoutAdmin() {
+    counterAdminMode = 0;
+  }
+
+  var timeoutAdminMode;
+
+  function adminMode() {
+    if (userStore.userData.username === 'nviiadmin') {
+      if (counterAdminMode === 0) {
+        timeoutAdminMode = setTimeout(timeoutAdmin, 3000);
+      }
+      counterAdminMode++;
+      if (counterAdminMode === 5) {
+        clearTimeout(timeoutAdminMode);
+        userStore.showDevbox = true;
+      }
+      if (counterAdminMode > 5) {
+        userStore.showDevbox = !userStore.showDevbox;
+      }
+    }
+  }
+  // END AdminMode
 </script>
 
 <style scoped>

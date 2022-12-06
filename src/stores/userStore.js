@@ -26,6 +26,7 @@ export const useUserStore = defineStore('userStore', {
       randomArray: [],
       complianceAccepted: false,
       briefingShortChecked: false,
+      appMessage: '',
     };
   },
   actions: {
@@ -86,12 +87,22 @@ export const useUserStore = defineStore('userStore', {
           this.userData.email = response.data.user_email;
           this.userData.username = response.data.user_display_name;
           this.userData.id = response.data.user_id;
+          // this.complianceAccepted = false;
           const storage = new Storage();
           await storage.create();
           await storage.set('token', response.data.token);
           await storage.set('email', response.data.user_email);
           await storage.set('username', response.data.user_display_name);
           await storage.set('id', response.data.user_id);
+
+          const complianceAccepted = await storage.get('complianceAccepted');
+          console.log(
+            'userStore - login - complianceAccepted',
+            complianceAccepted
+          );
+          if (complianceAccepted == true) {
+            this.complianceAccepted = true;
+          }
 
           if (this.uniqueUserId != uniqueUserId) {
             console.log('NewUniqueUserID');
@@ -109,6 +120,10 @@ export const useUserStore = defineStore('userStore', {
             await storage.remove('initialAnswerExist');
             this.createRandomArray();
             this.complianceAccepted = false;
+            console.log(
+              'NewUniqueUserID - this.complianceAccepted',
+              this.complianceAccepted
+            );
             this.briefingShortChecked = false;
             let questionsStore = useQuestionsStore();
             questionsStore.lastShortAnswer = '';
@@ -137,6 +152,40 @@ export const useUserStore = defineStore('userStore', {
         // console.log('userStore - login - e', e);
       }
     },
+
+    async validateToken() {
+      try {
+        const token = this.userData.token;
+
+        const config = {
+          headers: { Authorization: `Bearer ${token}` },
+        };
+
+        const response = await axios.post(
+          `https://fuberlin.nvii-dev.com/wp-json/jwt-auth/v1/token/validate`,
+          {},
+          config
+        );
+
+        console.log('userStore - validateToken - response: ', response);
+
+        return new Promise((resolve) => {
+          // if (response.status == 200) {
+          resolve(response);
+          // }
+        });
+      } catch (e) {
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+
+          reject(e);
+          // }
+        });
+
+        // console.log('userStore - login - e', e);
+      }
+    },
+
     async checkAuth() {
       // Runs at restart of page / restart of App
       console.log('checkAuth');
@@ -151,7 +200,7 @@ export const useUserStore = defineStore('userStore', {
         this.briefingShortChecked = true;
       }
       const complianceAccepted = await storage.get('complianceAccepted');
-      // console.log('CheckAuth - complianceAccepted', complianceAccepted);
+      console.log('CheckAuth - complianceAccepted', complianceAccepted);
       if (complianceAccepted == true) {
         this.complianceAccepted = true;
       }
@@ -206,6 +255,10 @@ export const useUserStore = defineStore('userStore', {
         uniqueUserId: uniqueUserId,
       };
       this.updateUserData(userData);
+
+      const infoStore = useInfoStore();
+
+      infoStore.getOptionsLoop();
       // END wird bei jedem refresh/restart ausgeführt
 
       const token = await storage.get('token');
