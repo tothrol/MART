@@ -3,6 +3,7 @@ import { validValue } from '../composables/ValidValue';
 import axios from 'axios';
 import { echo } from 'echo';
 import { useUserStore } from '@/stores/userStore';
+import { Device } from '@capacitor/device';
 // import { useQuestionsStore } from '@/stores/questionsStore';
 // import cordova from 'cordova';
 // import getUsageStatistics from 'cordova-plugin-usage-stats-manager';
@@ -54,6 +55,18 @@ export const useStatsStore = defineStore('statsStore', {
       try {
         console.log('getStats');
 
+        // let deviceInfo = await this.getDeviceInfo();
+        // console.log('getStats - deviceInfo: ', deviceInfo);
+
+        const deviceInfo = await Device.getInfo();
+        const deviceUuid = await Device.getId();
+
+        console.log('statsStore - getDeviceInfo - deviceUuid: ', deviceUuid);
+
+        console.log('statsStore - getDeviceInfo - deviceInfo: ', deviceInfo);
+
+        let deviceInfoString = JSON.stringify(deviceInfo);
+
         // let permission = await echo.checkAndSetUsageStatsPermission();
 
         // queryUsageStats
@@ -98,7 +111,9 @@ export const useStatsStore = defineStore('statsStore', {
           time,
           dateLong,
           queryUsageStatsString,
-          queryEventStatsString
+          queryEventStatsString,
+          deviceInfoString,
+          deviceUuid.uuid
         );
 
         return new Promise((resolve) => {
@@ -114,13 +129,37 @@ export const useStatsStore = defineStore('statsStore', {
         });
       }
     },
+    async getDeviceInfo() {
+      try {
+        const logDeviceInfo = async () => {
+          const info = await Device.getInfo();
+
+          console.log('statsStore - getDeviceInfo: ', info);
+        };
+
+        return new Promise((resolve) => {
+          // if (response.status == 200) {
+          resolve('device Info resolve');
+          // }
+        });
+      } catch (e) {
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          console.log('statsStore - getDeviceInfo - e: ', e);
+          reject(e);
+          // }
+        });
+      }
+    },
 
     async sendStatistics(
       today,
       time,
       dateLong,
       queryUsageStatsString,
-      queryEventStatsString
+      queryEventStatsString,
+      deviceInfoString,
+      deviceUuid
     ) {
       const userStore = useUserStore();
       // const statsStore = useStatsStore();
@@ -139,6 +178,8 @@ export const useStatsStore = defineStore('statsStore', {
           userIdStats: userStore.userData.id,
           queryUsageStats: queryUsageStatsString,
           queryEventStats: queryEventStatsString,
+          deviceInfoStats: deviceInfoString,
+          deviceUuidStats: deviceUuid,
           userNameStats: userStore.userData.username,
           dateStats: today,
           timeStats: time,

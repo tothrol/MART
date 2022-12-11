@@ -420,7 +420,10 @@
         </li>
       </div>
     </div>
-    <div class="development devbox" v-if="userStore.showDevbox">
+    <div
+      class="development devbox"
+      v-if="userStore.showDevbox && userStore.userData.username == 'nviiadmin'"
+    >
       <div>
         <div
           v-if="activeSheet != undefined && activeSheet.batteryId != undefined"
@@ -853,7 +856,7 @@
     if (
       activeSheetScaleOptions.value &&
       activeSheet.value.scale.options.jumpIfChoice != undefined &&
-      answers.entries[activeSheet.value.itemId] ===
+      answers.entries[activeSheet.value.itemId] ==
         activeSheet.value.scale.options.jumpIfChoice
     ) {
       currentSheet.value = activeSheet.value.scale.options.jumpToSheet - 1;

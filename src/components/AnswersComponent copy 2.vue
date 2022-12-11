@@ -30,7 +30,7 @@
       </div>
       <div
         class="row"
-        v-for="(row, key) of allAnswersOneDimentional.slice(0, 100)"
+        v-for="(row, key) of allAnswersOneDimentional"
         :key="key"
       >
         <div
@@ -167,16 +167,6 @@
     }
   });
 
-  function compare(a, b) {
-    if (a.timestamp < b.timestamp) {
-      return 1;
-    }
-    if (a.timestamp > b.timestamp) {
-      return -1;
-    }
-    return -1;
-  }
-
   let allAnswersOneDimentional = computed(() => {
     let allAnswers = [];
     if (props.ans != null && props.ans != undefined) {
@@ -195,11 +185,9 @@
             date: wpPost.acf.date,
             dateLong: wpPost.acf.dateLong,
             time: wpPost.acf.time,
-            timestamp: wpPost.acf.timestamp,
             userId: wpPost.acf.userId,
             userName: wpPost.acf.userName,
             uniqueUserId: wpPost.acf.uniqueUserId,
-            deviceUuid: wpPost.acf.deviceUuid,
             postId: wpPost.id,
             postTitle: wpPost.title.rendered,
             ...answers,
@@ -210,11 +198,9 @@
             date: wpPost.acf.date_k,
             dateLong: wpPost.acf.dateLong_k,
             time: wpPost.acf.time_k,
-            timestamp: wpPost.acf.timestamp_k,
             userId: wpPost.acf.userId_k,
             userName: wpPost.acf.userName_k,
             uniqueUserId: wpPost.acf.uniqueUserId_k,
-            deviceUuid: wpPost.acf.deviceUuid_k,
             postId: wpPost.id,
             postTitle: wpPost.title.rendered,
             ...answers,
@@ -227,7 +213,6 @@
         // }
         allAnswers.push(row);
       }
-      allAnswers.sort(compare);
 
       return allAnswers;
     } else {
@@ -248,12 +233,10 @@
     'userId',
     'userName',
     'uniqueUserId',
-    'deviceUuid',
     'postId',
     'date',
     'dateLong',
     'time',
-    'timestamp',
   ];
   let answersIndexInitial = computed(() => {
     return Object.keys(props.questions);
@@ -335,9 +318,7 @@
   .row .uniqueUserId,
   .row .date,
   .row .dateLong,
-  .row .time,
-  .row .timestamp,
-  .row .deviceUuid {
+  .row .time {
     width: 150px !important;
     min-width: 150px !important;
   }

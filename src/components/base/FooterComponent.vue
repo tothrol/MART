@@ -1,5 +1,9 @@
 <template>
-  <ion-footer collapse="fade" v-if="userStore.showDevbox" class="dev">
+  <ion-footer
+    collapse="fade"
+    v-if="userStore.showDevbox"
+    class="dev display_none"
+  >
     <ion-toolbar>
       <div class="padding">
         <div class="footer_icons dev">

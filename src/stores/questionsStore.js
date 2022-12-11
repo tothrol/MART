@@ -6,6 +6,8 @@ import axios from 'axios';
 import { toDisplayString } from 'vue';
 import dayjs from 'dayjs';
 import { Storage } from '@ionic/storage';
+import { useInfoStore } from '@/stores/infoStore';
+import { Device } from '@capacitor/device';
 
 export const useQuestionsStore = defineStore('questionsStore', {
   state: () => {
@@ -24,6 +26,9 @@ export const useQuestionsStore = defineStore('questionsStore', {
       timerShortQuestionsRuns: false,
 
       lastShortAnswer: '',
+      lastShortAnswerMs: 0,
+      nextShortAnswerMs: 0,
+
       todayShortAnswers: 0,
       totalShortAnswers: 0,
     };
@@ -63,6 +68,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
     },
     async sendInitialAnswers(answers) {
       try {
+        const deviceUuid = await Device.getId();
         this.showSpinner = true;
         // console.log('questionsStore - sendInitialAnswers - answers', answers);
 
@@ -79,9 +85,12 @@ export const useQuestionsStore = defineStore('questionsStore', {
           headers: { Authorization: `Bearer ${token}` },
         };
 
-        const today = dayjs().format('DD.MM.YYYY');
-        const time = dayjs().format('HH:mm');
-        const dateLong = dayjs().format();
+        const dayJs = dayjs();
+
+        const today = dayJs.format('DD.MM.YYYY');
+        const time = dayJs.format('HH:mm');
+        const dateLong = dayJs.format();
+        const timestamp = dayJs.valueOf();
 
         const body = {
           acf: {
@@ -89,9 +98,11 @@ export const useQuestionsStore = defineStore('questionsStore', {
             userName: userStore.userData.username,
             date: today,
             time: time,
+            timestamp: timestamp,
             answers: answersString,
             dateLong: dateLong,
             uniqueUserId: userStore.uniqueUserId,
+            deviceUuid: deviceUuid.uuid,
           },
           slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
           title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
@@ -116,6 +127,10 @@ export const useQuestionsStore = defineStore('questionsStore', {
           // userStore.showQuestions = true;
 
           this.initialAnswerExist = true;
+          console.log(
+            'sendInitialAnswers - initialAnswerExist: ',
+            this.initialAnswerExist
+          );
           const storage = new Storage();
           await storage.create();
           await storage.set('initialAnswerExist', true);
@@ -280,17 +295,20 @@ export const useQuestionsStore = defineStore('questionsStore', {
     },
     async sendShortAnswers(answers) {
       try {
+        const deviceUuid = await Device.getId();
         this.showSpinner = true;
-        // console.log('questionsStore - sendShortAnswers - answers', answers);
+        console.log('questionsStore - sendShortAnswers - answers', answers);
         const userStore = useUserStore();
         const token = userStore.userData.token;
         // console.log('questionsStore - sendShortAnswers - token', token);
 
         const answersString = JSON.stringify(answers);
 
-        const today = dayjs().format('DD.MM.YYYY');
-        const time = dayjs().format('HH:mm');
-        const dateLong = dayjs().format();
+        const now = dayjs();
+        const today = now.format('DD.MM.YYYY');
+        const time = now.format('HH:mm');
+        const dateLong = now.format();
+        const timestamp = now.valueOf();
         console.log('DateLong', dateLong);
 
         const config = {
@@ -306,6 +324,8 @@ export const useQuestionsStore = defineStore('questionsStore', {
             time_k: time,
             dateLong_k: dateLong,
             uniqueUserId_k: userStore.uniqueUserId,
+            timestamp_k: timestamp,
+            deviceUuid_k: deviceUuid.uuid,
           },
           slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
           title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
@@ -327,16 +347,32 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
         if (response.status === 201) {
           console.log('sendShortAnswers - response = 201');
+          let infoStore = useInfoStore();
           this.lastShortAnswer = dateLong;
+          this.lastShortAnswerMs = now.valueOf();
+
+          // console.log(
+          //   'sendShortAnswers - infoStore.breakBetweenShortQuestions',
+          //   infoStore.breakBetweenShortQuestions
+          // );
+          // this.nextShortAnswerMs = now
+          //   .add(infoStore.breakBetweenShortQuestions, 'minute')
+          //   .valueOf();
+          // console.log(
+          //   'sendShortAnswers - this.nextShortAnswerMs',
+          //   this.nextShortAnswerMs
+          // );
           const storage = new Storage();
           await storage.create();
           await storage.set('lastShortAnswer', dateLong);
+          await storage.set('lastShortAnswerMs', this.lastShortAnswerMs);
+          // await storage.set('nextShortAnswerMs', this.nextShortAnswerMs);
           this.todayShortAnswers++;
           await storage.set('todayShortAnswers', this.todayShortAnswers);
           this.totalShortAnswers++;
           await storage.set('totalShortAnswers', this.totalShortAnswers);
 
-          this.lastShortAnswer = dateLong;
+          userStore.setNotifications();
         }
         // await this.countShortAnswers();
 

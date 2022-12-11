@@ -1,6 +1,6 @@
 <template>
-  <base-layout
-    ><div class="box blue">
+  <base-layout>
+    <div class="box blue">
       <div class="info">
         <div class="uiqueUserId">
           Teilnehmer Id: <span class="big">{{ userStore.uniqueUserId }}</span>
@@ -14,11 +14,36 @@
           <span class="big">{{ questionsStore.todayShortAnswers }}/6</span>
         </div>
       </div>
+      <div>
+        <div class="countdown">
+          <div>Ende der Studie in</div>
+          <div class="countdown_times">
+            <span v-if="countdownDays > 0"
+              >{{ countdownDays }} Tag<span v-if="countdownDays > 1"
+                >en</span
+              ></span
+            >
+            {{ countdownHours }} Stunde<span
+              v-if="countdownHours > 1 || countdownHours == 0"
+              >n</span
+            >
+            und
+
+            {{ countdownMinutes }} Minute<span
+              v-if="countdownMinutes > 1 || countdownMinutes == 0"
+              >n</span
+            >
+          </div>
+        </div>
+      </div>
+
       <div
-        class="timer_wrapper"
+        class="timer_wrapper display_none"
         v-if="secToNext >= 1 && questionsStore.todayShortAnswers < 6"
       >
-        <div class="timer_text">Zeit bis zum nächsten Fragebogen:</div>
+        <div class="timer_text display_none">
+          Zeit bis zum nächsten Fragebogen:
+        </div>
         <div class="timer">
           <div class="display_none">
             <div>DateNow: {{ dateNow }}</div>
@@ -57,6 +82,7 @@
         :disabled="secToNext >= 1 || questionsStore.todayShortAnswers >= 6"
         >Fragebogen starten</ion-button
       >
+
       <div
         class="result_buttons"
         v-if="
@@ -82,6 +108,12 @@
     >
       <ion-button
         color="medium"
+        @click="userStore.showDevbox = !userStore.showDevbox"
+        >info</ion-button
+      >
+
+      <ion-button
+        color="medium"
         @click="
           questionsStore.initialAnswerExist = !questionsStore.initialAnswerExist
         "
@@ -92,37 +124,74 @@
     </div>
 
     <div class="devbox" v-if="userStore.showDevbox">
-      <ion-button color="medium" @click="secToNext = 5">Skip Timer</ion-button>
+      <div class="next_notifications">
+        Next Notifications:
+        <div
+          class="notification_times"
+          v-for="notification of userStore.notificationTimes.slice(0, 10)"
+          :key="notification"
+        >
+          {{ dayjs(notification).format('DD.MM.YY HH:mm') }}
+        </div>
+      </div>
+      <br />
+      <div class="timer_text">Time to next Sheet / Notification:</div>
+      <div class="timer">
+        <div class="display_none">
+          <div>DateNow: {{ dateNow }}</div>
+          <div>DateLast: {{ dateLast }}</div>
+          <div>DateNext: {{ dateNext }}</div>
+          <div>minToNext:{{ minToNext }}</div>
+          <div>secToNext:{{ secToNext }}</div>
+        </div>
+        <div>{{ minutes }}:{{ seconds }}</div>
+      </div>
+      <div v-if="userStore.userData.username == 'nviiadmin'">
+        <div>initialAnswerExist: {{ questionsStore.initialAnswerExist }}</div>
+        <ion-button color="medium" @click="userStore.setTestNotifications"
+          >set Test Notifications</ion-button
+        >
+        <ion-button color="medium" @click="userStore.setNotifications"
+          >set Notifications</ion-button
+        >
+        <ion-button color="medium" @click="secToNext = 5"
+          >Skip Timer</ion-button
+        >
 
-      getOptionsCounter: {{ infoStore.testCounter }}
-      <ion-button color="medium" @click="statsStore.getStats"
-        >get Stats</ion-button
-      >
-      <ion-button color="medium" @click="questionsStore.todayShortPlus"
-        >shortanswer ++</ion-button
-      >
-      <ion-button
-        color="medium"
-        @click="
-          questionsStore.initialAnswerExist = !questionsStore.initialAnswerExist
-        "
-        >Toggel initialAnswerExist</ion-button
-      >{{ questionsStore.initialAnswerExist }}
+        getOptionsCounter: {{ infoStore.testCounter }}
+        <ion-button color="medium" @click="statsStore.getStats"
+          >get Stats</ion-button
+        >
+        <ion-button color="medium" @click="questionsStore.todayShortPlus"
+          >shortanswer ++</ion-button
+        >
+        <ion-button color="medium" @click="questionsStore.todayShortAnswers--"
+          >shortanswer --</ion-button
+        >
+        <ion-button
+          color="medium"
+          @click="
+            questionsStore.initialAnswerExist =
+              !questionsStore.initialAnswerExist
+          "
+          >Toggel initialAnswerExist</ion-button
+        >{{ questionsStore.initialAnswerExist }}
 
-      <ion-button
-        color="medium"
-        @click="questionsStore.checkIfInitalAnswerExists"
-        >checkIfInitalAnswersExists</ion-button
-      >{{ questionsStore.initialAnswerExist }}
-      <router-link class="link_button" to="/questionsinitial">
-        <ion-button color="medium">Initialen Fragebogen starten</ion-button>
-      </router-link>
-      <router-link class="link_button" to="/questionsShort">
-        <ion-button color="medium">Fragebogen starten</ion-button>
-      </router-link>
-      <router-link class="link_button" to="/welcome">
-        <ion-button color="medium">welcome</ion-button>
-      </router-link>
+        <ion-button
+          color="medium"
+          @click="questionsStore.checkIfInitalAnswerExists"
+          >checkIfInitalAnswersExists</ion-button
+        >{{ questionsStore.initialAnswerExist }}
+        <router-link class="link_button" to="/questionsinitial">
+          <ion-button color="medium">Initialen Fragebogen starten</ion-button>
+        </router-link>
+        <router-link class="link_button" to="/questionsShort">
+          <ion-button color="medium">Fragebogen starten</ion-button>
+        </router-link>
+        <router-link class="link_button" to="/welcome">
+          <ion-button color="medium">welcome</ion-button>
+        </router-link>
+      </div>
     </div>
     <!-- <modal-component :welcome></modal-component>
     <modal-component :datenschutz></modal-component> -->
@@ -146,6 +215,7 @@
   const userStore = useUserStore();
   const statsStore = useStatsStore();
   const questionsStore = useQuestionsStore();
+  const infoStore = useInfoStore();
 
   let showMessage = ref(false);
 
@@ -230,9 +300,66 @@
     }
   );
 
+  watch(
+    () => questionsStore.nextShortAnswerMs,
+    (oldValue, newValue) => {
+      console.log(
+        'Home - changes detected nextShortAnswerMs',
+        oldValue,
+        newValue
+      );
+      initDate();
+    }
+  );
+
+  watch(
+    () => infoStore.breakBetweenShortQuestions,
+    (oldValue, newValue) => {
+      console.log(
+        'Home - changes detected -infoStore.breakBetweenShortQuestions',
+        oldValue,
+        newValue
+      );
+      initDate();
+    }
+  );
+
+  watch(
+    () => infoStore.endDate.dayJs,
+    (oldValue, newValue) => {
+      console.log(
+        'Home - changes detected -infoStore.endDate',
+        oldValue,
+        newValue
+      );
+      countdownTimer();
+    }
+  );
+  watch(
+    () => infoStore.dailyEndTime.hours,
+    (oldValue, newValue) => {
+      console.log(
+        'Home - changes detected -infoStore.dailyEndTime',
+        oldValue,
+        newValue
+      );
+      countdownTimer();
+    }
+  );
+
+  infoStore.dailyEndTime.hours;
+
   function formatTo2digit(input) {
     let formated = input.toLocaleString('de-DE', {
       minimumIntegerDigits: 2,
+      useGrouping: false,
+    });
+
+    return formated;
+  }
+  function formatTo1digit(input) {
+    let formated = input.toLocaleString('de-DE', {
+      minimumIntegerDigits: 1,
       useGrouping: false,
     });
 
@@ -272,40 +399,69 @@
 
       secT = window.setTimeout(secTimer, 1000); /* replicate wait 1 second */
     } else {
+      secToNext.value = 0;
       questionsStore.timerShortQuestionsRuns = false;
     }
   }
 
-  // let lastShortAnswer = computed(() => {
-  //   return questionsStore.lastShortAnswer;
-  // });
+  let countdownMinutes = ref(null);
+  let countdownHours = ref(null);
+  let countdownDays = ref(null);
 
-  // let dateLast = computed(() => {
-  //   return dayjs(lastShortAnswer.value);
-  // });
+  let countdownTimeout;
 
-  // let dateNext = computed(() => {
-  //   return dayjs(dateLast.value).add(30, 'minute');
-  // });
+  async function countdownTimer() {
+    let now = dayjs();
+    let endDate = infoStore.endDate.dayJs;
+    // endDate = endDate.add(Number(infoStore.dailyEndTime.hours));
+    // endDate = endDate.add(Number(infoStore.dailyEndTime.minutes));
+    endDate = endDate.add(Number(infoStore.dailyEndTime.hours), 'hour');
+    endDate = endDate.add(Number(infoStore.dailyEndTime.minutes), 'minute');
 
-  // let lastShortAnswer = '';
+    console.log('Home - countdownTimer - now', now);
+    console.log('Home - countdownTimer - endDate', endDate);
+
+    countdownDays.value = endDate.diff(now, 'day');
+    let countdownTotalHours = endDate.diff(now, 'hour');
+    countdownHours.value = formatTo1digit(countdownTotalHours % 24);
+    // something like 26 hours will become 2 hours
+
+    let countdownTotalMinutes = endDate.diff(now, 'minute');
+    // countdownMinutes.value = endDate.diff(now, 'minute');
+    countdownMinutes.value = formatTo1digit(countdownTotalMinutes % 60);
+
+    countdownTimeout = window.setTimeout(
+      countdownTimer,
+      1000 * 60
+    ); /* replicate wait 1 second */
+  }
+
+  // async function countdownTimer() {
+  //   if (countdownHours.value >= 1) {
+  //     secToNext.value = secToNext.value - 1;
+
+  //     countdownTimeout = window.setTimeout(
+  //       secTimer,
+  //       1000 * 60 * 60
+  //     ); /* replicate wait 1 second */
+  //   } else {
+  //     return;
+  //   }
+  // }
+
   let dateNow = ref({});
   let dateLast = ref({});
-  let dateNext = ref({});
+  let dateNext;
 
   async function initDate() {
-    // let lastShortAnswer = await questionsStore.getLastShortAnswer();
+    console.log('Home - initDate');
+    dateNext = dayjs(questionsStore.nextShortAnswerMs);
     let lastShortAnswer = questionsStore.lastShortAnswer;
     if (lastShortAnswer != undefined) {
       dateNow.value = dayjs();
       dateLast.value = dayjs(lastShortAnswer);
-      dateNext.value = dayjs(dateLast.value).add(20, 'minute');
-      // minToNext.value = dateNext.value.diff(dateNow.value, 'm');
-      secToNext.value = dateNext.value.diff(dateNow.value, 's');
-      console.log('Home - timer - lastShortAnswer', lastShortAnswer);
-      console.log('Home - timer - dateLast', dateLast.value);
-      console.log('Home - timer - dateNext', dateNext.value);
-      // timer();
+
+      secToNext.value = dateNext.diff(dateNow.value, 's');
 
       clearTimeout(secT);
       secTimer();
@@ -313,17 +469,23 @@
   }
 
   onMounted(async () => {
-    questionsStore.checkIfInitalAnswerExists();
+    // questionsStore.checkIfInitalAnswerExists();
     initDate();
+    countdownTimer();
     // questionsStore.countShortAnswers();
   });
-
-  const infoStore = useInfoStore();
 
   let timeframe = computed(() => {
     let nowMs = dayjs().valueOf();
     let startDateMs = infoStore.startDate.ms;
     let endDateMs = infoStore.endDate.ms;
+    // endDateMs is midnight of the WP entry, so its initially exlusive of the WP entry, therefore hours and minutes of dailyEndTime have to be addet
+    endDateMs =
+      endDateMs +
+      infoStore.dailyEndTime.hours * 60 * 60 * 1000 +
+      infoStore.dailyEndTime.minutes * 60 * 1000;
+
+    console.log;
     if (startDateMs != '' && endDateMs != '') {
       if (nowMs < startDateMs) {
         // project timeframe has not started
@@ -440,5 +602,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+  }
+
+  .countdown {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .countdown_times {
+    font-weight: 500;
+    font-size: 18px;
+    margin-top: 10px;
   }
 </style>

@@ -4,6 +4,8 @@ import axios from 'axios';
 import { Storage } from '@ionic/storage';
 import { useQuestionsStore } from '@/stores/questionsStore';
 import { useInfoStore } from '@/stores/infoStore';
+import { useStatsStore } from '@/stores/statsStore';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import dayjs from 'dayjs';
 
 // import { useQuestionsStore } from '@/stores/questionsStore';
@@ -27,6 +29,8 @@ export const useUserStore = defineStore('userStore', {
       complianceAccepted: false,
       briefingShortChecked: false,
       appMessage: '',
+      dailyLoop: null,
+      notificationTimes: [],
     };
   },
   actions: {
@@ -87,6 +91,7 @@ export const useUserStore = defineStore('userStore', {
           this.userData.email = response.data.user_email;
           this.userData.username = response.data.user_display_name;
           this.userData.id = response.data.user_id;
+
           // this.complianceAccepted = false;
           const storage = new Storage();
           await storage.create();
@@ -104,6 +109,8 @@ export const useUserStore = defineStore('userStore', {
             this.complianceAccepted = true;
           }
 
+          this.dailyFunction();
+
           if (this.uniqueUserId != uniqueUserId) {
             console.log('NewUniqueUserID');
             const storage = new Storage();
@@ -115,9 +122,12 @@ export const useUserStore = defineStore('userStore', {
             await storage.remove('complianceAccepted');
             await storage.remove('briefingShortChecked');
             await storage.remove('lastShortAnswer');
+            await storage.remove('lastShortAnswerMs');
+            await storage.remove('nextShortAnswerMs');
             await storage.remove('todayShortAnswers');
             await storage.remove('totalShortAnswers');
             await storage.remove('initialAnswerExist');
+            await storage.remove('notificationTimes');
             this.createRandomArray();
             this.complianceAccepted = false;
             console.log(
@@ -127,13 +137,17 @@ export const useUserStore = defineStore('userStore', {
             this.briefingShortChecked = false;
             let questionsStore = useQuestionsStore();
             questionsStore.lastShortAnswer = '';
+            questionsStore.lastShortAnswerMs = 0;
+            questionsStore.nextShortAnswerMs = 0;
             questionsStore.todayShortAnswers = 0;
             questionsStore.totalShortAnswers = 0;
             questionsStore.initialAnswerExist = false;
 
             questionsStore.getLastShortAnswer();
             questionsStore.countShortAnswers();
-            questionsStore.checkIfInitalAnswerExists();
+            // questionsStore.checkIfInitalAnswerExists();
+
+            this.notificationTimes = [];
           }
         }
         return new Promise((resolve) => {
@@ -151,6 +165,24 @@ export const useUserStore = defineStore('userStore', {
 
         // console.log('userStore - login - e', e);
       }
+    },
+
+    async dailyFunction() {
+      this.dailyFunctionLoop;
+      // only works as long the App is in the foreground - when app is in background or closed interval stopps
+      this.dailyLoop = setInterval(this.dailyFunctionLoop, 1000 * 60 * 60 * 24);
+    },
+    async dailyFunctionLoop() {
+      console.log('userStore - dailyFunctionLoop', dayjs());
+      let statsStore = useStatsStore();
+
+      const today = dayjs().format('DD.MM.YYYY');
+      const time = dayjs().format('HH:mm');
+      const dateLong = dayjs().format();
+      statsStore.getStats(today, time, dateLong);
+    },
+    async clearDailyFunction() {
+      clearInterval(this.dailyInerval);
     },
 
     async validateToken() {
@@ -227,6 +259,15 @@ export const useUserStore = defineStore('userStore', {
           await storage.set('todayShortAnswers', 0);
         }
       }
+      let lastShortAnswerMs = await storage.get('lastShortAnswerMs');
+      if (lastShortAnswerMs != null) {
+        questionsStore.lastShortAnswerMs = lastShortAnswerMs;
+      }
+
+      let nextShortAnswerMs = await storage.get('nextShortAnswerMs');
+      if (nextShortAnswerMs != null) {
+        questionsStore.nextShortAnswerMs = nextShortAnswerMs;
+      }
 
       let randomArray = await storage.get('randomArray');
       if (randomArray != null) {
@@ -240,7 +281,13 @@ export const useUserStore = defineStore('userStore', {
       if (initialAnswerExist != null) {
         questionsStore.initialAnswerExist = initialAnswerExist;
       } else {
-        questionsStore.checkIfInitalAnswerExists();
+        // when checking here for InitialAnswer than it might get a negative response, as the answer cant be found in WP due to delay, so better not check.
+        // questionsStore.checkIfInitalAnswerExists();
+      }
+
+      let notificationTimes = await storage.get('notificationTimes');
+      if (notificationTimes != null) {
+        this.notificationTimes = notificationTimes;
       }
 
       const id = await storage.get('id');
@@ -295,6 +342,252 @@ export const useUserStore = defineStore('userStore', {
       console.log('randomArray:', randomArray);
 
       // END Randomize Skala
+    },
+    async setTestNotifications() {
+      //START channel
+      const channel = {
+        id: '2',
+        name: 'channel2',
+        importance: 5,
+        sound: 'none.mp3',
+      };
+
+      LocalNotifications.createChannel(channel);
+      //END channel
+
+      console.log('setNotifiations');
+      let notificationArray = [];
+
+      await this.resetNotifications();
+
+      let now = dayjs();
+      let nowPlusOneMinute = dayjs().add(5, 'second').valueOf();
+
+      let notificationEntry = {
+        id: 5856,
+        channelId: 2,
+        title: `Erinnerung Fragebogen`,
+        body: `Bitte Fragebogen ausfüllen`,
+        schedule: {
+          at: new Date(nowPlusOneMinute),
+          allowWhileIdle: false,
+        },
+        foreground: false,
+        smallIcon: 'ic_stat_tonne',
+        extra: {},
+        sound: 'none',
+      };
+      notificationArray.push(notificationEntry);
+
+      await LocalNotifications.requestPermissions().then(function (result) {
+        console.log(
+          'Notifiations - setNotifications - requestPermissions - result',
+          result
+        );
+      });
+
+      await LocalNotifications.schedule({
+        notifications: notificationArray,
+      });
+    },
+    async setNotifications() {
+      // START Calculating Notification Times
+      let infoStore = useInfoStore();
+      let questionsStore = useQuestionsStore();
+      let dailyInterval = infoStore.dailyInterval;
+      let dailyIntervalMs = dailyInterval * 60 * 60 * 1000;
+
+      let dailyStartTime = infoStore.dailyStartTime;
+      let todayStartTimeMs = infoStore.dailyStartTime.todayStartTimeMs;
+
+      let dailyEndTime = infoStore.dailyEndTime;
+      let todayEndTimeMs = infoStore.dailyEndTime.todayEndTimeMs;
+
+      let notificationTimes = [];
+
+      let newEntry = todayStartTimeMs;
+
+      let dailyStartTimeHour = dayjs(todayStartTimeMs).hour();
+      let dailyEndTimeHour = dayjs(todayEndTimeMs).hour();
+
+      console.log(
+        'userStore - setNotifications - dailyStartTimeHour',
+        dailyStartTimeHour,
+        dailyEndTimeHour
+      );
+
+      let breakBetweenShortQuestionsInMin =
+        infoStore.breakBetweenShortQuestions;
+
+      let lastShortAnswer = dayjs(questionsStore.lastShortAnswer);
+      let lastShortAnswerMs = dayjs(questionsStore.lastShortAnswer).valueOf();
+      let lastShortAnswerPlusBreakMs =
+        lastShortAnswerMs + breakBetweenShortQuestionsInMin * 60 * 1000;
+      console.log(
+        'userStore - setNotifications - lastShortAnswer',
+        lastShortAnswer
+      );
+      console.log(
+        'userStore - setNotifications - lastShortAnswerPlusBreakMs',
+        lastShortAnswerPlusBreakMs
+      );
+      let nowMs = dayjs().valueOf();
+
+      let secureCounter = 0;
+
+      for (let i = 0; i <= 50; ) {
+        if (secureCounter == 0) {
+          newEntry = todayStartTimeMs;
+        } else {
+          newEntry += dailyIntervalMs;
+        }
+        // console.log('userStore - setNotifications - i', i);
+        // console.log(
+        //   'userStore - setNotifications - secureCounter',
+        //   secureCounter
+        // );
+        // console.log('userStore - setNotifications - newEntry', newEntry);
+
+        // newEntry += dailyIntervalMs;
+
+        let newEntryHour = dayjs(newEntry).hour();
+        // console.log(
+        //   'userStore - setNotifications - newEntryHour',
+        //   newEntryHour
+        // );
+
+        if (
+          newEntryHour >= dailyStartTimeHour &&
+          newEntryHour < dailyEndTimeHour &&
+          newEntry > nowMs
+        ) {
+          // console.log('userStore - setNotifications - if1');
+          if (newEntry < lastShortAnswerPlusBreakMs) {
+            // Check if Timer is kurzfragebogen Timer is running and add Timer to newEntry
+            // if regular calculated Entry (every 2 Hours) is before the 30min Timer is over, than make the new Entry at the same time the 30min timer is over
+            let newEntryPlus = lastShortAnswerPlusBreakMs;
+            notificationTimes.push(newEntryPlus);
+            // console.log(
+            //   'userStore - setNotifications - newEntryPlus < lastShortAnswerPlusBreakMs',
+            //   dayjs(newEntryPlus)
+            // );
+          } else {
+            // console.log(
+            //   'userStore - setNotifications - newEntry',
+            //   dayjs(newEntry)
+            // );
+            notificationTimes.push(newEntry);
+          }
+
+          i++;
+        }
+        secureCounter++;
+        if (secureCounter > 1000) {
+          return;
+        }
+      }
+      console.log(
+        'userStore - setNotifications - notificationTimes',
+        notificationTimes
+      );
+
+      this.notificationTimes = notificationTimes;
+      const storage = new Storage();
+      await storage.create();
+      await storage.set('notificationTimes', notificationTimes);
+
+      // setting nextShortAnswerMs to first array entry
+      questionsStore.nextShortAnswerMs = notificationTimes[0];
+
+      await storage.set('nextShortAnswerMs', notificationTimes[0]);
+
+      //END Calculating Notification Times
+
+      //START channel
+      const channel = {
+        id: '1',
+        name: 'channel1',
+        importance: 5,
+        sound: 'none.mp3',
+      };
+
+      LocalNotifications.createChannel(channel);
+      //END channel
+
+      console.log('setNotifiations');
+      let notificationArray = [];
+
+      await this.resetNotifications();
+      this.notificationArray = [];
+
+      // let now = dayjs();
+      // let nowPlusOneMinute = dayjs().add(5, 'second').valueOf();
+      console.log(
+        'Notifiations - setNotifications - notificationTimes',
+        notificationTimes
+      );
+
+      for (const [i, notificationTime] of notificationTimes.entries()) {
+        // let notificationId = notificationTime - dayjs('2022-01-01').valueOf;
+        // // There is a limit on the Id (32bit int), so we start the id at 2022
+        let notificationEntry = {
+          id: i,
+          channelId: 1,
+          title: `FU Berlin App`,
+          body: `Sie können einen weiteren Fragebogen ausfüllen`,
+          schedule: {
+            at: new Date(notificationTime),
+            allowWhileIdle: true,
+          },
+          foreground: true,
+          smallIcon: 'ic_stat_tonne',
+          extra: {},
+          sound: 'none',
+        };
+        notificationArray.push(notificationEntry);
+      }
+
+      await LocalNotifications.requestPermissions().then(function (result) {
+        console.log(
+          'Notifiations - setNotifications - requestPermissions - result',
+          result
+        );
+      });
+
+      await LocalNotifications.schedule({
+        notifications: notificationArray,
+      });
+    },
+    async resetNotifications() {
+      // var id;
+      let idsArray = [];
+      await LocalNotifications.getPending().then(function (result) {
+        console.log(
+          'Notifiations - cancel - showNotification - result',
+          result
+        );
+
+        //here a for each loop of all result notifications
+
+        for (let [count] of Object.entries(result.notifications)) {
+          let notification = result.notifications[count];
+
+          idsArray.push(notification.id);
+        }
+
+        // id = result.notifications[0].id.toString();
+      });
+      console.log('Notifiations - cancel - showNotification -id', idsArray);
+
+      if (idsArray.length != 0) {
+        for (var [noteCount] of Object.entries(idsArray)) {
+          let noteId = idsArray[noteCount];
+
+          await LocalNotifications.cancel({
+            notifications: [{ id: noteId }],
+          });
+        }
+      }
     },
   },
   getters: {

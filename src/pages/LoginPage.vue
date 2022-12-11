@@ -64,7 +64,7 @@
       // await questionsStore.checkIfInitalAnswerExists();
       let platform = Capacitor.getPlatform();
       console.log('Platform: ', platform);
-      if (questionsStore.initialAnswerExist === true || platform === 'web') {
+      if (questionsStore.initialAnswerExist === true) {
         console.log('LoginPage - initialAnswerExist === true');
         // console.log('LoginPage - Before Route -', userStore.userData.token);
 

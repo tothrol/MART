@@ -41,7 +41,7 @@
         </div>
         <div
           class="row"
-          v-for="(value, property) of allUsageStatsUnique.slice(0, 1000)"
+          v-for="(value, property) of allUsageStatsUnique"
           :key="property"
         >
           <div
@@ -97,7 +97,7 @@
         </div>
         <div
           class="row"
-          v-for="(value, property) of allEventStatsUnique.slice(0, 1000)"
+          v-for="(value, property) of allEventStatsUnique"
           :key="property"
         >
           <div
@@ -168,21 +168,6 @@
 
     if (wpPosts != null && wpPosts != undefined) {
       for (let [key1, wpPost] of Object.entries(wpPosts)) {
-        // S putting deviceInfo into stats
-        let deviceInfo = {
-          model: '',
-          operatingSystem: '',
-          osVersion: '',
-          platform: '',
-          manufacturer: '',
-        };
-        if (wpPost.acf.deviceInfoStats != undefined) {
-          deviceInfo = JSON.parse(wpPost.acf.deviceInfoStats);
-
-          console.log('StatisticsPage - deviceInfo: ', deviceInfo);
-        }
-
-        // E putting deviceInfo into stats
         let queryEventStats = {};
 
         // single event
@@ -212,14 +197,6 @@
           singleStatObject['userId'] = wpPost.acf.userIdStats;
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['uniqueUserId'] = wpPost.acf.uniqueUserIdStats;
-
-          singleStatObject['deviceUuid'] = wpPost.acf.deviceUuidStats;
-          singleStatObject['deviceModel'] = deviceInfo.model;
-          singleStatObject['deviceOs'] = deviceInfo.operatingSystem;
-          singleStatObject['deviceOsVersion'] = deviceInfo.osVersion;
-          singleStatObject['devicePlatform'] = deviceInfo.platform;
-          singleStatObject['deviceManufacturer'] = deviceInfo.manufacturer;
-
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['dateLong'] = wpPost.acf.dateLongStats;
           singleStatObject['postId'] = wpPost.id;
@@ -241,15 +218,14 @@
   });
 
   function compare(a, b) {
-    if (a.timeStampAndroid < b.timeStampAndroid) return 1;
-    if (a.timeStampAndroid > b.timeStampAndroid) return -1;
-    // if (a.uniqueUserId < b.uniqueUserId) return -1;
-    // if (a.uniqueUserId > b.uniqueUserId) return 1;
-
+    if (a.uniqueUserId < b.uniqueUserId) return -1;
+    if (a.uniqueUserId > b.uniqueUserId) return 1;
     if (a.getPackageName < b.getPackageName) return -1;
     if (a.getPackageName > b.getPackageName) return 1;
-    // if (a.getFirstTimeStamp < b.getFirstTimeStamp) return -1;
-    // if (a.getFirstTimeStamp > b.getFirstTimeStamp) return 1;
+    if (a.getFirstTimeStamp < b.getFirstTimeStamp) return -1;
+    if (a.getFirstTimeStamp > b.getFirstTimeStamp) return 1;
+    if (a.timeStampAndroid < b.timeStampAndroid) return 1;
+    if (a.timeStampAndroid > b.timeStampAndroid) return -1;
 
     return 0;
   }
@@ -290,12 +266,6 @@
     'userId',
     'userName',
     'uniqueUserId',
-    'deviceUuid',
-    'deviceModel',
-    'deviceOs',
-    'deviceOsVersion',
-    'devicePlatform',
-    'deviceManufacturer',
     'postId',
     'postTitle',
     'date',
@@ -336,18 +306,16 @@
     let arrayUnique = [];
 
     let allUsage = allUsageStats.value;
+    let sorted = allUsage.sort(compare);
 
     let unique = [];
-    unique = allUsage.filter(filterFunction);
-
-    let sorted = unique.sort(compare);
-
+    unique = sorted.filter(filterFunction);
     // console.log('statistics - sorted: ', sorted);
     // console.log('statistics - unique: ', unique);
 
     // let arrayOrdered = allUsageStats.value.forEach(function (item, index) {});
 
-    return sorted;
+    return unique;
   });
 
   let allUsageStatsCsv = computed(() => {
@@ -373,12 +341,6 @@
     'userId',
     'userName',
     'uniqueUserId',
-    'deviceUuid',
-    'deviceModel',
-    'deviceOs',
-    'deviceOsVersion',
-    'devicePlatform',
-    'deviceManufacturer',
     'postId',
     'postTitle',
     'date',
@@ -403,21 +365,6 @@
 
     if (wpPosts != null && wpPosts != undefined) {
       for (let [key1, wpPost] of Object.entries(wpPosts)) {
-        // S putting deviceInfo into stats
-        let deviceInfo = {
-          model: '',
-          operatingSystem: '',
-          osVersion: '',
-          platform: '',
-          manufacturer: '',
-        };
-        if (wpPost.acf.deviceInfoStats != undefined) {
-          deviceInfo = JSON.parse(wpPost.acf.deviceInfoStats);
-
-          console.log('StatisticsPage - deviceInfo: ', deviceInfo);
-        }
-
-        // E putting deviceInfo into stats
         let queryEventStats = {};
 
         // single event
@@ -447,15 +394,6 @@
           singleStatObject['userId'] = wpPost.acf.userIdStats;
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['uniqueUserId'] = wpPost.acf.uniqueUserIdStats;
-
-          singleStatObject['deviceUuid'] = wpPost.acf.deviceUuidStats;
-
-          singleStatObject['deviceModel'] = deviceInfo.model;
-          singleStatObject['deviceOs'] = deviceInfo.operatingSystem;
-          singleStatObject['deviceOsVersion'] = deviceInfo.osVersion;
-          singleStatObject['devicePlatform'] = deviceInfo.platform;
-          singleStatObject['deviceManufacturer'] = deviceInfo.manufacturer;
-
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['dateLong'] = wpPost.acf.dateLongStats;
           singleStatObject['postId'] = wpPost.id;
@@ -477,14 +415,14 @@
   });
 
   function compareEvent(a, b) {
-    if (a.timeStampAndroid < b.timeStampAndroid) return 1;
-    if (a.timeStampAndroid > b.timeStampAndroid) return -1;
-    // if (a.uniqueUserId < b.uniqueUserId) return -1;
-    // if (a.uniqueUserId > b.uniqueUserId) return 1;
+    if (a.uniqueUserId < b.uniqueUserId) return -1;
+    if (a.uniqueUserId > b.uniqueUserId) return 1;
     if (a.getEventType < b.getEventType) return -1;
     if (a.getEventType > b.getEventType) return 1;
-    // if (a.getFirstTimeStamp < b.getFirstTimeStamp) return -1;
-    // if (a.getFirstTimeStamp > b.getFirstTimeStamp) return 1;
+    if (a.getFirstTimeStamp < b.getFirstTimeStamp) return -1;
+    if (a.getFirstTimeStamp > b.getFirstTimeStamp) return 1;
+    if (a.timeStampAndroid < b.timeStampAndroid) return 1;
+    if (a.timeStampAndroid > b.timeStampAndroid) return -1;
 
     return 0;
   }
@@ -533,12 +471,10 @@
     let arrayUnique = [];
 
     let allEvents = allEventStats.value;
+    let sorted = allEvents.sort(compareEvent);
 
     let unique = [];
-    unique = allEvents.filter(filterFunctionEvent);
-
-    let sorted = unique.sort(compareEvent);
-
+    unique = sorted.filter(filterFunctionEvent);
     // console.log('statistics - sorted: ', sorted);
     // console.log('statistics - unique: ', unique);
 

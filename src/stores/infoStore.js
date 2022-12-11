@@ -28,6 +28,8 @@ export const useInfoStore = defineStore('infoStore', {
       },
       dailyEndTime: {
         string: '',
+        hours: 0,
+        minutes: 0,
         jsDate: '',
         dayJs: '',
         ms: '',
@@ -36,6 +38,8 @@ export const useInfoStore = defineStore('infoStore', {
         todayStartTime: '',
         todayStartTimeMs: '',
       },
+      dailyInterval: 0,
+      breakBetweenShortQuestions: 0,
       testCounter: 0,
     };
   },
@@ -123,7 +127,11 @@ export const useInfoStore = defineStore('infoStore', {
           this.dailyEndTime.string = endTimeString;
 
           let endTimeHours = endTimeString.slice(0, 2);
+          this.dailyEndTime.hours = endTimeHours;
+
           let endTimeMinutes = endTimeString.slice(3, 5);
+          this.dailyEndTime.minutes = endTimeMinutes;
+          this.dailyEndTime.string = endTimeString;
           let todayEndTime = dayjs()
             .startOf('day')
             .minute(endTimeMinutes)
@@ -136,6 +144,20 @@ export const useInfoStore = defineStore('infoStore', {
 
           // END end
           //  ENd daily Time
+
+          // START Intervalldauer
+          this.dailyInterval = Number(
+            response.data.acf.dailyInterval.intervalTime
+          );
+
+          // END Intervalldauer
+
+          // START breakBetweenShortQuestions
+          this.breakBetweenShortQuestions = Number(
+            response.data.acf.dailyInterval.breakBetweenShortQuestions
+          );
+
+          // END breakBetweenShortQuestions
         }
 
         return new Promise((resolve) => {
