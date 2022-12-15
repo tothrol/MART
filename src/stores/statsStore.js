@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { validValue } from '../composables/ValidValue';
 import axios from 'axios';
 import { echo } from 'echo';
+// import { capacitorUsageStatsManager } from 'capacitor-usage-stats-manager';
 import { useUserStore } from '@/stores/userStore';
 import { Device } from '@capacitor/device';
 // import { useQuestionsStore } from '@/stores/questionsStore';
@@ -72,6 +73,7 @@ export const useStatsStore = defineStore('statsStore', {
         // queryUsageStats
         // console.log('getStats -STATSPermission', permission);
         let queryUsageStats = await echo.getStats();
+        // let queryUsageStats = await capacitorUsageStatsManager.getStats();
         // console.log('queryUsageStats - stats: ', queryUsageStats);
         let queryUsageStatsJSON = JSON.parse(queryUsageStats.androidUsageStats);
         let queryUsageStatsStringify = JSON.stringify(queryUsageStatsJSON);
