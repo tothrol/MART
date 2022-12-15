@@ -7,6 +7,8 @@ import { useInfoStore } from '@/stores/infoStore';
 import { useStatsStore } from '@/stores/statsStore';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import dayjs from 'dayjs';
+import { useRouter, useRoute } from 'vue-router';
+// import router from '../router';
 
 // import { useQuestionsStore } from '@/stores/questionsStore';
 
@@ -31,6 +33,7 @@ export const useUserStore = defineStore('userStore', {
       appMessage: '',
       dailyLoop: null,
       notificationTimes: [],
+      localNotificationTapped: false,
     };
   },
   actions: {
@@ -67,6 +70,9 @@ export const useUserStore = defineStore('userStore', {
       const storage = new Storage();
       await storage.create();
       await storage.remove('token');
+
+      // this.complianceAccepted = false
+      //  questionsStore.initialAnswerExist = false
       // await storage.remove('email');
       // await storage.remove('username');
       // await storage.remove('id');
@@ -343,6 +349,7 @@ export const useUserStore = defineStore('userStore', {
 
       // END Randomize Skala
     },
+
     async setTestNotifications() {
       //START channel
       const channel = {
@@ -358,7 +365,7 @@ export const useUserStore = defineStore('userStore', {
       console.log('setNotifiations');
       let notificationArray = [];
 
-      await this.resetNotifications();
+      // await this.resetNotifications();
 
       let now = dayjs();
       let nowPlusOneMinute = dayjs().add(5, 'second').valueOf();
@@ -370,9 +377,9 @@ export const useUserStore = defineStore('userStore', {
         body: `Bitte Fragebogen ausfüllen`,
         schedule: {
           at: new Date(nowPlusOneMinute),
-          allowWhileIdle: false,
+          allowWhileIdle: true,
         },
-        foreground: false,
+        foreground: true,
         smallIcon: 'ic_stat_tonne',
         extra: {},
         sound: 'none',
@@ -389,204 +396,272 @@ export const useUserStore = defineStore('userStore', {
       await LocalNotifications.schedule({
         notifications: notificationArray,
       });
+
+      await LocalNotifications.addListener(
+        'localNotificationActionPerformed',
+        (payload) => {
+          // Redirect to shortquestions if conditions are right, else go to home
+          console.log(
+            'Notifiations - setTestNotifications - requestPermissions - addListener',
+            payload
+          );
+
+          this.localNotificationTapped = true;
+          // this.onStartQuestionsShort();
+        }
+      );
     },
+
     async setNotifications() {
-      // START Calculating Notification Times
-      let infoStore = useInfoStore();
-      let questionsStore = useQuestionsStore();
-      let dailyInterval = infoStore.dailyInterval;
-      let dailyIntervalMs = dailyInterval * 60 * 60 * 1000;
+      try {
+        // START Calculating Notification Times
+        let infoStore = useInfoStore();
+        let questionsStore = useQuestionsStore();
+        let dailyInterval = infoStore.dailyInterval;
+        let dailyIntervalMs = dailyInterval * 60 * 60 * 1000;
 
-      let dailyStartTime = infoStore.dailyStartTime;
-      let todayStartTimeMs = infoStore.dailyStartTime.todayStartTimeMs;
+        let dailyStartTime = infoStore.dailyStartTime;
+        let todayStartTimeMs = infoStore.dailyStartTime.todayStartTimeMs;
 
-      let dailyEndTime = infoStore.dailyEndTime;
-      let todayEndTimeMs = infoStore.dailyEndTime.todayEndTimeMs;
+        let dailyEndTime = infoStore.dailyEndTime;
+        let todayEndTimeMs = infoStore.dailyEndTime.todayEndTimeMs;
 
-      let notificationTimes = [];
+        let notificationTimes = [];
 
-      let newEntry = todayStartTimeMs;
+        let newEntry = todayStartTimeMs;
 
-      let dailyStartTimeHour = dayjs(todayStartTimeMs).hour();
-      let dailyEndTimeHour = dayjs(todayEndTimeMs).hour();
+        let dailyStartTimeHour = dayjs(todayStartTimeMs).hour();
+        let dailyEndTimeHour = dayjs(todayEndTimeMs).hour();
 
-      console.log(
-        'userStore - setNotifications - dailyStartTimeHour',
-        dailyStartTimeHour,
-        dailyEndTimeHour
-      );
+        console.log(
+          'userStore - setNotifications - dailyStartTimeHour',
+          dailyStartTimeHour,
+          dailyEndTimeHour
+        );
 
-      let breakBetweenShortQuestionsInMin =
-        infoStore.breakBetweenShortQuestions;
+        let breakBetweenShortQuestionsInMin =
+          infoStore.breakBetweenShortQuestions;
 
-      let lastShortAnswer = dayjs(questionsStore.lastShortAnswer);
-      let lastShortAnswerMs = dayjs(questionsStore.lastShortAnswer).valueOf();
-      let lastShortAnswerPlusBreakMs =
-        lastShortAnswerMs + breakBetweenShortQuestionsInMin * 60 * 1000;
-      console.log(
-        'userStore - setNotifications - lastShortAnswer',
-        lastShortAnswer
-      );
-      console.log(
-        'userStore - setNotifications - lastShortAnswerPlusBreakMs',
-        lastShortAnswerPlusBreakMs
-      );
-      let nowMs = dayjs().valueOf();
+        let lastShortAnswer = dayjs(questionsStore.lastShortAnswer);
+        let lastShortAnswerMs = dayjs(questionsStore.lastShortAnswer).valueOf();
+        let lastShortAnswerPlusBreakMs =
+          lastShortAnswerMs + breakBetweenShortQuestionsInMin * 60 * 1000;
+        console.log(
+          'userStore - setNotifications - lastShortAnswer',
+          lastShortAnswer
+        );
+        console.log(
+          'userStore - setNotifications - lastShortAnswerPlusBreakMs',
+          lastShortAnswerPlusBreakMs
+        );
+        let nowMs = dayjs().valueOf();
 
-      let secureCounter = 0;
+        let secureCounter = 0;
 
-      for (let i = 0; i <= 50; ) {
-        if (secureCounter == 0) {
-          newEntry = todayStartTimeMs;
-        } else {
-          newEntry += dailyIntervalMs;
-        }
-        // console.log('userStore - setNotifications - i', i);
-        // console.log(
-        //   'userStore - setNotifications - secureCounter',
-        //   secureCounter
-        // );
-        // console.log('userStore - setNotifications - newEntry', newEntry);
-
-        // newEntry += dailyIntervalMs;
-
-        let newEntryHour = dayjs(newEntry).hour();
-        // console.log(
-        //   'userStore - setNotifications - newEntryHour',
-        //   newEntryHour
-        // );
-
-        if (
-          newEntryHour >= dailyStartTimeHour &&
-          newEntryHour < dailyEndTimeHour &&
-          newEntry > nowMs
-        ) {
-          // console.log('userStore - setNotifications - if1');
-          if (newEntry < lastShortAnswerPlusBreakMs) {
-            // Check if Timer is kurzfragebogen Timer is running and add Timer to newEntry
-            // if regular calculated Entry (every 2 Hours) is before the 30min Timer is over, than make the new Entry at the same time the 30min timer is over
-            let newEntryPlus = lastShortAnswerPlusBreakMs;
-            notificationTimes.push(newEntryPlus);
-            // console.log(
-            //   'userStore - setNotifications - newEntryPlus < lastShortAnswerPlusBreakMs',
-            //   dayjs(newEntryPlus)
-            // );
+        for (let i = 0; i <= 50; ) {
+          if (secureCounter == 0) {
+            newEntry = todayStartTimeMs;
           } else {
-            // console.log(
-            //   'userStore - setNotifications - newEntry',
-            //   dayjs(newEntry)
-            // );
-            notificationTimes.push(newEntry);
+            newEntry += dailyIntervalMs;
           }
+          // console.log('userStore - setNotifications - i', i);
+          // console.log(
+          //   'userStore - setNotifications - secureCounter',
+          //   secureCounter
+          // );
+          // console.log('userStore - setNotifications - newEntry', newEntry);
 
-          i++;
+          // newEntry += dailyIntervalMs;
+
+          let newEntryHour = dayjs(newEntry).hour();
+          // console.log(
+          //   'userStore - setNotifications - newEntryHour',
+          //   newEntryHour
+          // );
+
+          if (
+            newEntryHour >= dailyStartTimeHour &&
+            newEntryHour < dailyEndTimeHour &&
+            newEntry > nowMs
+          ) {
+            // console.log('userStore - setNotifications - if1');
+            if (newEntry < lastShortAnswerPlusBreakMs) {
+              // Check if Timer is kurzfragebogen Timer is running and add Timer to newEntry
+              // if regular calculated Entry (every 2 Hours) is before the 30min Timer is over, than make the new Entry at the same time the 30min timer is over
+              let newEntryPlus = lastShortAnswerPlusBreakMs;
+              notificationTimes.push(newEntryPlus);
+              // console.log(
+              //   'userStore - setNotifications - newEntryPlus < lastShortAnswerPlusBreakMs',
+              //   dayjs(newEntryPlus)
+              // );
+            } else {
+              // console.log(
+              //   'userStore - setNotifications - newEntry',
+              //   dayjs(newEntry)
+              // );
+              notificationTimes.push(newEntry);
+            }
+
+            i++;
+          }
+          secureCounter++;
+          if (secureCounter > 1000) {
+            return;
+          }
         }
-        secureCounter++;
-        if (secureCounter > 1000) {
-          return;
-        }
-      }
-      console.log(
-        'userStore - setNotifications - notificationTimes',
-        notificationTimes
-      );
+        console.log(
+          'userStore - setNotifications - notificationTimes',
+          notificationTimes
+        );
 
-      this.notificationTimes = notificationTimes;
-      const storage = new Storage();
-      await storage.create();
-      await storage.set('notificationTimes', notificationTimes);
+        this.notificationTimes = notificationTimes;
+        const storage = new Storage();
+        await storage.create();
+        await storage.set('notificationTimes', notificationTimes);
 
-      // setting nextShortAnswerMs to first array entry
-      questionsStore.nextShortAnswerMs = notificationTimes[0];
+        // setting nextShortAnswerMs to first array entry
+        questionsStore.nextShortAnswerMs = notificationTimes[0];
 
-      await storage.set('nextShortAnswerMs', notificationTimes[0]);
+        await storage.set('nextShortAnswerMs', notificationTimes[0]);
 
-      //END Calculating Notification Times
+        //END Calculating Notification Times
 
-      //START channel
-      const channel = {
-        id: '1',
-        name: 'channel1',
-        importance: 5,
-        sound: 'none.mp3',
-      };
-
-      LocalNotifications.createChannel(channel);
-      //END channel
-
-      console.log('setNotifiations');
-      let notificationArray = [];
-
-      await this.resetNotifications();
-      this.notificationArray = [];
-
-      // let now = dayjs();
-      // let nowPlusOneMinute = dayjs().add(5, 'second').valueOf();
-      console.log(
-        'Notifiations - setNotifications - notificationTimes',
-        notificationTimes
-      );
-
-      for (const [i, notificationTime] of notificationTimes.entries()) {
-        // let notificationId = notificationTime - dayjs('2022-01-01').valueOf;
-        // // There is a limit on the Id (32bit int), so we start the id at 2022
-        let notificationEntry = {
-          id: i,
-          channelId: 1,
-          title: `FU Berlin App`,
-          body: `Sie können einen weiteren Fragebogen ausfüllen`,
-          schedule: {
-            at: new Date(notificationTime),
-            allowWhileIdle: true,
-          },
-          foreground: true,
-          smallIcon: 'ic_stat_tonne',
-          extra: {},
-          sound: 'none',
+        //START channel
+        const channel = {
+          id: '1',
+          name: 'channel1',
+          importance: 5,
+          sound: 'none.mp3',
         };
-        notificationArray.push(notificationEntry);
-      }
 
-      await LocalNotifications.requestPermissions().then(function (result) {
+        LocalNotifications.createChannel(channel);
+        //END channel
+
+        console.log('setNotifiations');
+        let notificationArray = [];
+
+        await this.resetNotifications();
+        this.notificationArray = [];
+
+        // let now = dayjs();
+        // let nowPlusOneMinute = dayjs().add(5, 'second').valueOf();
+        console.log(
+          'Notifiations - setNotifications - notificationTimes',
+          notificationTimes
+        );
+
+        for (const [i, notificationTime] of notificationTimes.entries()) {
+          // let notificationId = notificationTime - dayjs('2022-01-01').valueOf;
+          // // There is a limit on the Id (32bit int), so we start the id at 2022
+          let notificationEntry = {
+            id: i,
+            channelId: 1,
+            title: `FU Berlin App`,
+            body: `Sie können einen weiteren Fragebogen ausfüllen`,
+            schedule: {
+              at: new Date(notificationTime),
+              allowWhileIdle: true,
+            },
+            foreground: true,
+            smallIcon: 'ic_stat_tonne',
+            extra: {},
+            sound: 'none',
+          };
+          notificationArray.push(notificationEntry);
+        }
+
+        let checkPermissions = await LocalNotifications.checkPermissions();
+
+        console.log(
+          'Notifiations - setNotifications - checkPermissions',
+          checkPermissions
+        );
+
+        let result = await LocalNotifications.requestPermissions();
+
         console.log(
           'Notifiations - setNotifications - requestPermissions - result',
           result
         );
-      });
 
-      await LocalNotifications.schedule({
-        notifications: notificationArray,
-      });
+        await LocalNotifications.schedule({
+          notifications: notificationArray,
+        });
+
+        // const router = useRouter();
+
+        await LocalNotifications.addListener(
+          'localNotificationActionPerformed',
+          (payload) => {
+            // Redirect to shortquestions if conditions are right, else go to home
+            console.log(
+              'Notifiations - setNotifications - requestPermissions - addListener',
+              payload
+            );
+            this.localNotificationTapped = true;
+            this.onStartQuestionsShort();
+          }
+        );
+        return new Promise((resolve) => {
+          // if (response.status == 200) {
+          resolve('resolve setNotification');
+          // }
+        });
+      } catch (e) {
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          reject('reject setNotification', e);
+          // }
+        });
+      }
     },
     async resetNotifications() {
-      // var id;
-      let idsArray = [];
-      await LocalNotifications.getPending().then(function (result) {
-        console.log(
-          'Notifiations - cancel - showNotification - result',
-          result
-        );
+      try {
+        // var id;
+        let idsArray = [];
+        await LocalNotifications.getPending().then(function (result) {
+          console.log(
+            'Notifiations - cancel - showNotification - result',
+            result
+          );
 
-        //here a for each loop of all result notifications
+          //here a for each loop of all result notifications
+          if (
+            result.notifications != undefined &&
+            result.notifications.length() > 0
+          ) {
+            for (let [count] of Object.entries(result.notifications)) {
+              let notification = result.notifications[count];
 
-        for (let [count] of Object.entries(result.notifications)) {
-          let notification = result.notifications[count];
+              idsArray.push(notification.id);
+            }
+          }
 
-          idsArray.push(notification.id);
+          // id = result.notifications[0].id.toString();
+        });
+        console.log('Notifiations - cancel - showNotification -id', idsArray);
+
+        if (idsArray.length != 0) {
+          for (var [noteCount] of Object.entries(idsArray)) {
+            let noteId = idsArray[noteCount];
+
+            await LocalNotifications.cancel({
+              notifications: [{ id: noteId }],
+            });
+          }
         }
 
-        // id = result.notifications[0].id.toString();
-      });
-      console.log('Notifiations - cancel - showNotification -id', idsArray);
-
-      if (idsArray.length != 0) {
-        for (var [noteCount] of Object.entries(idsArray)) {
-          let noteId = idsArray[noteCount];
-
-          await LocalNotifications.cancel({
-            notifications: [{ id: noteId }],
-          });
-        }
+        return new Promise((resolve) => {
+          // if (response.status == 200) {
+          resolve('resolve setNotification');
+          // }
+        });
+      } catch (e) {
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          reject('reject setNotification', e);
+          // }
+        });
       }
     },
   },

@@ -29,7 +29,17 @@
 
 <script setup lang="ts">
   import { IonPage } from '@ionic/vue';
-  import { defineComponent, ref, defineExpose, defineProps } from 'vue';
+  import {
+    defineComponent,
+    ref,
+    defineExpose,
+    defineProps,
+    watch,
+    watchEffect,
+    computed,
+    onMounted,
+  } from 'vue';
+  import dayjs from 'dayjs';
   import { IonContent, ionMenu } from '@ionic/vue';
   import {
     chevronBackOutline,
@@ -42,8 +52,407 @@
   import type { InjectionKey } from 'vue';
   import MenuComponent from '../MenuComponent.vue';
   import { useUserStore } from '@/stores/userStore';
+  import { useInfoStore } from '@/stores/infoStore';
 
+  import { useQuestionsStore } from '@/stores/questionsStore';
+
+  import { useRouter, useRoute } from 'vue-router';
+  import { App } from '@capacitor/app';
+  import relativeTime from 'dayjs/plugin/relativeTime';
+
+  const questionsStore = useQuestionsStore();
   const userStore = useUserStore();
+  const infoStore = useInfoStore();
+  const router = useRouter();
+
+  watch(
+    () => userStore.localNotificationTapped,
+    (newValue, oldValue) => {
+      console.log(
+        'BaseLayout - userStore.localNotificationTapped',
+        oldValue,
+        newValue
+      );
+      if (newValue === true) {
+        // router.push('/user');
+        onStartQuestionsShort();
+        userStore.localNotificationTapped = false;
+      }
+    }
+  );
+
+  watchEffect(() => {
+    console.log(
+      'BaseLayout - watchEffect - infoStore.questionsShortStarted',
+      infoStore.questionsShortStarted
+    );
+
+    if (infoStore.questionsShortStarted === true) {
+      onStartQuestionsShort();
+      infoStore.questionsShortStarted = false;
+    }
+  });
+
+  watch(
+    () => userStore.userData.token,
+    (newValue, oldValue) => {
+      console.log('BaseLayout - userStore.userData.token', oldValue, newValue);
+
+      onStartQuestionsShort();
+    }
+  );
+
+  async function onStartQuestionsShort() {
+    console.log(
+      'BaseLayout - onStartQuestionsShort - token',
+      userStore.userData.token
+    );
+    console.log(
+      'BaseLayout - onStartQuestionsShort - userData: ',
+      userStore.userData
+    );
+    console.log(
+      'BaseLayout - onStartQuestionsShort - questionsStore.initialAnswerExist: ',
+      questionsStore.initialAnswerExist
+    );
+    // check for validToken of token is '', then check auth will handel it
+    if (userStore.userData.token != '') {
+      let answer = await userStore.validateToken();
+      console.log('BaseLayout - await validateToken - answer', answer);
+      if (answer.code === 'ERR_NETWORK') {
+        userStore.appMessage =
+          'Bitte stellen Sie sicher das eine Internetverbindung besteht! <br><br> Code: ' +
+          answer.code +
+          '<br>Message: ' +
+          answer.message +
+          '';
+        return;
+      } else if (answer.status != 200 && answer.status != 201) {
+        userStore.appMessage =
+          'Bitte melden Sie sich erneut an! <br><br> Code: ' +
+          answer.code +
+          '<br>Message: ' +
+          answer.message +
+          '';
+
+        router.push('/login');
+        return;
+      }
+
+      // end check for validToken
+
+      if (
+        userStore.complianceAccepted === true &&
+        questionsStore.initialAnswerExist === true &&
+        questionsStore.todayShortAnswers < 6 &&
+        timeframe &&
+        dailyTime &&
+        infoStore.secToNext <= 1
+      ) {
+        if (userStore.briefingShortChecked === false) {
+          router.push('/briefing-short');
+        } else {
+          console.log('onStartQuestionsShort - push - questionsShort');
+          router.push('/questionsshort');
+        }
+      } else {
+        console.log('onStartQuestionsShort - push - questionsShort');
+        // router.push('/home');
+      }
+    }
+  }
+
+  let timeframe = computed(() => {
+    let nowMs = dayjs().valueOf();
+    let startDateMs = infoStore.startDate.ms;
+    let endDateMs = infoStore.endDate.ms;
+    // endDateMs is midnight of the WP entry, so its initially exlusive of the WP entry, therefore hours and minutes of dailyEndTime have to be addet
+    endDateMs =
+      endDateMs +
+      infoStore.dailyEndTime.hours * 60 * 60 * 1000 +
+      infoStore.dailyEndTime.minutes * 60 * 1000;
+
+    console.log;
+    if (startDateMs != '' && endDateMs != '') {
+      if (nowMs < startDateMs) {
+        // project timeframe has not started
+        // userStore.appMessage = 'Der Projektzeitraum startet am' + infoStore.startDate.string + '.'
+        checkTimeframe('notStarted');
+        return false;
+      } else if (nowMs > endDateMs) {
+        // Project timeframe is over
+        checkTimeframe('over');
+
+        return false;
+      } else {
+        resetTimeMessage();
+        return true;
+      }
+    } else {
+      resetTimeMessage();
+      return true;
+    }
+  });
+
+  watchEffect(() => {
+    console.log('BaseLayout - watchEffect - timeframe.value', timeframe.value);
+    infoStore.timeframe = timeframe.value;
+  });
+
+  //   watch () => timeframe,
+  //   (newValue, oldValue) => {
+  //     console.log('BaseLayout - watch - timeframe', oldValue, newValue);
+  //     userStore.timeframe = newValue;
+  //   }
+  // );
+
+  let dailyTime = computed(() => {
+    let nowMs = dayjs().valueOf();
+    let startTimeMs = infoStore.dailyStartTime.todayStartTimeMs;
+    let endTimeMs = infoStore.dailyEndTime.todayEndTimeMs;
+
+    if (startTimeMs != '' && endTimeMs != '') {
+      if (nowMs < startTimeMs) {
+        // project timeframe has not started
+        // userStore.appMessage = 'Der Projektzeitraum startet am' + infoStore.startDate.string + '.'
+        setDailyTimeMessage();
+        return false;
+      } else if (nowMs > endTimeMs) {
+        // Project timeframe is over
+        setDailyTimeMessage();
+
+        return false;
+      } else {
+        resetTimeMessage();
+        return true;
+      }
+    } else {
+      resetTimeMessage();
+      return true;
+    }
+  });
+
+  watchEffect(() => {
+    console.log('BaseLayout - watchEffect - dailyTime', dailyTime.value);
+    infoStore.dailyTime = dailyTime.value;
+  });
+
+  // watchEffect(
+  //   () => dailyTime,
+  //   (newValue, oldValue) => {
+  //     console.log('BaseLayout - watch - dailyTime', oldValue, newValue);
+  //     userStore.dailyTime = newValue;
+  //   }
+  // );
+
+  function checkTimeframe(value) {
+    if (value === 'notStarted') {
+      let message =
+        'Der Projektzeitraum startet am: ' + infoStore.startDate.string + '.';
+      userStore.appMessage = message;
+      infoStore.timeframeMessage = message;
+    }
+    if (value === 'over') {
+      let message =
+        'Der Projektzeitraum endete am: ' + infoStore.endDate.string + '.';
+      userStore.appMessage = message;
+      infoStore.timeframeMessage = message;
+    }
+  }
+
+  function setDailyTimeMessage() {
+    let message =
+      'Der Kurzfragebogen ist täglich von ' +
+      infoStore.dailyStartTime.string +
+      ' bis ' +
+      infoStore.dailyEndTime.string +
+      ' Uhr ausfüllbar.';
+    userStore.appMessage = message;
+    infoStore.dailyTimeMessage = message;
+  }
+  function resetTimeMessage() {
+    infoStore.timeframeMessage = '';
+    infoStore.dailyTimeMessage = '';
+  }
+
+  App.addListener('appStateChange', ({ isActive }) => {
+    console.log('App state changed. Is active?', isActive);
+    initDate();
+  });
+
+  // watch(
+  //   () => questionsStore.lastShortAnswer,
+  //   (newValue, oldValue) => {
+  //     console.log('BaseLayout - changes detected', oldValue, newValue);
+  //     initDate();
+  //   }
+  // );
+
+  watch(
+    () => questionsStore.nextShortAnswerMs,
+    (newValue, oldValue) => {
+      console.log(
+        'BaseLayout - changes detected nextShortAnswerMs',
+        oldValue,
+        newValue
+      );
+      initDate();
+    }
+  );
+
+  // watch(
+  //   () => infoStore.breakBetweenShortQuestions,
+  //   (newValue, oldValue) => {
+  //     console.log(
+  //       'BaseLayout - changes detected -infoStore.breakBetweenShortQuestions',
+  //       oldValue,
+  //       newValue
+  //     );
+  //     initDate();
+  //   }
+  // );
+
+  watch(
+    () => infoStore.endDate.dayJs,
+    (newValue, oldValue) => {
+      console.log(
+        'BaseLayout - changes detected -infoStore.endDate',
+        oldValue,
+        newValue
+      );
+      countdownTimer();
+    }
+  );
+  watch(
+    () => infoStore.dailyEndTime.hours,
+    (newValue, oldValue) => {
+      console.log(
+        'BaseLayout - changes detected -infoStore.dailyEndTime',
+        oldValue,
+        newValue
+      );
+      countdownTimer();
+    }
+  );
+
+  function formatTo2digit(input) {
+    let formated = input.toLocaleString('de-DE', {
+      minimumIntegerDigits: 2,
+      useGrouping: false,
+    });
+
+    return formated;
+  }
+  function formatTo1digit(input) {
+    let formated = input.toLocaleString('de-DE', {
+      minimumIntegerDigits: 1,
+      useGrouping: false,
+    });
+
+    return formated;
+  }
+
+  dayjs.extend(relativeTime);
+
+  let secT;
+  // let secToNext = ref(null);
+
+  async function secTimer() {
+    clearTimeout(secT);
+    if (infoStore.secToNext != null) {
+      //
+      let dateNow = dayjs();
+      let dateNext = dayjs(questionsStore.nextShortAnswerMs);
+      let lastShortAnswer = questionsStore.lastShortAnswer;
+      if (lastShortAnswer != undefined && infoStore.secToNext >= 1) {
+        questionsStore.timerShortQuestionsRuns = true;
+        // dateLast.value = dayjs(lastShortAnswer);
+
+        infoStore.secToNext = dateNext.diff(dateNow, 's');
+        secT = window.setTimeout(secTimer, 1000); /* replicate wait 1 second */
+      }
+      //
+      else {
+        clearTimeout(secT);
+        // secToNext.value = 0;
+        infoStore.secToNext = 0;
+        questionsStore.timerShortQuestionsRuns = false;
+        console.log(
+          'BaseLayout - secTimer - else - infoStore.secToNext',
+          infoStore.secToNext
+        );
+        onStartQuestionsShort();
+      }
+    }
+  }
+
+  // let countdownMinutes = ref(null);
+  // let countdownHours = ref(null);
+  // let countdownDays = ref(null);
+
+  let countdownTimeout;
+
+  async function countdownTimer() {
+    let now = dayjs();
+    let endDate = infoStore.endDate.dayJs;
+    // endDate = endDate.add(Number(infoStore.dailyEndTime.hours));
+    // endDate = endDate.add(Number(infoStore.dailyEndTime.minutes));
+    endDate = endDate.add(Number(infoStore.dailyEndTime.hours), 'hour');
+    endDate = endDate.add(Number(infoStore.dailyEndTime.minutes), 'minute');
+
+    console.log('BaseLayout - countdownTimer - now', now);
+    console.log('BaseLayout - countdownTimer - endDate', endDate);
+
+    infoStore.countdownDays = endDate.diff(now, 'day');
+    let countdownTotalHours = endDate.diff(now, 'hour');
+    infoStore.countdownHours = formatTo1digit(countdownTotalHours % 24);
+    // something like 26 hours will become 2 hours
+
+    let countdownTotalMinutes = endDate.diff(now, 'minute');
+    // countdownMinutes.value = endDate.diff(now, 'minute');
+    infoStore.countdownMinutes = formatTo1digit(countdownTotalMinutes % 60);
+
+    countdownTimeout = window.setTimeout(
+      countdownTimer,
+      1000 * 60
+    ); /* replicate wait 1 second */
+  }
+
+  // async function countdownTimer() {
+  //   if (countdownHours.value >= 1) {
+  //     secToNext.value = secToNext.value - 1;
+
+  //     countdownTimeout = window.setTimeout(
+  //       secTimer,
+  //       1000 * 60 * 60
+  //     ); /* replicate wait 1 second */
+  //   } else {
+  //     return;
+  //   }
+  // }
+
+  async function initDate() {
+    console.log('BaseLayout - initDate');
+    let dateNow = dayjs();
+    let dateNext = dayjs(questionsStore.nextShortAnswerMs);
+    let lastShortAnswer = questionsStore.lastShortAnswer;
+    if (lastShortAnswer != undefined) {
+      // dateLast.value = dayjs(lastShortAnswer);
+
+      infoStore.secToNext = dateNext.diff(dateNow, 's');
+
+      clearTimeout(secT);
+      secTimer();
+    }
+  }
+
+  onMounted(async () => {
+    console.log('BaseLayout - onMounted');
+    // questionsStore.checkIfInitalAnswerExists();
+    // initDate();
+    countdownTimer();
+    // questionsStore.countShortAnswers();
+  });
 
   // Scroll
   const myContent = ref(null);

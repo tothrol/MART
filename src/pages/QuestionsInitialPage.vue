@@ -1,13 +1,26 @@
 <template>
   <base-layout ref="baseComp" :fullscreen="true">
     <div class="wrapper_h100">
-      <div
-        class="admin"
-        v-if="userStore.userData.username === 'nviiadmin'"
-        @click="userStore.showDevbox = !userStore.showDevbox"
-      >
-        <ion-button color="medium">admin</ion-button>
+      <div class="admin_buttons">
+        <div
+          class="admin"
+          v-if="userStore.userData.username === 'nviiadmin'"
+          @click="userStore.showDevbox = !userStore.showDevbox"
+        >
+          <ion-button color="medium">admin</ion-button>
+        </div>
+        <div
+          class="admin"
+          v-if="
+            userStore.userData.username === 'nviiadmin' ||
+            userStore.userData.username === 'RolandToth'
+          "
+          @click="setAllAnswers"
+        >
+          <ion-button color="medium">setAll</ion-button>
+        </div>
       </div>
+
       <div class="sheets">
         <li
           class="sheet"
@@ -39,7 +52,7 @@
               activeSheet.options.inputDisabled != true
             "
           >
-            Timer: {{ time.toFixed(1) }}
+            {{ time.toFixed(1) }} Sekunden
           </div>
           <!-- End 5sec Timer -->
           <!-- 3sec Timer  -->
@@ -913,6 +926,7 @@
         }
       }
     }
+    currentSheet.value = sheets.value.length;
   }
 
   let time = ref(5.0);
@@ -1106,9 +1120,16 @@
     margin-bottom: 20px;
   }
 
-  .admin {
+  .admin_buttons {
     position: absolute;
     top: 0;
     left: 0;
+    display: flex;
   }
+
+  /* .admin {
+    position: absolute;
+    top: 0;
+    left: 0;
+  } */
 </style>

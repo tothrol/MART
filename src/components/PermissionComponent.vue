@@ -2,19 +2,19 @@
   <div class="permission_modal">
     <div class="box blue">
       <p class="text" v-if="showOk">
-        Bitte im folgenden Dialogfeld der App die Erhebung von Nutzungsdaten
-        erlauben
+        Bitte tippen Sie im folgenden Fenster auf [Appname] und erteilen Sie die
+        Berechtigung zum Zugriff auf Nutzungsdaten.
       </p>
 
       <ion-button v-if="showOk" class="ok_button" @click="setPermissions()"
         >OK</ion-button
       >
-      <p class="text" v-if="showWeiter">
+      <!-- <p class="text" v-if="showWeiter">
         Es geht nun weiter mit dem Fragebogen
       </p>
       <ion-button v-if="showWeiter" class="ok_button" @click="close()"
         >Weiter</ion-button
-      >
+      > -->
     </div>
   </div>
 </template>
@@ -41,6 +41,7 @@
     setTimeout(function () {
       showWeiter.value = true;
       showOk.value = false;
+      close();
     }, 2000);
 
     // checkPermissions()

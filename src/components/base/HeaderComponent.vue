@@ -66,7 +66,7 @@
 
   import { useQuestionsStore } from '@/stores/questionsStore';
   import { useUserStore } from '@/stores/userStore';
-  const questionsStore = useQuestionsStore();
+
   const userStore = useUserStore();
 
   function updateShort() {

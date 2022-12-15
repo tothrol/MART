@@ -41,6 +41,19 @@ export const useInfoStore = defineStore('infoStore', {
       dailyInterval: 0,
       breakBetweenShortQuestions: 0,
       testCounter: 0,
+      timeframe: false,
+      dailyTime: false,
+
+      timeframeMessage: '',
+      dailyTimeMessage: '',
+
+      countdownDays: null,
+      countdownHours: null,
+      countdownMinutes: null,
+
+      secToNext: null,
+
+      questionsShortStarted: false,
     };
   },
   actions: {

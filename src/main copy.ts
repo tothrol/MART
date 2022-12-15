@@ -1,5 +1,4 @@
 import { createApp } from 'vue';
-import { markRaw } from 'vue';
 import App from './App.vue';
 import BaseLayout from './components/base/BaseLayout.vue';
 import router from './router';
@@ -8,8 +7,6 @@ import { IonicVue, IonButton } from '@ionic/vue';
 // import { createPinia } from 'pinia';
 import pinia from './stores/store';
 import checkAuth from './plugins/checkAuth';
-
-// import { createPinia } from 'pinia';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
@@ -57,23 +54,11 @@ const options = {
 // Pinia is needet in the Router to check for the token
 // const pinia = createPinia();
 
-// pinia.use(({ store }) => {
-//   store.router = markRaw(router);
-// });
-
-// const pinia = createPinia();
-
-// console.log('ROUTER', router);
-// pinia.use(({ store }) => {
-//   store.router = markRaw(router);
-// });
-
-const app = createApp(App);
-
-app
+const app = createApp(App)
   .use(IonicVue, options)
-  .use(pinia)
+
   .use(router)
+  .use(pinia)
 
   .use(checkAuth);
 

@@ -403,7 +403,7 @@
               color="primary"
               @click="sendShortAnswers()"
               :disabled="Object.keys(answers.entries).length <= 4"
-              >Fragebogen absenden</ion-button
+              >Kurzfragebogen absenden</ion-button
             ><ion-button
               class="display_none"
               @click="previousSheet()"
@@ -424,6 +424,8 @@
       class="development devbox"
       v-if="userStore.showDevbox && userStore.userData.username == 'nviiadmin'"
     >
+      <ion-button @click="userStore.showDevbox = false">close</ion-button>
+
       <div>
         <div
           v-if="activeSheet != undefined && activeSheet.batteryId != undefined"
@@ -1121,6 +1123,7 @@
     display: flex;
     flex-direction: column;
     min-height: 94vh;
+    position: relative;
   }
   .radios {
     display: flex;
@@ -1280,9 +1283,12 @@
     margin-left: auto;
     color: var(--ion-color-primary);
     width: max-content;
-    font-size: 22px;
+
     margin-top: 0px;
     font-weight: 500;
+    position: absolute;
+    right: 10px;
+    top: 10px;
   }
 
   body fieldset {
@@ -1322,7 +1328,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 35px;
+    /* margin-top: 35px; */
   }
 
   .range_slider {

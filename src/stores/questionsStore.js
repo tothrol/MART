@@ -372,7 +372,11 @@ export const useQuestionsStore = defineStore('questionsStore', {
           this.totalShortAnswers++;
           await storage.set('totalShortAnswers', this.totalShortAnswers);
 
-          userStore.setNotifications();
+          let setNotifications = await userStore.setNotifications();
+          console.log(
+            'questionsStore - sendShortAnswer - end201 -',
+            setNotifications
+          );
         }
         // await this.countShortAnswers();
 
