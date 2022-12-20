@@ -52,6 +52,10 @@ export const useStatsStore = defineStore('statsStore', {
         });
       }
     },
+
+    async broadcast() {
+      console.log('broadcast');
+    },
     async getStats(today, time, dateLong) {
       try {
         console.log('getStats');
