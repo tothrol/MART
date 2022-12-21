@@ -5,6 +5,7 @@ import { echo } from 'echo';
 // import { capacitorUsageStatsManager } from 'capacitor-usage-stats-manager';
 import { useUserStore } from '@/stores/userStore';
 import { Device } from '@capacitor/device';
+import { Capacitor } from '@capacitor/core';
 
 // import { useQuestionsStore } from '@/stores/questionsStore';
 // import cordova from 'cordova';
@@ -55,21 +56,13 @@ export const useStatsStore = defineStore('statsStore', {
     },
 
     async broadcast() {
-      console.log('broadcast');
-      let broadcast = await echo.MyBroadcastReceiver();
-      console.log('broadcast', broadcast);
+      // console.log('broadcast');
+      // let broadcast = await echo.MyBroadcastReceiver();
+      // console.log('broadcast', broadcast);
     },
     async getStats(today, time, dateLong) {
       try {
         console.log('getStats');
-
-        // test Broadcast
-        // this.broadcast();
-
-        //
-
-        // let deviceInfo = await this.getDeviceInfo();
-        // console.log('getStats - deviceInfo: ', deviceInfo);
 
         const deviceInfo = await Device.getInfo();
         const deviceUuid = await Device.getId();
@@ -80,55 +73,62 @@ export const useStatsStore = defineStore('statsStore', {
 
         let deviceInfoString = JSON.stringify(deviceInfo);
 
-        // let permission = await echo.checkAndSetUsageStatsPermission();
+        let platform = Capacitor.getPlatform();
 
-        // queryUsageStats
-        // console.log('getStats -STATSPermission', permission);
-        // let queryUsageStats = await echo.getStats();
-        let queryUsageStats = await echo.getStats();
-        // console.log('queryUsageStats - stats: ', queryUsageStats);
-        let queryUsageStatsJSON = JSON.parse(queryUsageStats.androidUsageStats);
-        let queryUsageStatsStringify = JSON.stringify(queryUsageStatsJSON);
-        // console.log('queryUsageStats - parse: ', queryUsageStatsJSON);
+        if (platform != 'ios') {
+          let queryUsageStats = await echo.getStats();
+          // console.log('queryUsageStats - stats: ', queryUsageStats);
+          let queryUsageStatsJSON = JSON.parse(
+            queryUsageStats.androidUsageStats
+          );
+          let queryUsageStatsStringify = JSON.stringify(queryUsageStatsJSON);
+          // console.log('queryUsageStats - parse: ', queryUsageStatsJSON);
 
-        // delete first and last letter which is "
-        let queryUsageStatsString = queryUsageStatsStringify.substring(
-          1,
-          queryUsageStatsStringify.length - 1
-        );
-        console.log('queryUsageStats - string: ', queryUsageStatsString);
-        // END queryUsageStats
+          // delete first and last letter which is "
+          let queryUsageStatsString = queryUsageStatsStringify.substring(
+            1,
+            queryUsageStatsStringify.length - 1
+          );
+          console.log('queryUsageStats - string: ', queryUsageStatsString);
+          // END queryUsageStats
 
-        // queryEventStats
-        let queryEventStats = await echo.getEventStats();
-        // console.log('getEventStats - stats: ', queryEventStats);
-        let queryEventStatsJSON = JSON.parse(queryEventStats.androidEventStats);
-        let queryEventStatsStringify = JSON.stringify(queryEventStatsJSON);
-        // console.log('getEventStats - parse: ', queryEventStatsJSON);
-        // console.log('getEventStats - stringify: ', queryEventStatsStringify);
+          // queryEventStats
+          let queryEventStats = await echo.getEventStats();
+          // console.log('getEventStats - stats: ', queryEventStats);
+          let queryEventStatsJSON = JSON.parse(
+            queryEventStats.androidEventStats
+          );
+          let queryEventStatsStringify = JSON.stringify(queryEventStatsJSON);
 
-        let queryEventStatsString = queryEventStatsStringify.substring(
-          1,
-          queryEventStatsStringify.length - 1
-        );
-        console.log('getEventStats - string: ', queryEventStatsString);
-        // End queryEventStats
+          let queryEventStatsString = queryEventStatsStringify.substring(
+            1,
+            queryEventStatsStringify.length - 1
+          );
+          console.log('getEventStats - string: ', queryEventStatsString);
+          // End queryEventStats
 
-        // for (let i = 0; i<= queryEventStatsJSON.length(); i++){
-        //   queryEventStatsString += ' ';
-        //   queryEventStatsString += '|';
+          await this.sendStatistics(
+            today,
+            time,
+            dateLong,
+            queryUsageStatsString,
+            queryEventStatsString,
+            deviceInfoString,
+            deviceUuid.uuid
+          );
+        } else {
+          // on ios
 
-        // }
-
-        await this.sendStatistics(
-          today,
-          time,
-          dateLong,
-          queryUsageStatsString,
-          queryEventStatsString,
-          deviceInfoString,
-          deviceUuid.uuid
-        );
+          await this.sendStatistics(
+            today,
+            time,
+            dateLong,
+            'ios',
+            'ios',
+            deviceInfoString,
+            deviceUuid.uuid
+          );
+        }
 
         return new Promise((resolve) => {
           // if (response.status == 200) {
