@@ -5,6 +5,7 @@ import { echo } from 'echo';
 // import { capacitorUsageStatsManager } from 'capacitor-usage-stats-manager';
 import { useUserStore } from '@/stores/userStore';
 import { Device } from '@capacitor/device';
+
 // import { useQuestionsStore } from '@/stores/questionsStore';
 // import cordova from 'cordova';
 // import getUsageStatistics from 'cordova-plugin-usage-stats-manager';
@@ -55,10 +56,17 @@ export const useStatsStore = defineStore('statsStore', {
 
     async broadcast() {
       console.log('broadcast');
+      let broadcast = await echo.MyBroadcastReceiver();
+      console.log('broadcast', broadcast);
     },
     async getStats(today, time, dateLong) {
       try {
         console.log('getStats');
+
+        // test Broadcast
+        // this.broadcast();
+
+        //
 
         // let deviceInfo = await this.getDeviceInfo();
         // console.log('getStats - deviceInfo: ', deviceInfo);
@@ -76,8 +84,8 @@ export const useStatsStore = defineStore('statsStore', {
 
         // queryUsageStats
         // console.log('getStats -STATSPermission', permission);
+        // let queryUsageStats = await echo.getStats();
         let queryUsageStats = await echo.getStats();
-        // let queryUsageStats = await capacitorUsageStatsManager.getStats();
         // console.log('queryUsageStats - stats: ', queryUsageStats);
         let queryUsageStatsJSON = JSON.parse(queryUsageStats.androidUsageStats);
         let queryUsageStatsStringify = JSON.stringify(queryUsageStatsJSON);
