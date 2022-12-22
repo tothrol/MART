@@ -1326,6 +1326,7 @@
 
   .range_slider {
     width: 80% !important;
+    background: white;
   }
 
   .range_slider_wrapper {
@@ -1410,7 +1411,7 @@
     color: transparent;
   }
   input[type='range']::-ms-fill-lower {
-    /* background: #2a6495; */
+    /* background: #f11202; */
     /* border: 0.2px solid #010101; */
     /* border-radius: 2.6px; */
     /* box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; */
@@ -1432,9 +1433,11 @@
   }
   input[type='range']:focus::-ms-fill-lower {
     background: var(--ion-color-secondary);
+    /* background: yellow; */
   }
   input[type='range']:focus::-ms-fill-upper {
     background: var(--ion-color-secondary);
+    /* background: yellow; */
   }
 
   .question2input {

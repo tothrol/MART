@@ -19,7 +19,7 @@ dependencies {
     implementation project(':capacitor-status-bar')
     implementation project(':capacitor-usage-stats-manager')
     implementation project(':echo')
-    implementation "com.android.support:support-v4:26+"
+
 }
 
 

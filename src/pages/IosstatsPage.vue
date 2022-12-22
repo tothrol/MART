@@ -2,9 +2,10 @@
   <base-layout :fullscreen="true"
     ><div class="box green">
       <p class="">
-        Bitte navigieren Sie nun in Ihrem Telefon zu
-        <b>Einstellungen -> Bildschirmzeit</b> und geben Sie in das Eingabefeld
-        unten den <b>Tagesdurchschnitswert</b> ein.
+        Bitte navigieren Sie nun in Ihrem Telefon zu<br />
+        <b>Einstellungen -> Bildschirmzeit</b><br />
+        und geben Sie in das Eingabefeld unten den
+        <b>Tagesdurchschnitswert</b> ein.
       </p>
       <div>
         <div>

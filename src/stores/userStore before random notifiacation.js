@@ -33,7 +33,6 @@ export const useUserStore = defineStore('userStore', {
       appMessage: '',
       dailyLoop: null,
       notificationTimes: [],
-      notificationTimesRandom: [],
       localNotificationTapped: false,
     };
   },
@@ -135,7 +134,6 @@ export const useUserStore = defineStore('userStore', {
             await storage.remove('totalShortAnswers');
             await storage.remove('initialAnswerExist');
             await storage.remove('notificationTimes');
-            await storage.remove('notificationTimesRandom');
             this.createRandomArray();
             this.complianceAccepted = false;
             console.log(
@@ -156,7 +154,6 @@ export const useUserStore = defineStore('userStore', {
             // questionsStore.checkIfInitalAnswerExists();
 
             this.notificationTimes = [];
-            this.notificationTimesRandom = [];
           }
         }
         return new Promise((resolve) => {
@@ -299,13 +296,6 @@ export const useUserStore = defineStore('userStore', {
         this.notificationTimes = notificationTimes;
       }
 
-      let notificationTimesRandom = await storage.get(
-        'notificationTimesRandom'
-      );
-      if (notificationTimesRandom != null) {
-        this.notificationTimesRandom = notificationTimesRandom;
-      }
-
       const id = await storage.get('id');
       const email = await storage.get('email');
       const username = await storage.get('username');
@@ -437,7 +427,8 @@ export const useUserStore = defineStore('userStore', {
         let todayEndTimeMs = infoStore.dailyEndTime.todayEndTimeMs;
 
         let notificationTimes = [];
-        let notificationTimesRandom = [];
+
+        let newEntry = todayStartTimeMs;
 
         let dailyStartTimeHour = dayjs(todayStartTimeMs).hour();
         let dailyEndTimeHour = dayjs(todayEndTimeMs).hour();
@@ -467,19 +458,11 @@ export const useUserStore = defineStore('userStore', {
 
         let secureCounter = 0;
 
-        let newEntry = todayStartTimeMs;
-        let newEntryRandom;
-
         for (let i = 0; i <= 50; ) {
-          let randomMinute = Math.floor(Math.random() * dailyInterval * 60);
-
-          let randomMs = randomMinute * 60 * 1000;
           if (secureCounter == 0) {
             newEntry = todayStartTimeMs;
-            newEntryRandom = newEntry + randomMs;
           } else {
             newEntry += dailyIntervalMs;
-            newEntryRandom = newEntry + randomMs;
           }
 
           let newEntryHour = dayjs(newEntry).hour();
@@ -489,7 +472,6 @@ export const useUserStore = defineStore('userStore', {
             newEntryHour < dailyEndTimeHour &&
             newEntry > nowMs
           ) {
-            console.log('RandomMinute: ', randomMinute);
             if (newEntry < lastShortAnswerPlusBreakMs) {
               // Check if Timer is kurzfragebogen Timer is running and add Timer to newEntry
               // if regular calculated Entry (every 2 Hours) is before the 30min Timer is over, than make the new Entry at the same time the 30min timer is over
@@ -497,14 +479,6 @@ export const useUserStore = defineStore('userStore', {
               notificationTimes.push(newEntryPlus);
             } else {
               notificationTimes.push(newEntry);
-            }
-            if (newEntryRandom < lastShortAnswerPlusBreakMs) {
-              // Check if Timer is kurzfragebogen Timer is running and add Timer to newEntry
-              // if regular calculated Entry (every 2 Hours) is before the 30min Timer is over, than make the new Entry at the same time the 30min timer is over
-              let newEntryPlus = lastShortAnswerPlusBreakMs;
-              notificationTimesRandom.push(newEntryPlus);
-            } else {
-              notificationTimesRandom.push(newEntryRandom);
             }
 
             i++;
@@ -519,17 +493,10 @@ export const useUserStore = defineStore('userStore', {
           notificationTimes
         );
 
-        console.log(
-          'userStore - setNotifications - notificationTimesRandom',
-          notificationTimesRandom
-        );
-
         this.notificationTimes = notificationTimes;
-        this.notificationTimesRandom = notificationTimesRandom;
         const storage = new Storage();
         await storage.create();
         await storage.set('notificationTimes', notificationTimes);
-        await storage.set('notificationTimesRandom', notificationTimesRandom);
 
         // setting nextShortAnswerMs to first array entry
         questionsStore.nextShortAnswerMs = notificationTimes[0];
@@ -562,7 +529,7 @@ export const useUserStore = defineStore('userStore', {
           notificationTimes
         );
 
-        for (const [i, notificationTime] of notificationTimesRandom.entries()) {
+        for (const [i, notificationTime] of notificationTimes.entries()) {
           // let notificationId = notificationTime - dayjs('2022-01-01').valueOf;
           // // There is a limit on the Id (32bit int), so we start the id at 2022
           let notificationEntry = {
