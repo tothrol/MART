@@ -3,15 +3,16 @@
     ><div class="box green">
       <p class="">
         Bitte navigieren Sie nun in Ihrem Telefon zu
-        <b @click="navigateToOptions()">Einstellungen -> Bildschirmzeit</b> und
-        geben Sie in das Eingabefeld unten den <b>Tagesdurchschnitswert</b> ein.
+        <b>Einstellungen -> Bildschirmzeit</b> und geben Sie in das Eingabefeld
+        unten den <b>Tagesdurchschnitswert</b> ein.
       </p>
       <div>
         <div>
-          <input min="0" max="99" v-model="iosStats[0]" type="number" /> Stunden
+          <input min="0" max="99" v-model="iosStats[0]" type="number" />
+          Stunden
         </div>
         <div>
-          <input min="0" max="999" v-model="iosStats[1]" type="number" />
+          <input min="0" max="60" v-model="iosStats[1]" type="number" />
           Minuten
         </div>
       </div>
@@ -29,14 +30,13 @@
   import heart from '@iconify-icons/codicon/heart-filled';
   import { useStatsStore } from '@/stores/statsStore';
   import { useRouter, useRoute } from 'vue-router';
-  import { AppLauncher } from '@capacitor/app-launcher';
 
   const router = useRouter();
 
   const userStore = useUserStore();
   const statsStore = useStatsStore();
 
-  let iosStats = ref([]);
+  let iosStats = ref([0, 0]);
 
   async function onNext() {
     let response = await statsStore.sendIosStats(iosStats.value);
@@ -50,10 +50,6 @@
     } else {
       router.replace('/success');
     }
-  }
-
-  async function navigateToOptions() {
-    await AppLauncher.openUrl({ url: 'prefs:root=SCREEN_TIME' });
   }
 </script>
 
