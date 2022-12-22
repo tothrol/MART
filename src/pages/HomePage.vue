@@ -150,7 +150,11 @@
       <div class="timer">
         <div>{{ minutes }}:{{ seconds }}</div>
       </div>
+
       <div v-if="userStore.userData.username == 'nviiadmin'">
+        <router-link class="link_button" to="/iosstats">
+          <ion-button color="medium">iosStats</ion-button>
+        </router-link>
         <div>initialAnswerExist: {{ questionsStore.initialAnswerExist }}</div>
         <ion-button color="medium" @click="userStore.setTestNotifications"
           >set Test Notifications</ion-button

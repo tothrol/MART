@@ -53,7 +53,14 @@
             "
           >
             {{ time.toFixed(1) }} Sekunden
+            <div class="progress_bar">
+              <div
+                class="progress_bar_inner"
+                :style="{ width: 20 * time + '%' }"
+              ></div>
+            </div>
           </div>
+
           <!-- End 5sec Timer -->
           <!-- 3sec Timer  -->
           <div
@@ -69,6 +76,12 @@
             <div class="timer" v-if="showTimer3">
               <span v-if="time3 >= 0.1">{{ time3.toFixed(1) }} </span>
               <span v-if="time3 < 0.1"> 0.0 </span>
+              <div class="progress_bar">
+                <div
+                  class="progress_bar_inner"
+                  :style="{ width: 33 * time3 + '%' }"
+                ></div>
+              </div>
             </div>
           </div>
           <!-- END 3sec Timer  -->
@@ -364,7 +377,6 @@
             </ion-button>
 
             <div
-              class="timer3"
               v-if="
                 activeSheet != undefined &&
                 activeSheet.itemId != undefined &&
@@ -1090,6 +1102,23 @@
 </script>
 
 <style scoped>
+  .progress_bar {
+    border-color: var(--ion-color-secondary);
+    border: 2px solid;
+    width: 50%;
+    height: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: content-box;
+    border-radius: 10px;
+  }
+
+  .progress_bar_inner {
+    background-color: var(--ion-color-primary);
+    height: 10px;
+    border-radius: 5px 0px 0px 5px;
+  }
+
   .buttons {
     position: sticky;
     bottom: 10px;

@@ -1,11 +1,15 @@
 import { defineStore } from 'pinia';
 import { validValue } from '../composables/ValidValue';
 import axios from 'axios';
-import { echo } from 'echo';
+
 // import { capacitorUsageStatsManager } from 'capacitor-usage-stats-manager';
 import { useUserStore } from '@/stores/userStore';
 import { Device } from '@capacitor/device';
 import { Capacitor } from '@capacitor/core';
+
+let platform = Capacitor.getPlatform();
+
+import { echo } from 'echo';
 
 // import { useQuestionsStore } from '@/stores/questionsStore';
 // import cordova from 'cordova';
@@ -16,7 +20,17 @@ import { Capacitor } from '@capacitor/core';
 
 export const useStatsStore = defineStore('statsStore', {
   state: () => {
-    return {};
+    return {
+      iosClipboard: {
+        today: '',
+        time: '',
+        dateLong: '',
+        iosStats: '',
+        iosStats2: '',
+        deviceInfoString: '',
+        deviceUuid: '',
+      },
+    };
   },
   actions: {
     // getStats from Android
@@ -119,15 +133,25 @@ export const useStatsStore = defineStore('statsStore', {
         } else {
           // on ios
 
-          await this.sendStatistics(
-            today,
-            time,
-            dateLong,
-            'ios',
-            'ios',
-            deviceInfoString,
-            deviceUuid.uuid
-          );
+          this.iosClipboard = {
+            today: today,
+            time: time,
+            dateLong: dateLong,
+            iosStats: null,
+            iosStats2: null,
+            deviceInfoString: deviceInfoString,
+            deviceUuid: deviceUuid.uuid,
+          };
+
+          // await this.sendStatistics(
+          //   today,
+          //   time,
+          //   dateLong,
+          //   'ios',
+          //   'ios',
+          //   deviceInfoString,
+          //   deviceUuid.uuid
+          // );
         }
 
         return new Promise((resolve) => {
@@ -143,6 +167,35 @@ export const useStatsStore = defineStore('statsStore', {
         });
       }
     },
+
+    async sendIosStats(iosStats) {
+      let iosStatsString = iosStats.toString();
+      console.log('statsStore - sendIosStats', iosStatsString);
+      try {
+        let result = await this.sendStatistics(
+          this.iosClipboard.today,
+          this.iosClipboard.time,
+          this.iosClipboard.dateLong,
+          iosStatsString,
+          'iosStats2',
+          this.iosClipboard.deviceInfoString,
+          this.iosClipboard.deviceUuid
+        );
+
+        return new Promise((resolve) => {
+          // if (response.status == 200) {
+          resolve(result);
+          // }
+        });
+      } catch (e) {
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          reject(e);
+          // }
+        });
+      }
+    },
+
     async getDeviceInfo() {
       try {
         const logDeviceInfo = async () => {
@@ -175,52 +228,75 @@ export const useStatsStore = defineStore('statsStore', {
       deviceInfoString,
       deviceUuid
     ) {
-      const userStore = useUserStore();
-      // const statsStore = useStatsStore();
+      try {
+        console.log(
+          'statsStore - sendStatistics',
+          today,
+          time,
+          dateLong,
+          queryUsageStatsString,
+          queryEventStatsString,
+          deviceInfoString,
+          deviceUuid
+        );
+        const userStore = useUserStore();
+        // const statsStore = useStatsStore();
 
-      const token = userStore.userData.token;
+        const token = userStore.userData.token;
 
-      // const queryUsageStatsString = queryUsageStats.toString();
-      // const queryEventStatsString = queryEventStats.toString();
+        // const queryUsageStatsString = queryUsageStats.toString();
+        // const queryEventStatsString = queryEventStats.toString();
 
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
+        const config = {
+          headers: { Authorization: `Bearer ${token}` },
+        };
 
-      const body = {
-        acf: {
-          userIdStats: userStore.userData.id,
-          queryUsageStats: queryUsageStatsString,
-          queryEventStats: queryEventStatsString,
-          deviceInfoStats: deviceInfoString,
-          deviceUuidStats: deviceUuid,
-          userNameStats: userStore.userData.username,
-          dateStats: today,
-          timeStats: time,
-          dateLongStats: dateLong,
-          uniqueUserIdStats: userStore.uniqueUserId,
-        },
-        slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
-        title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
-        status: 'publish',
-        meta: {
-          uniqueUserId: userStore.uniqueUserId,
-        },
-      };
+        const body = {
+          acf: {
+            userIdStats: userStore.userData.id,
+            queryUsageStats: queryUsageStatsString,
+            queryEventStats: queryEventStatsString,
+            deviceInfoStats: deviceInfoString,
+            deviceUuidStats: deviceUuid,
+            userNameStats: userStore.userData.username,
+            dateStats: today,
+            timeStats: time,
+            dateLongStats: dateLong,
+            uniqueUserIdStats: userStore.uniqueUserId,
+          },
+          slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
+          title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
+          status: 'publish',
+          meta: {
+            uniqueUserId: userStore.uniqueUserId,
+          },
+        };
 
-      const response = await axios.post(
-        `https://fuberlin.nvii-dev.com/wp-json/wp/v2/nutzungsstatistik`,
-        body,
-        config
-      );
+        const response = await axios.post(
+          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/nutzungsstatistik`,
+          body,
+          config
+        );
 
-      // JSON responses are automatically parsed.
+        // JSON responses are automatically parsed.
 
-      console.log('questionsStore - sendShortAnswers - response', response);
+        console.log('statsStore - sendShortAnswers - response', response);
 
-      if (response.status === 201) {
-        console.log('questionsStore - sendShortAnswers - response', response);
-        return response;
+        if (response.status === 201) {
+          console.log('statsStore - sendShortAnswers - response', response);
+          return new Promise((resolve) => {
+            // if (response.status == 200) {
+            resolve(response);
+            // }
+          });
+        }
+      } catch (e) {
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          console.log('statsStore - getDeviceInfo - e: ', e);
+          reject(e);
+          // }
+        });
       }
     },
   },

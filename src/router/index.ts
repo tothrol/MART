@@ -15,6 +15,7 @@ import Success from '../pages/SuccessPage.vue';
 import Welcome from '../pages/WelcomePage.vue';
 import Compliance from '../pages/CompliancePage.vue';
 import BriefingShort from '../pages/BriefingShortPage.vue';
+import Iosstats from '../pages/IosstatsPage.vue';
 
 // Needet to use Pinia outside of a component
 
@@ -72,6 +73,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/briefing-short',
     component: BriefingShort,
+  },
+  {
+    path: '/iosstats',
+    component: Iosstats,
   },
 ];
 

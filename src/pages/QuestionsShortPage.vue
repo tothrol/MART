@@ -32,7 +32,7 @@
               activeSheet.options.inputDisabled != true
             "
           >
-            Timer: {{ time.toFixed(1) }}
+            {{ time.toFixed(1) }} Sekunden
           </div>
           <!-- End 5sec Timer -->
           <!-- 3sec Timer  -->
@@ -362,7 +362,6 @@
             </ion-button>
 
             <div
-              class="timer3"
               v-if="
                 activeSheet != undefined &&
                 activeSheet.itemId != undefined &&
@@ -1021,6 +1020,7 @@
     showSpinner.value = true;
 
     questionsStore.sendShortAnswers(answers.entries).then((response) => {
+      let platform = Capacitor.getPlatform();
       showSpinner.value = false;
 
       console.log('QuestionShortPage - sendShortAnswers', response);
@@ -1039,7 +1039,11 @@
       }
 
       resetAllAnswers();
-      router.replace('/success');
+      if (platform === 'ios') {
+        router.replace('/iosstats');
+      } else {
+        router.replace('/success');
+      }
     });
   }
   const showBackHomeButton = ref(false);
