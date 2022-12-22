@@ -1151,9 +1151,10 @@
 
   .admin_buttons {
     position: absolute;
-    top: 0;
+    top: 25px;
     left: 0;
     display: flex;
+    z-index: 99;
   }
 
   /* .admin {
