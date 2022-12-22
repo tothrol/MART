@@ -12,6 +12,7 @@
   "dependencies": {
     "@capacitor/android": "^4.1.0",
     "@capacitor/app": "^4.0.1",
+    "@capacitor/app-launcher": "^4.1.0",
     "@capacitor/core": "^4.1.0",
     "@capacitor/device": "^4.1.0",
     "@capacitor/haptics": "4.0.1",

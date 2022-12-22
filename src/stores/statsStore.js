@@ -177,7 +177,7 @@ export const useStatsStore = defineStore('statsStore', {
           this.iosClipboard.time,
           this.iosClipboard.dateLong,
           iosStatsString,
-          'iosStats2',
+          '',
           this.iosClipboard.deviceInfoString,
           this.iosClipboard.deviceUuid
         );

@@ -3,8 +3,8 @@
     ><div class="box green">
       <p class="">
         Bitte navigieren Sie nun in Ihrem Telefon zu
-        <b>Einstellungen -> Bildschirmzeit</b> und geben Sie in das Eingabefeld
-        unten den <b>Tagesdurchschnitswert</b> ein.
+        <b @click="navigateToOptions()">Einstellungen -> Bildschirmzeit</b> und
+        geben Sie in das Eingabefeld unten den <b>Tagesdurchschnitswert</b> ein.
       </p>
       <div>
         <div>
@@ -29,6 +29,7 @@
   import heart from '@iconify-icons/codicon/heart-filled';
   import { useStatsStore } from '@/stores/statsStore';
   import { useRouter, useRoute } from 'vue-router';
+  import { AppLauncher } from '@capacitor/app-launcher';
 
   const router = useRouter();
 
@@ -49,6 +50,10 @@
     } else {
       router.replace('/success');
     }
+  }
+
+  async function navigateToOptions() {
+    await AppLauncher.openUrl({ url: 'prefs:root=SCREEN_TIME' });
   }
 </script>
 
