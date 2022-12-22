@@ -181,6 +181,17 @@ export const useStatsStore = defineStore('statsStore', {
           this.iosClipboard.deviceInfoString,
           this.iosClipboard.deviceUuid
         );
+        if (result.status == 201) {
+          this.iosClipboard = {
+            today: '',
+            time: '',
+            dateLong: '',
+            iosStats: '',
+            iosStats2: '',
+            deviceInfoString: '',
+            deviceUuid: '',
+          };
+        }
 
         return new Promise((resolve) => {
           // if (response.status == 200) {
