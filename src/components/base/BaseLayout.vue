@@ -64,6 +64,7 @@
   const userStore = useUserStore();
   const infoStore = useInfoStore();
   const router = useRouter();
+  const route = useRoute();
 
   watch(
     () => userStore.localNotificationTapped,
@@ -126,6 +127,7 @@
           '<br>Message: ' +
           answer.message +
           '';
+        console.log('BaseLayout - onStartQuestionsShort - NOpush -Err_Network');
         return;
       } else if (answer.status != 200 && answer.status != 201) {
         userStore.appMessage =
@@ -134,7 +136,7 @@
           '<br>Message: ' +
           answer.message +
           '';
-
+        console.log('BaseLayout - onStartQuestionsShort - push - login');
         router.push('/login');
         return;
       }
@@ -145,18 +147,23 @@
         userStore.complianceAccepted === true &&
         questionsStore.initialAnswerExist === true &&
         questionsStore.todayShortAnswers < 6 &&
-        timeframe &&
-        dailyTime &&
+        timeframe.value &&
+        dailyTime.value &&
         infoStore.secToNext <= 1
       ) {
         if (userStore.briefingShortChecked === false) {
+          console.log(
+            'BaseLayout - onStartQuestionsShort - push - briefing-short'
+          );
           router.push('/briefing-short');
         } else {
-          console.log('onStartQuestionsShort - push - questionsShort');
+          console.log(
+            'BaseLayout - onStartQuestionsShort - push - questionsShort'
+          );
           router.push('/questionsshort');
         }
       } else {
-        console.log('onStartQuestionsShort - push - questionsShort');
+        console.log('BaseLayout - onStartQuestionsShort - NOpush');
         // router.push('/home');
       }
     }
@@ -166,6 +173,8 @@
     let nowMs = dayjs().valueOf();
     let startDateMs = infoStore.startDate.ms;
     let endDateMs = infoStore.endDate.ms;
+    console.log('BaseLayout - timeframe - startDateMs: ', startDateMs);
+    console.log('BaseLayout - timeframe - startDateMs: ', endDateMs);
     // endDateMs is midnight of the WP entry, so its initially exlusive of the WP entry, therefore hours and minutes of dailyEndTime have to be addet
     endDateMs =
       endDateMs +
@@ -178,10 +187,12 @@
         // project timeframe has not started
         // userStore.appMessage = 'Der Projektzeitraum startet am' + infoStore.startDate.string + '.'
         checkTimeframe('notStarted');
+        console.log('BaseLayout - timeframe - false1');
         return false;
       } else if (nowMs > endDateMs) {
         // Project timeframe is over
         checkTimeframe('over');
+        console.log('BaseLayout - timeframe - false2');
 
         return false;
       } else {
@@ -190,7 +201,8 @@
       }
     } else {
       resetTimeMessage();
-      return true;
+      console.log('BaseLayout - timeframe - false3');
+      return false;
     }
   });
 
@@ -207,9 +219,19 @@
   // );
 
   let dailyTime = computed(() => {
+    console.log('BaseLayout - dailyTime');
     let nowMs = dayjs().valueOf();
     let startTimeMs = infoStore.dailyStartTime.todayStartTimeMs;
     let endTimeMs = infoStore.dailyEndTime.todayEndTimeMs;
+
+    // countdwonMinutes is only needet to get an update every minute of daily time.
+    //  The update every minute is needeet to route away from questionsshort if the dailyTime is false
+    // countdownMinutes is set by the countdown computed
+    let countdownMinutes = infoStore.countdownMinutes;
+    console.log(
+      'BaseLayout - dailyTime - countdownMinutes: ',
+      countdownMinutes
+    );
 
     if (startTimeMs != '' && endTimeMs != '') {
       if (nowMs < startTimeMs) {
@@ -228,7 +250,7 @@
       }
     } else {
       resetTimeMessage();
-      return true;
+      return false;
     }
   });
 
@@ -267,7 +289,7 @@
       ' bis ' +
       infoStore.dailyEndTime.string +
       ' Uhr ausfüllbar.';
-    userStore.appMessage = message;
+    // userStore.appMessage = message;
     infoStore.dailyTimeMessage = message;
   }
   function resetTimeMessage() {
@@ -392,6 +414,7 @@
 
   let countdownTimeout;
 
+  // displays the Countdown on the Home Page
   async function countdownTimer() {
     let now = dayjs();
     let endDate = infoStore.endDate.dayJs;
@@ -416,6 +439,22 @@
       countdownTimer,
       1000 * 60
     ); /* replicate wait 1 second */
+
+    checkRouteAndDailyTime();
+  }
+
+  function checkRouteAndDailyTime() {
+    // checking if dailyTime is false, this gets triggered every Minute
+    // purpose: routing away from questionsshort if dailyTime is false
+    let path = route.path;
+    console.log('BaseLayout - route', path);
+    console.log('BaseLayout - route', route);
+    if (path === '/questionsshort') {
+      if (timeframe.value === false || dailyTime.value == false) {
+        console.log('BaseLayout - checkRouteAndDailyTime - false');
+        router.push('/home');
+      }
+    }
   }
 
   // async function countdownTimer() {

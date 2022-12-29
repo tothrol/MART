@@ -159,7 +159,7 @@
         </div>
       </div>
       <br />
-      <div class="timer_text">Time to next Sheet:</div>
+      <div class="timer_text">Time to next Interval:</div>
       <div class="timer">
         <div>{{ minutes }}:{{ seconds }}</div>
       </div>
