@@ -128,7 +128,8 @@ export const useStatsStore = defineStore('statsStore', {
             queryUsageStatsString,
             queryEventStatsString,
             deviceInfoString,
-            deviceUuid.uuid
+            deviceUuid.uuid,
+            'Android'
           );
         } else {
           // on ios
@@ -176,10 +177,11 @@ export const useStatsStore = defineStore('statsStore', {
           this.iosClipboard.today,
           this.iosClipboard.time,
           this.iosClipboard.dateLong,
-          iosStatsString,
-          '',
+          'iOS',
+          'iOS',
           this.iosClipboard.deviceInfoString,
-          this.iosClipboard.deviceUuid
+          this.iosClipboard.deviceUuid,
+          iosStatsString
         );
         if (result.status == 201) {
           this.iosClipboard = {
@@ -237,7 +239,8 @@ export const useStatsStore = defineStore('statsStore', {
       queryUsageStatsString,
       queryEventStatsString,
       deviceInfoString,
-      deviceUuid
+      deviceUuid,
+      iosStats
     ) {
       try {
         console.log(
@@ -248,7 +251,8 @@ export const useStatsStore = defineStore('statsStore', {
           queryUsageStatsString,
           queryEventStatsString,
           deviceInfoString,
-          deviceUuid
+          deviceUuid,
+          iosStats
         );
         const userStore = useUserStore();
         // const statsStore = useStatsStore();
@@ -274,6 +278,7 @@ export const useStatsStore = defineStore('statsStore', {
             timeStats: time,
             dateLongStats: dateLong,
             uniqueUserIdStats: userStore.uniqueUserId,
+            iosStats: iosStats,
           },
           slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
           title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,

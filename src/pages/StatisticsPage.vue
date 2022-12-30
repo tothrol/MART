@@ -194,6 +194,10 @@
         for (let i = 0; i < array.length; i++) {
           let singleStatObject;
           let singleStatString = array[i];
+          console.log(
+            'Statistics - single - singleStatString',
+            singleStatString
+          );
           let singleStatStringObject = '{' + singleStatString + '}';
           // console.log(
           //   'Statistics - single - array :',
@@ -203,10 +207,11 @@
           //   'i: ',
           //   i
           // );
-          // console.log(
-          //   'Statistics - single - singleStatStringObject',
-          //   singleStatStringObject
-          // );
+          console.log(
+            'Statistics - single - singleStatStringObject',
+            singleStatStringObject
+          );
+
           singleStatObject = JSON.parse(singleStatStringObject);
           // console.log('Statistics - single - singleStatObj', singleStatObject);
           singleStatObject['userId'] = wpPost.acf.userIdStats;
@@ -430,6 +435,10 @@
           let singleStatObject;
           let singleStatString = array[i];
           let singleStatStringObject = '{' + singleStatString + '}';
+          console.log(
+            'Statisticss - single - singleStatStringObject',
+            singleStatStringObject
+          );
           // console.log(
           //   'Statistics - single - array :',
           //   array,
@@ -438,10 +447,7 @@
           //   'i: ',
           //   i
           // );
-          // console.log(
-          //   'Statistics - single - singleStatStringObject',
-          //   singleStatStringObject
-          // );
+
           singleStatObject = JSON.parse(singleStatStringObject);
           // console.log('Statistics - single - singleStatObj', singleStatObject);
           singleStatObject['userId'] = wpPost.acf.userIdStats;

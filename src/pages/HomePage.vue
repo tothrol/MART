@@ -65,11 +65,7 @@
       <div class="buttons" v-if="showButtons">
         <ion-button
           @click="onStartQuestionsInitial()"
-          v-if="
-            questionsStore.initialAnswerExist === false &&
-            infoStore.timeframe &&
-            infoStore.dailyTime
-          "
+          v-if="questionsStore.initialAnswerExist === false"
           >Initialen Fragebogen starten</ion-button
         >
 
@@ -77,9 +73,7 @@
           @click="infoStore.questionsShortStarted = true"
           v-if="
             userStore.complianceAccepted === true &&
-            questionsStore.initialAnswerExist === true &&
-            infoStore.timeframe &&
-            infoStore.dailyTime
+            questionsStore.initialAnswerExist === true
           "
           :disabled="
             infoStore.secToNext >= 1 || questionsStore.todayShortAnswers >= 6

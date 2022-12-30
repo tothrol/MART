@@ -44,12 +44,13 @@ export const useEvaluationStore = defineStore('evaluationStore', {
           }
 
           if (totalPages === page || totalPages === 0) {
-            // console.log('evaluationStore - answersInitial-  LastPAge');
             lastPage = true;
           } else {
             page++;
           }
         }
+
+        console.log('evaluationStore - answersInitial-  response', response);
 
         if (response.data.length >= 1) {
           return new Promise((resolve) => {
