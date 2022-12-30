@@ -32,22 +32,29 @@
   import { useStatsStore } from '@/stores/statsStore';
   import { useRouter, useRoute } from 'vue-router';
 
+  import { Capacitor } from '@capacitor/core';
+
   const router = useRouter();
 
   const userStore = useUserStore();
   const statsStore = useStatsStore();
+  let platform = Capacitor.getPlatform();
 
   let iosStats = ref([0, 0]);
 
   async function onNext() {
-    let response = await statsStore.sendIosStats(iosStats.value);
-    if (response.status != 200 && response.status != 201) {
-      userStore.appMessage =
-        'Es gab einen Fehler!<br> Bitte versuchen Sie es erneut und überprüfen Sie ob Sie online sind. <br><br> Code: ' +
-        response.code +
-        '<br>Message: ' +
-        response.message +
-        '';
+    if (platform === 'ios') {
+      let response = await statsStore.sendIosStats(iosStats.value);
+      if (response.status != 200 && response.status != 201) {
+        userStore.appMessage =
+          'Es gab einen Fehler!<br> Bitte versuchen Sie es erneut und überprüfen Sie ob Sie online sind. <br><br> Code: ' +
+          response.code +
+          '<br>Message: ' +
+          response.message +
+          '';
+      } else {
+        router.replace('/success');
+      }
     } else {
       router.replace('/success');
     }
