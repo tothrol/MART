@@ -129,7 +129,7 @@ export const useStatsStore = defineStore('statsStore', {
             queryEventStatsString,
             deviceInfoString,
             deviceUuid.uuid,
-            'Android'
+            ''
           );
         } else {
           // on ios
@@ -177,8 +177,8 @@ export const useStatsStore = defineStore('statsStore', {
           this.iosClipboard.today,
           this.iosClipboard.time,
           this.iosClipboard.dateLong,
-          'iOS',
-          'iOS',
+          '',
+          '',
           this.iosClipboard.deviceInfoString,
           this.iosClipboard.deviceUuid,
           iosStatsString

@@ -188,6 +188,7 @@
         // single event
 
         let string = wpPost.acf.queryUsageStats;
+
         let string2 = string.substring(1, string.length - 1);
         let array = string2.split('},{');
 
@@ -214,6 +215,7 @@
 
           singleStatObject = JSON.parse(singleStatStringObject);
           // console.log('Statistics - single - singleStatObj', singleStatObject);
+          singleStatObject['iosStats'] = wpPost.acf.iosStats;
           singleStatObject['userId'] = wpPost.acf.userIdStats;
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['uniqueUserId'] = wpPost.acf.uniqueUserIdStats;
@@ -327,6 +329,7 @@
 
     'getLastTimeForegroundServiceUsed',
     'getLastTimeForegroundServiceUsedDate',
+    'iosStats',
   ];
 
   function mapFunction(element, index, array) {
