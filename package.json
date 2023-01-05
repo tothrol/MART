@@ -1,6 +1,6 @@
 {
-  "name": "fu-berlin-app",
-  "version": "0.0.1",
+  "name": "Mart",
+  "version": "0.21.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",

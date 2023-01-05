@@ -13,9 +13,10 @@
       </ion-buttons>
       <div id="logo" @click="adminMode()">
         <router-link to="/home">
+          Mart
           <img
             @click="updateShort()"
-            class="logo"
+            class="logo display_none"
             src="@/assets/images/Logo.svg"
           />
         </router-link>
@@ -107,6 +108,14 @@
     padding-right: 10px;
     padding-left: 10px;
   }
+
+  #logo a {
+    text-decoration: none;
+    color: var(--ion-color-secondary);
+    font-size: 35px;
+    font-weight: 600;
+    letter-spacing: 7px;
+  }
   .toolbar-background {
     /* background-color: blue; */
   }
@@ -140,7 +149,7 @@
   #logo {
     margin-left: auto;
     margin-right: auto;
-    width: 150px;
+    width: max-content;
   }
 
   #title,

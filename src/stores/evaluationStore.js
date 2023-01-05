@@ -13,6 +13,8 @@ export const useEvaluationStore = defineStore('evaluationStore', {
       answersShort: {},
 
       statistics: {},
+
+      deviceInfos: {},
     };
   },
   actions: {
@@ -193,6 +195,82 @@ export const useEvaluationStore = defineStore('evaluationStore', {
         );
 
         console.log('evaluationStore - getStatistics -  response', response);
+        if (response) {
+          return new Promise((resolve) => {
+            // if (response.status == 200) {
+            resolve(response);
+            // }
+          });
+        }
+        // } else {
+        //   return new Promise((resolve) => {
+        //     // if (response.status == 200) {
+        //     resolve(response);
+        //     // }
+        //   });
+        // }
+      } catch (e) {
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          reject(e);
+          // }
+        });
+      }
+    },
+    async getDeviceInfos() {
+      try {
+        this.deviceInfos = {};
+        console.log('evaluationStore -  getDeviceInfos', this.statistics);
+        let perPage = 100;
+        let page = 1;
+        let totalPages = 1;
+        let totalPosts = 1;
+        let lastPage = false;
+
+        let response;
+        while (lastPage === false) {
+          response = await axios.get(
+            `https://fuberlin.nvii-dev.com/wp-json/wp/v2/device-infos?per_page=${perPage}&page=${page}`
+          );
+
+          let responseHeaders = response.headers;
+          totalPosts = responseHeaders['x-wp-total'];
+          totalPages = parseInt(responseHeaders['x-wp-totalpages']);
+
+          console.log('evaluationStore - deviceInfos -  response', response);
+          console.log(
+            'evaluationStore - deviceInfos -  page',
+            page,
+            '/',
+            totalPages
+          );
+
+          for (let [value, key] of Object.entries(response.data)) {
+            console.log(
+              'evaluationStore - deviceInfos -  value , key',
+              value,
+              key
+            );
+            this.deviceInfos[key.id] = key;
+          }
+
+          if (totalPages === page || totalPages === 0) {
+            console.log('evaluationStore -  LastPAge');
+            lastPage = true;
+          } else {
+            page++;
+          }
+        }
+        console.log(
+          'evaluationStore - deviceInfos -  response headers totalPosts',
+          totalPosts
+        );
+        console.log(
+          'evaluationStore - deviceInfos -  response headers totalPages',
+          totalPages
+        );
+
+        console.log('evaluationStore - deviceInfos -  response', response);
         if (response) {
           return new Promise((resolve) => {
             // if (response.status == 200) {

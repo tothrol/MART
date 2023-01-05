@@ -45,7 +45,10 @@
 
     await storage.create();
     await storage.set('briefingShortChecked', true);
-    router.push('/questionsshort');
+    // evaluation if briefing short will be launched (depending on time) will be made in Base - onQuestionShort
+    //  which will be triggered by changes to userStore.briefingShortChecked
+    console.log('BriefingShortPage - checkBriefing');
+    // router.push('/home');
   }
 </script>
 

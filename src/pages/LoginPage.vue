@@ -28,6 +28,8 @@
   import { useQuestionsStore } from '@/stores/questionsStore';
   import { Capacitor } from '@capacitor/core';
 
+  let platform = Capacitor.getPlatform();
+
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
   const router = useRouter();
@@ -60,10 +62,12 @@
     if (response.status == 200) {
       console.log('LoginPage - 3');
 
-      // const initialAnswerResponse =
-      // await questionsStore.checkIfInitalAnswerExists();
-      let platform = Capacitor.getPlatform();
       console.log('Platform: ', platform);
+      if (platform === 'web') {
+        router.push('/home');
+        return;
+      }
+
       if (questionsStore.initialAnswerExist === true) {
         console.log('LoginPage - initialAnswerExist === true');
         // console.log('LoginPage - Before Route -', userStore.userData.token);
@@ -107,6 +111,12 @@
 
     if (isAuth == true) {
       console.log('Login - Token exists', isAuth);
+
+      if (platform === 'web') {
+        router.push('/home');
+        return;
+      }
+
       if (userStore.complianceAccepted === false) {
         router.push('/welcome');
       } else {

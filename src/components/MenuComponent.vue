@@ -62,7 +62,7 @@
     top: 50px;
     right: 10px;
     min-width: 200px;
-    min-height: 100px;
+    height: 100vw;
 
     padding: 15px;
     /* box-shadow: var(--box_shadow); */

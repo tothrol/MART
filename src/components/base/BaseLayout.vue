@@ -59,6 +59,10 @@
   import { useRouter, useRoute } from 'vue-router';
   import { App } from '@capacitor/app';
   import relativeTime from 'dayjs/plugin/relativeTime';
+  import { Capacitor } from '@capacitor/core';
+  import { LocalNotifications } from '@capacitor/local-notifications';
+
+  let platform = Capacitor.getPlatform();
 
   const questionsStore = useQuestionsStore();
   const userStore = useUserStore();
@@ -103,19 +107,52 @@
     }
   );
 
+  watch(
+    () => userStore.briefingShortChecked,
+    (newValue, oldValue) => {
+      console.log(
+        'BaseLayout - watch - userStore.briefingShortChecked',
+        oldValue,
+        newValue
+      );
+
+      if (newValue === true) {
+        if (
+          userStore.complianceAccepted === true &&
+          questionsStore.initialAnswerExist === true &&
+          questionsStore.todayShortAnswers < 6 &&
+          timeframe.value &&
+          dailyTime.value
+        ) {
+          console.log(
+            'BaseLayout - watch - userStore.briefingShortChecked - true'
+          );
+          router.push('/questionsshort');
+        } else {
+          console.log(
+            'BaseLayout - watch - userStore.briefingShortChecked - false'
+          );
+          router.push('/home');
+        }
+      }
+
+      // onStartQuestionsShort();
+    }
+  );
+
   async function onStartQuestionsShort() {
-    console.log(
-      'BaseLayout - onStartQuestionsShort - token',
-      userStore.userData.token
-    );
-    console.log(
-      'BaseLayout - onStartQuestionsShort - userData: ',
-      userStore.userData
-    );
-    console.log(
-      'BaseLayout - onStartQuestionsShort - questionsStore.initialAnswerExist: ',
-      questionsStore.initialAnswerExist
-    );
+    // console.log(
+    //   'BaseLayout - onStartQuestionsShort - token',
+    //   userStore.userData.token
+    // );
+    // console.log(
+    //   'BaseLayout - onStartQuestionsShort - userData: ',
+    //   userStore.userData
+    // );
+    // console.log(
+    //   'BaseLayout - onStartQuestionsShort - questionsStore.initialAnswerExist: ',
+    //   questionsStore.initialAnswerExist
+    // );
     // check for validToken of token is '', then check auth will handel it
     if (userStore.userData.token != '') {
       let answer = await userStore.validateToken();
@@ -142,6 +179,31 @@
       }
 
       // end check for validToken
+
+      console.log(
+        'BaseLayout - onStartQuestionsShort - userStore.complianceAccepted ',
+        userStore.complianceAccepted
+      );
+      console.log(
+        'BaseLayout - onStartQuestionsShort - questionsStore.initialAnswerExist ',
+        questionsStore.initialAnswerExist
+      );
+      console.log(
+        'BaseLayout - onStartQuestionsShort - questionsStore.todayShortAnswers ',
+        questionsStore.todayShortAnswers
+      );
+      console.log(
+        'BaseLayout - onStartQuestionsShort - timeframe.value ',
+        timeframe.value
+      );
+      console.log(
+        'BaseLayout - onStartQuestionsShort - dailyTime.value ',
+        dailyTime.value
+      );
+      console.log(
+        'BaseLayout - onStartQuestionsShort - infoStore.secToNext ',
+        infoStore.secToNext
+      );
 
       if (
         userStore.complianceAccepted === true &&
@@ -386,6 +448,7 @@
       let dateNow = dayjs();
       let dateNext = dayjs(questionsStore.nextShortAnswerMs);
       let lastShortAnswer = questionsStore.lastShortAnswer;
+      // initial lastShortAnswer = ""
       if (lastShortAnswer != undefined && infoStore.secToNext >= 1) {
         questionsStore.timerShortQuestionsRuns = true;
         // dateLast.value = dayjs(lastShortAnswer);
@@ -403,7 +466,9 @@
           'BaseLayout - secTimer - else - infoStore.secToNext',
           infoStore.secToNext
         );
-        onStartQuestionsShort();
+        if (platform != 'web') {
+          onStartQuestionsShort();
+        }
       }
     }
   }
@@ -441,6 +506,7 @@
     ); /* replicate wait 1 second */
 
     checkRouteAndDailyTime();
+    checkIfNotificationsLeft();
   }
 
   function checkRouteAndDailyTime() {
@@ -454,6 +520,22 @@
         console.log('BaseLayout - checkRouteAndDailyTime - false');
         router.push('/home');
       }
+    }
+  }
+
+  async function checkIfNotificationsLeft() {
+    // Checks if any notifications are left
+    console.log('BaseLayout - checkIfNotificationsLeft');
+
+    // START get pending Notifications
+    let pendingNotifications = await LocalNotifications.getPending();
+    console.log('Notifiations - pendingNotifications', pendingNotifications);
+
+    // END get pending Notifications
+
+    if (pendingNotifications.notifications.length === 0) {
+      console.log('BaseLayout - checkIfNotificationsLeft - No Notifications');
+      userStore.setNotifications();
     }
   }
 

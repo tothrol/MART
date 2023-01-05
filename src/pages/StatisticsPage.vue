@@ -110,6 +110,60 @@
         </div>
       </div>
       <!-- End EvntStats -->
+      <!-- Device Stats -->
+
+      <h2>DeviceStats</h2>
+      <div class="buttons">
+        <ion-button @click="evaluationStore.getDeviceInfos()" color="medium"
+          >Aktualisieren</ion-button
+        ><ion-button class="csv_download"
+          ><a
+            :href="allDeviceInfosCsv"
+            download="csvDeviceInfos.csv"
+            ref="csvDeviceInfos"
+            >Download CSV DeviceInfos</a
+          ></ion-button
+        >
+      </div>
+
+      <div class="answers_count">
+        Anzahl Stats: {{ Object.entries(allDeviceInfos).length }}
+      </div>
+      <div class="answers" v-if="allDeviceInfos != undefined">
+        <div
+          class="row heading"
+          v-if="Object.entries(allDeviceInfos).length >= 1"
+        >
+          <div
+            class="long cell"
+            v-for="element of deviceInfosElements"
+            :key="element"
+          >
+            {{ element }}
+          </div>
+
+          <!-- <div
+            class="cell answer"
+            v-for="(value, property) of headerRow"
+            :key="property"
+          >
+            {{ property }}
+          </div> -->
+        </div>
+        <div
+          class="row"
+          v-for="(value, property) of allDeviceInfos.slice(0, 1000)"
+          :key="property"
+        >
+          <div
+            class="long cell"
+            v-for="element of deviceInfosElements"
+            :key="element"
+          >
+            {{ value[element] }}
+          </div>
+        </div>
+      </div>
       <Transition>
         <MessageboxComponent v-if="false" @click="showMessage = false"
           >Here is a message</MessageboxComponent
@@ -131,6 +185,7 @@
 
   const csvUsageStats = ref(null);
   const csvEventStats = ref(null);
+  const csvDeviceInfos = ref(null);
 
   const userStore = useUserStore();
 
@@ -138,6 +193,7 @@
 
   onMounted(async () => {
     evaluationStore.getStatistics();
+    evaluationStore.getDeviceInfos();
   });
 
   let showMessage = ref(true);
@@ -168,21 +224,6 @@
 
     if (wpPosts != null && wpPosts != undefined) {
       for (let [key1, wpPost] of Object.entries(wpPosts)) {
-        // S putting deviceInfo into stats
-        let deviceInfo = {
-          model: '',
-          operatingSystem: '',
-          osVersion: '',
-          platform: '',
-          manufacturer: '',
-        };
-        if (wpPost.acf.deviceInfoStats != undefined) {
-          deviceInfo = JSON.parse(wpPost.acf.deviceInfoStats);
-
-          console.log('StatisticsPage - deviceInfo: ', deviceInfo);
-        }
-
-        // E putting deviceInfo into stats
         let queryEventStats = {};
 
         // single event
@@ -200,19 +241,10 @@
             singleStatString
           );
           let singleStatStringObject = '{' + singleStatString + '}';
-          // console.log(
-          //   'Statistics - single - array :',
-          //   array,
-          //   'array.length: ',
-          //   array.length,
-          //   'i: ',
-          //   i
-          // );
           console.log(
             'Statistics - single - singleStatStringObject',
             singleStatStringObject
           );
-
           singleStatObject = JSON.parse(singleStatStringObject);
           // console.log('Statistics - single - singleStatObj', singleStatObject);
           singleStatObject['iosStats'] = wpPost.acf.iosStats;
@@ -221,11 +253,6 @@
           singleStatObject['uniqueUserId'] = wpPost.acf.uniqueUserIdStats;
 
           singleStatObject['deviceUuid'] = wpPost.acf.deviceUuidStats;
-          singleStatObject['deviceModel'] = deviceInfo.model;
-          singleStatObject['deviceOs'] = deviceInfo.operatingSystem;
-          singleStatObject['deviceOsVersion'] = deviceInfo.osVersion;
-          singleStatObject['devicePlatform'] = deviceInfo.platform;
-          singleStatObject['deviceManufacturer'] = deviceInfo.manufacturer;
 
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['dateLong'] = wpPost.acf.dateLongStats;
@@ -246,6 +273,107 @@
       return null;
     }
   });
+
+  // START Device Stats
+  let allDeviceInfos = computed(() => {
+    let allDeviceInfos = [];
+    let wpPosts = evaluationStore.deviceInfos;
+
+    if (wpPosts != null && wpPosts != undefined) {
+      for (let [key1, wpPost] of Object.entries(wpPosts)) {
+        // S putting deviceInfo into stats
+        let deviceInfo = {
+          model: '',
+          operatingSystem: '',
+          osVersion: '',
+          platform: '',
+          manufacturer: '',
+        };
+        let singleStatObject;
+        if (wpPost.acf.deviceInfoStats != undefined) {
+          deviceInfo = JSON.parse(wpPost.acf.deviceInfoStats);
+          singleStatObject = deviceInfo;
+
+          console.log('StatisticsPage - deviceInfo: ', deviceInfo);
+        }
+
+        // console.log(
+        //   'Statistics - single - array :',
+        //   array,
+        //   'array.length: ',
+        //   array.length,
+        //   'i: ',
+        //   i
+        // );
+
+        // console.log('Statistics - single - singleStatObj', singleStatObject);
+
+        singleStatObject['userId'] = wpPost.acf.userIdStats;
+        singleStatObject['userName'] = wpPost.acf.userNameStats;
+        singleStatObject['uniqueUserId'] = wpPost.acf.uniqueUserIdStats;
+
+        singleStatObject['deviceUuid'] = wpPost.acf.deviceUuidStats;
+        singleStatObject['deviceModel'] = deviceInfo.model;
+        singleStatObject['deviceOs'] = deviceInfo.operatingSystem;
+        singleStatObject['deviceOsVersion'] = deviceInfo.osVersion;
+        singleStatObject['devicePlatform'] = deviceInfo.platform;
+        singleStatObject['deviceManufacturer'] = deviceInfo.manufacturer;
+
+        singleStatObject['userName'] = wpPost.acf.userNameStats;
+        singleStatObject['dateLong'] = wpPost.acf.dateLongStats;
+        singleStatObject['postId'] = wpPost.id;
+        singleStatObject['postTitle'] = wpPost.title.rendered;
+
+        singleStatObject['date'] = wpPost.acf.dateStats;
+        singleStatObject['time'] = wpPost.acf.timeStats;
+
+        // console.log('Statistics - singleStatObject', singleStatObject);
+        allDeviceInfos.push(singleStatObject);
+
+        // console.log('Statistics - queryEventStats', queryEventStats);
+      }
+
+      return allDeviceInfos;
+    } else {
+      return null;
+    }
+  });
+
+  let deviceInfosElements = [
+    'userId',
+    'userName',
+    'uniqueUserId',
+    'deviceUuid',
+    'deviceModel',
+    'deviceOs',
+    'deviceOsVersion',
+    'devicePlatform',
+    'deviceManufacturer',
+    'postId',
+    'postTitle',
+    'date',
+    'dateLong',
+    'time',
+  ];
+
+  let allDeviceInfosCsv = computed(() => {
+    let csvString = [
+      deviceInfosElements,
+      ...allDeviceInfos.value.map(mapFunction),
+    ]
+      .map((e) => e.join(','))
+      .join('\n');
+
+    let csvContent = 'data:text/csv;charset=utf-8,' + csvString;
+
+    let encodeUri = encodeURI(csvContent);
+    // csvUsageStats.value.setAttribute('href', encodeUri);
+    // csvUsageStats.value.setAttribute('download', 'csvUsageStats.csv');
+
+    return encodeUri;
+  });
+
+  // END Device Stats
 
   function compare(a, b) {
     if (a.timeStampAndroid < b.timeStampAndroid) return 1;
@@ -298,11 +426,7 @@
     'userName',
     'uniqueUserId',
     'deviceUuid',
-    'deviceModel',
-    'deviceOs',
-    'deviceOsVersion',
-    'devicePlatform',
-    'deviceManufacturer',
+
     'postId',
     'postTitle',
     'date',
@@ -382,11 +506,6 @@
     'userName',
     'uniqueUserId',
     'deviceUuid',
-    'deviceModel',
-    'deviceOs',
-    'deviceOsVersion',
-    'devicePlatform',
-    'deviceManufacturer',
     'postId',
     'postTitle',
     'date',
@@ -411,21 +530,6 @@
 
     if (wpPosts != null && wpPosts != undefined) {
       for (let [key1, wpPost] of Object.entries(wpPosts)) {
-        // S putting deviceInfo into stats
-        let deviceInfo = {
-          model: '',
-          operatingSystem: '',
-          osVersion: '',
-          platform: '',
-          manufacturer: '',
-        };
-        if (wpPost.acf.deviceInfoStats != undefined) {
-          deviceInfo = JSON.parse(wpPost.acf.deviceInfoStats);
-
-          console.log('StatisticsPage - deviceInfo: ', deviceInfo);
-        }
-
-        // E putting deviceInfo into stats
         let queryEventStats = {};
 
         // single event
@@ -458,12 +562,6 @@
           singleStatObject['uniqueUserId'] = wpPost.acf.uniqueUserIdStats;
 
           singleStatObject['deviceUuid'] = wpPost.acf.deviceUuidStats;
-
-          singleStatObject['deviceModel'] = deviceInfo.model;
-          singleStatObject['deviceOs'] = deviceInfo.operatingSystem;
-          singleStatObject['deviceOsVersion'] = deviceInfo.osVersion;
-          singleStatObject['devicePlatform'] = deviceInfo.platform;
-          singleStatObject['deviceManufacturer'] = deviceInfo.manufacturer;
 
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['dateLong'] = wpPost.acf.dateLongStats;

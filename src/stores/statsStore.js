@@ -78,14 +78,10 @@ export const useStatsStore = defineStore('statsStore', {
       try {
         console.log('getStats');
 
-        const deviceInfo = await Device.getInfo();
+        // const deviceInfo = await Device.getInfo();
         const deviceUuid = await Device.getId();
 
         console.log('statsStore - getDeviceInfo - deviceUuid: ', deviceUuid);
-
-        console.log('statsStore - getDeviceInfo - deviceInfo: ', deviceInfo);
-
-        let deviceInfoString = JSON.stringify(deviceInfo);
 
         let platform = Capacitor.getPlatform();
 
@@ -121,6 +117,8 @@ export const useStatsStore = defineStore('statsStore', {
           console.log('getEventStats - string: ', queryEventStatsString);
           // End queryEventStats
 
+          let deviceInfoString = '';
+
           await this.sendStatistics(
             today,
             time,
@@ -133,6 +131,7 @@ export const useStatsStore = defineStore('statsStore', {
           );
         } else {
           // on ios
+          let deviceInfoString = '';
 
           this.iosClipboard = {
             today: today,
@@ -163,6 +162,79 @@ export const useStatsStore = defineStore('statsStore', {
       } catch (e) {
         return new Promise((reject) => {
           // if (response.status == 200) {
+          reject(e);
+          // }
+        });
+      }
+    },
+    async sendDeviceInfos(today, time, dateLong) {
+      try {
+        console.log('statsStore - sendDeviceInfo');
+
+        const deviceInfo = await Device.getInfo();
+        const deviceUuid = await Device.getId();
+
+        console.log('statsStore - sendDeviceInfo - deviceUuid: ', deviceUuid);
+
+        console.log('statsStore - sendDeviceInfo - deviceInfo: ', deviceInfo);
+
+        let deviceInfoString = JSON.stringify(deviceInfo);
+
+        let platform = Capacitor.getPlatform();
+
+        const userStore = useUserStore();
+        // const statsStore = useStatsStore();
+
+        const token = userStore.userData.token;
+
+        // const queryUsageStatsString = queryUsageStats.toString();
+        // const queryEventStatsString = queryEventStats.toString();
+
+        const config = {
+          headers: { Authorization: `Bearer ${token}` },
+        };
+
+        const body = {
+          acf: {
+            userIdStats: userStore.userData.id,
+            deviceInfoStats: deviceInfoString,
+            deviceUuidStats: deviceUuid.uuid,
+            userNameStats: userStore.userData.username,
+            dateStats: today,
+            timeStats: time,
+            dateLongStats: dateLong,
+            uniqueUserIdStats: userStore.uniqueUserId,
+          },
+          slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
+          title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
+          status: 'publish',
+          meta: {
+            uniqueUserId: userStore.uniqueUserId,
+          },
+        };
+
+        const response = await axios.post(
+          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/device-infos`,
+          body,
+          config
+        );
+
+        // JSON responses are automatically parsed.
+
+        console.log('statsStore - sendDeviceInfo - response', response);
+
+        if (response.status === 201) {
+          console.log('statsStore - sendDeviceInfo - response', response);
+          return new Promise((resolve) => {
+            // if (response.status == 200) {
+            resolve(response);
+            // }
+          });
+        }
+      } catch (e) {
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          console.log('statsStore - sendDeviceInfo - e: ', e);
           reject(e);
           // }
         });

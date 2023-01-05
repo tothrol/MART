@@ -424,6 +424,15 @@ export const useUserStore = defineStore('userStore', {
 
     async setNotifications() {
       try {
+        // START RESET
+        let notificationTimes = [];
+        let notificationTimesRandom = [];
+        let notificationArray = [];
+
+        await this.resetNotifications();
+        this.notificationArray = [];
+        // END RESET
+
         // START Calculating Notification Times
         let infoStore = useInfoStore();
         let questionsStore = useQuestionsStore();
@@ -435,9 +444,6 @@ export const useUserStore = defineStore('userStore', {
 
         let dailyEndTime = infoStore.dailyEndTime;
         let todayEndTimeMs = infoStore.dailyEndTime.todayEndTimeMs;
-
-        let notificationTimes = [];
-        let notificationTimesRandom = [];
 
         let dailyStartTimeHour = dayjs(todayStartTimeMs).hour();
         let dailyEndTimeHour = dayjs(todayEndTimeMs).hour();
@@ -470,7 +476,7 @@ export const useUserStore = defineStore('userStore', {
         let newEntry = todayStartTimeMs;
         let newEntryRandom;
 
-        for (let i = 0; i <= 50; ) {
+        for (let i = 0; i <= 100; ) {
           let randomMinute = Math.floor(Math.random() * dailyInterval * 60);
 
           let randomMs = randomMinute * 60 * 1000;
@@ -550,10 +556,6 @@ export const useUserStore = defineStore('userStore', {
         //END channel
 
         console.log('setNotifiations');
-        let notificationArray = [];
-
-        await this.resetNotifications();
-        this.notificationArray = [];
 
         // let now = dayjs();
         // let nowPlusOneMinute = dayjs().add(5, 'second').valueOf();
@@ -568,7 +570,7 @@ export const useUserStore = defineStore('userStore', {
           let notificationEntry = {
             id: i,
             channelId: 1,
-            title: `FU Berlin App`,
+            title: `Mart`,
             body: `Sie können einen weiteren Fragebogen ausfüllen`,
             schedule: {
               at: new Date(notificationTime),
@@ -581,6 +583,11 @@ export const useUserStore = defineStore('userStore', {
           };
           notificationArray.push(notificationEntry);
         }
+
+        console.log(
+          'Notifiations - setNotifications - notificationArray',
+          notificationArray
+        );
 
         let checkPermissions = await LocalNotifications.checkPermissions();
 
@@ -601,6 +608,15 @@ export const useUserStore = defineStore('userStore', {
         });
 
         // const router = useRouter();
+
+        // START get pending Notifications
+        let pendingNotifications = await LocalNotifications.getPending();
+        console.log(
+          'Notifiations - pendingNotifications',
+          pendingNotifications
+        );
+
+        // END get pending Notifications
 
         await LocalNotifications.addListener(
           'localNotificationActionPerformed',
@@ -631,27 +647,27 @@ export const useUserStore = defineStore('userStore', {
       try {
         // var id;
         let idsArray = [];
-        await LocalNotifications.getPending().then(function (result) {
-          console.log(
-            'Notifiations - cancel - showNotification - result',
-            result
-          );
+        let result = await LocalNotifications.getPending();
+        console.log(
+          'userStore - resetNotifications - getPending - result',
+          result
+        );
 
-          //here a for each loop of all result notifications
-          if (
-            result.notifications != undefined &&
-            result.notifications.length() > 0
-          ) {
-            for (let [count] of Object.entries(result.notifications)) {
-              let notification = result.notifications[count];
+        //here a for each loop of all result notifications
+        if (
+          result.notifications != undefined &&
+          result.notifications.length() > 0
+        ) {
+          for (let [count] of Object.entries(result.notifications)) {
+            let notification = result.notifications[count];
 
-              idsArray.push(notification.id);
-            }
+            idsArray.push(notification.id);
           }
+        }
 
-          // id = result.notifications[0].id.toString();
-        });
-        console.log('Notifiations - cancel - showNotification -id', idsArray);
+        // id = result.notifications[0].id.toString();
+
+        console.log('userStore - resetNotifications - -id', idsArray);
 
         if (idsArray.length != 0) {
           for (var [noteCount] of Object.entries(idsArray)) {
@@ -665,6 +681,7 @@ export const useUserStore = defineStore('userStore', {
 
         return new Promise((resolve) => {
           // if (response.status == 200) {
+          console.log('userStore - resetNotifications - resolve');
           resolve('resolve setNotification');
           // }
         });

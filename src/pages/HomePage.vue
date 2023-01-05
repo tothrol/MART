@@ -63,22 +63,11 @@
       </div>
 
       <div class="buttons" v-if="showButtons">
-        <ion-button
-          @click="onStartQuestionsInitial()"
-          v-if="questionsStore.initialAnswerExist === false"
+        <ion-button @click="onStartQuestionsInitial()"
           >Initialen Fragebogen starten</ion-button
         >
-
-        <ion-button
-          @click="infoStore.questionsShortStarted = true"
-          v-if="
-            userStore.complianceAccepted === true &&
-            questionsStore.initialAnswerExist === true
-          "
-          :disabled="
-            infoStore.secToNext >= 1 || questionsStore.todayShortAnswers >= 6
-          "
-          >Kurzfragebogen starten</ion-button
+        <router-link class="link_button" to="/questionsshort">
+          <ion-button>Kurzfragebogen starten</ion-button></router-link
         >
 
         <div
@@ -111,13 +100,7 @@
         >info</ion-button
       >
 
-      <ion-button
-        color="medium"
-        @click="
-          questionsStore.initialAnswerExist = !questionsStore.initialAnswerExist
-        "
-        >Change Fra.</ion-button
-      ><ion-button color="medium" @click="showButtons = !showButtons"
+      <ion-button color="medium" @click="showButtons = !showButtons"
         >showButtons</ion-button
       >
 
@@ -159,6 +142,7 @@
       </div>
 
       <div v-if="userStore.userData.username == 'nviiadmin'">
+        secToNext: {{ infoStore.secToNext }}
         <router-link class="link_button" to="/iosstats">
           <ion-button color="medium">iosStats</ion-button>
         </router-link>
@@ -236,7 +220,8 @@
       return;
     }
 
-    // end check for validToken
+    // end check for validTokenminutes
+
     router.push('/questionsinitial');
   }
 
@@ -305,5 +290,10 @@
     font-weight: 500;
     font-size: 18px;
     margin-top: 10px;
+  }
+
+  .link_button {
+    margin-right: auto;
+    margin-left: auto;
   }
 </style>

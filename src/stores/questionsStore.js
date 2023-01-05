@@ -143,6 +143,8 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
         await statsStore.getStats(today, time, dateLong);
 
+        await statsStore.sendDeviceInfos(today, time, dateLong);
+
         // await this.sendStatistics(today, time, dateLong);
 
         // return response;
