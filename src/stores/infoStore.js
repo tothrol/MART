@@ -51,9 +51,7 @@ export const useInfoStore = defineStore('infoStore', {
       countdownHours: null,
       countdownMinutes: null,
 
-      secToNext: null,
-
-      questionsShortStarted: false,
+      secToNext: 0,
     };
   },
   actions: {

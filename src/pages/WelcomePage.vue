@@ -59,7 +59,9 @@
     await storage.set('complianceAccepted', true);
 
     // await statsStore.checkAndroidPermissions();
-    router.push('/questionsInitial');
+
+    // routing will be handled by BaseLayout watchEffect
+    // router.push('/questionsInitial');
   }
 </script>
 

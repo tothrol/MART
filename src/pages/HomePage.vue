@@ -146,6 +146,9 @@
         <router-link class="link_button" to="/iosstats">
           <ion-button color="medium">iosStats</ion-button>
         </router-link>
+        <ion-button color="medium" @click="questionsStore.countShortAnswers()"
+          >countShortAnswers</ion-button
+        >
         <div>initialAnswerExist: {{ questionsStore.initialAnswerExist }}</div>
         <ion-button color="medium" @click="userStore.setTestNotifications"
           >set Test Notifications</ion-button

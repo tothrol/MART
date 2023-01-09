@@ -224,9 +224,9 @@ export const useUserStore = defineStore('userStore', {
       }
     },
 
-    async checkAuth() {
+    async atAppStart() {
       // Runs at restart of page / restart of App
-      console.log('checkAuth');
+      console.log('atAppStart');
       // At Start/Restart of App
       // wird getriggert wenn auf /login zugegriggen wird
 
@@ -238,7 +238,7 @@ export const useUserStore = defineStore('userStore', {
         this.briefingShortChecked = true;
       }
       const complianceAccepted = await storage.get('complianceAccepted');
-      console.log('CheckAuth - complianceAccepted', complianceAccepted);
+      console.log('atAppStart - complianceAccepted', complianceAccepted);
       if (complianceAccepted == true) {
         this.complianceAccepted = true;
       }

@@ -219,9 +219,9 @@ export const useUserStore = defineStore('userStore', () => {
     }
   }
 
-  async function checkAuth() {
+  async function atAppStart() {
     // Runs at restart of page / restart of App
-    console.log('checkAuth');
+    console.log('atAppStart');
     // At Start/Restart of App
     // wird getriggert wenn auf /login zugegriggen wird
 
@@ -233,7 +233,7 @@ export const useUserStore = defineStore('userStore', () => {
       briefingShortChecked.value = true;
     }
     const complianceAcceptL = await storage.get('complianceAccepted');
-    console.log('CheckAuth - complianceAccepted', complianceAcceptL);
+    console.log('atAppStart - complianceAccepted', complianceAcceptL);
     if (complianceAcceptL == true) {
       complianceAccepted.value = true;
     }
@@ -737,7 +737,7 @@ export const useUserStore = defineStore('userStore', () => {
     dailyFunctionLoop,
     clearDailyFunction,
     validateToken,
-    checkAuth,
+    atAppStart,
     createRandomArray,
     onStartQuestionsShort,
     setTestNotifications,

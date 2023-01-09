@@ -512,34 +512,22 @@ export const useUserStore = defineStore('userStore', {
           ) {
             console.log('RandomMinute: ', randomMinute);
             if (newEntry < lastShortAnswerPlusBreakMs) {
+              // Check if Timer is kurzfragebogen Timer is running and add Timer to newEntry
               // if regular calculated Entry (every 2 Hours) is before the 30min Timer is over, than make the new Entry at the same time the 30min timer is over
               let newEntryPlus = lastShortAnswerPlusBreakMs;
               notificationTimes.push(newEntryPlus);
             } else {
               notificationTimes.push(newEntry);
             }
-
             let entryToPush;
             if (newEntryRandom < lastShortAnswerPlusBreakMs) {
+              // Check if Timer is kurzfragebogen Timer is running and add Timer to newEntry
               // if regular calculated Entry (every 2 Hours) is before the 30min Timer is over, than make the new Entry at the same time the 30min timer is over
               entryToPush = lastShortAnswerPlusBreakMs;
             } else {
               entryToPush = newEntryRandom;
             }
-            // START check if todayShortAnswers === 6
-            if (questionsStore.todayShortAnswers === 6) {
-              // daily limit reached
-              let todayDate = dayjs().format('DD.MM.YYYY');
-              let entryToPushDate = dayjs(entryToPush).format('DD.MM.YYYY');
-              if (todayDate != entryToPushDate) {
-                // only add entry if its not today
-                console.log('userStore - setNotification - NotToday');
-                notificationTimesRandom.push(entryToPush);
-              }
-            } else {
-              notificationTimesRandom.push(entryToPush);
-            }
-            // END check if todayShortAnswers === 6
+            notificationTimesRandom.push(entryToPush);
 
             i++;
           }

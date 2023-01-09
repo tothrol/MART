@@ -114,7 +114,7 @@ router.beforeEach(async (to: any, from: any) => {
     if (!from.name === null || !programmatic) {
       // do stuff you want to do when hitting back/forward or reloading page
       console.log('Navigation guard programmatic', to.path);
-      if (to.path === '/questionsInitial') {
+      if (to.path === '/questionsinitial') {
         if (questionsStore.initialAnswerExist === true) {
           console.log(
             'Navigation guard - token Exists questionsStore.initialAnswerExist === true'
@@ -132,11 +132,15 @@ router.beforeEach(async (to: any, from: any) => {
 
 router.afterEach((to, from) => {
   console.log('Navigation guard - afterEach - 1');
-  if (to.path === '/questionsInitial') {
-    console.log('Navigation guard - afterEach - 2');
+  if (to.path === '/questionsinitial') {
+    console.log(
+      'Navigation guard - afterEach - 2 - questionsStore.initialAnswerExist',
+      questionsStore.initialAnswerExist
+    );
     if (questionsStore.initialAnswerExist === true) {
       console.log('Navigation guard - afterEach - 3');
       router.push('/home');
+
       // next({ path: '/home' });
       // router.push('/home');
       // return '/home';

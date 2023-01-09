@@ -70,63 +70,75 @@
   const router = useRouter();
   const route = useRoute();
 
-  // watch(
-  //   () => userStore.briefingShortChecked,
-  //   (newValue, oldValue) => {
-  //     // Similar to startQuestionsShort but without secToNext
-  //     // 2check: maybe solve this more elegant without repetition
-  //     console.log(
-  //       'BaseLayout - watch - userStore.briefingShortChecked',
-  //       oldValue,
-  //       newValue
-  //     );
+  watch(
+    () => userStore.localNotificationTapped,
+    (newValue, oldValue) => {
+      console.log(
+        'BaseLayout - userStore.localNotificationTapped',
+        oldValue,
+        newValue
+      );
+      if (newValue === true) {
+        // router.push('/user');
+        onStartQuestionsShort();
+        userStore.localNotificationTapped = false;
+      }
+    }
+  );
 
-  //     if (newValue === true) {
-  //       // conditionsQuestionsShort will be triggered hereby
-  //       infoStore.secToNext = 0;
-  //     }
-  //   }
-  // );
+  watchEffect(() => {
+    console.log(
+      'BaseLayout - watchEffect - infoStore.questionsShortStarted',
+      infoStore.questionsShortStarted
+    );
 
-  // let timerOver = ref(false);
+    if (infoStore.questionsShortStarted === true) {
+      onStartQuestionsShort();
+      infoStore.questionsShortStarted = false;
+    }
+  });
 
-  // watch(
-  //   () => infoStore.secToNext,
-  //   (newValue, oldValue) => {
-  //     // Similar to startQuestionsShort but without secToNext
-  //     // 2check: maybe solve this more elegant without repetition
-  //     console.log(
-  //       'BaseLayout - watch - infoStore.secToNext',
-  //       oldValue,
-  //       newValue
-  //     );
+  watch(
+    () => userStore.userData.token,
+    (newValue, oldValue) => {
+      console.log('BaseLayout - userStore.userData.token', oldValue, newValue);
 
-  //     if (newValue < 1) {
-  //       // conditionsQuestionsShort will be triggered hereby
-  //       timerOver.value = true;
-  //     }
-  //   }
-  // );
+      onStartQuestionsShort();
+    }
+  );
 
-  // watch(
-  //   () => conditionsQuestionsShort,
-  //   (newValue, oldValue) => {
-  //     if (newValue.value === true) {
-  //       onStartQuestionsShort();
-  //       userStore.localNotificationTapped = false;
-  //     }
-  //   }
-  // );
+  watch(
+    () => userStore.briefingShortChecked,
+    (newValue, oldValue) => {
+      console.log(
+        'BaseLayout - watch - userStore.briefingShortChecked',
+        oldValue,
+        newValue
+      );
 
-  // watchEffect(() => {
+      if (newValue === true) {
+        if (
+          userStore.complianceAccepted === true &&
+          questionsStore.initialAnswerExist === true &&
+          questionsStore.todayShortAnswers < 6 &&
+          timeframe.value &&
+          dailyTime.value
+        ) {
+          console.log(
+            'BaseLayout - watch - userStore.briefingShortChecked - true'
+          );
+          router.push('/questionsshort');
+        } else {
+          console.log(
+            'BaseLayout - watch - userStore.briefingShortChecked - false'
+          );
+          router.push('/home');
+        }
+      }
 
-  //   if(conditionsQuestionsShort.value === true){
-
-  //   }
-
-  // })
-
-  let conditionsQuestionsShort = false;
+      // onStartQuestionsShort();
+    }
+  );
 
   async function onStartQuestionsShort() {
     // console.log(
@@ -168,32 +180,39 @@
 
       // end check for validToken
 
-      // console.log(
-      //   'BaseLayout - onStartQuestionsShort - userStore.complianceAccepted ',
-      //   userStore.complianceAccepted
-      // );
-      // console.log(
-      //   'BaseLayout - onStartQuestionsShort - questionsStore.initialAnswerExist ',
-      //   questionsStore.initialAnswerExist
-      // );
-      // console.log(
-      //   'BaseLayout - onStartQuestionsShort - questionsStore.todayShortAnswers ',
-      //   questionsStore.todayShortAnswers
-      // );
-      // console.log(
-      //   'BaseLayout - onStartQuestionsShort - timeframe.value ',
-      //   timeframe.value
-      // );
-      // console.log(
-      //   'BaseLayout - onStartQuestionsShort - dailyTime.value ',
-      //   dailyTime.value
-      // );
-      // console.log(
-      //   'BaseLayout - onStartQuestionsShort - infoStore.secToNext ',
-      //   infoStore.secToNext
-      // );
+      console.log(
+        'BaseLayout - onStartQuestionsShort - userStore.complianceAccepted ',
+        userStore.complianceAccepted
+      );
+      console.log(
+        'BaseLayout - onStartQuestionsShort - questionsStore.initialAnswerExist ',
+        questionsStore.initialAnswerExist
+      );
+      console.log(
+        'BaseLayout - onStartQuestionsShort - questionsStore.todayShortAnswers ',
+        questionsStore.todayShortAnswers
+      );
+      console.log(
+        'BaseLayout - onStartQuestionsShort - timeframe.value ',
+        timeframe.value
+      );
+      console.log(
+        'BaseLayout - onStartQuestionsShort - dailyTime.value ',
+        dailyTime.value
+      );
+      console.log(
+        'BaseLayout - onStartQuestionsShort - infoStore.secToNext ',
+        infoStore.secToNext
+      );
 
-      if (conditionsQuestionsShort) {
+      if (
+        userStore.complianceAccepted === true &&
+        questionsStore.initialAnswerExist === true &&
+        questionsStore.todayShortAnswers < 6 &&
+        timeframe.value &&
+        dailyTime.value &&
+        infoStore.secToNext <= 1
+      ) {
         if (userStore.briefingShortChecked === false) {
           console.log(
             'BaseLayout - onStartQuestionsShort - push - briefing-short'
@@ -213,7 +232,6 @@
   }
 
   let timeframe = computed(() => {
-    // Question: When is timeframe computed
     let nowMs = dayjs().valueOf();
     let startDateMs = infoStore.startDate.ms;
     let endDateMs = infoStore.endDate.ms;
@@ -343,7 +361,7 @@
 
   App.addListener('appStateChange', ({ isActive }) => {
     console.log('App state changed. Is active?', isActive);
-    secTimer();
+    initDate();
   });
 
   // watch(
@@ -362,7 +380,7 @@
         oldValue,
         newValue
       );
-      secTimer();
+      initDate();
     }
   );
 
@@ -424,17 +442,34 @@
   // let secToNext = ref(null);
 
   async function secTimer() {
-    // Runs continious
     clearTimeout(secT);
-    if (infoStore.secToNext != undefined) {
+    if (infoStore.secToNext != null) {
       //
       let dateNow = dayjs();
       let dateNext = dayjs(questionsStore.nextShortAnswerMs);
       let lastShortAnswer = questionsStore.lastShortAnswer;
       // initial lastShortAnswer = ""
+      if (lastShortAnswer != undefined && infoStore.secToNext >= 1) {
+        questionsStore.timerShortQuestionsRuns = true;
+        // dateLast.value = dayjs(lastShortAnswer);
 
-      infoStore.secToNext = dateNext.diff(dateNow, 's');
-      secT = window.setTimeout(secTimer, 1000); /* replicate wait 1 second */
+        infoStore.secToNext = dateNext.diff(dateNow, 's');
+        secT = window.setTimeout(secTimer, 1000); /* replicate wait 1 second */
+      }
+      //
+      else {
+        clearTimeout(secT);
+        // secToNext.value = 0;
+        infoStore.secToNext = 0;
+        questionsStore.timerShortQuestionsRuns = false;
+        console.log(
+          'BaseLayout - secTimer - else - infoStore.secToNext',
+          infoStore.secToNext
+        );
+        if (platform != 'web') {
+          onStartQuestionsShort();
+        }
+      }
     }
   }
 
@@ -442,25 +477,9 @@
   // let countdownHours = ref(null);
   // let countdownDays = ref(null);
 
-  let oneMinuteTimerTimeout;
-
-  function oneMinuteTimer() {
-    countdownTimer();
-    checkRouteAndDailyTime();
-    if (platform != 'web') {
-      checkIfNotificationsLeft();
-    }
-
-    oneMinuteTimerTimeout = window.setTimeout(
-      oneMinuteTimer,
-      1000 * 60
-    ); /* replicate wait 1 second */
-  }
-
-  // let countdownTimeout;
+  let countdownTimeout;
 
   // displays the Countdown on the Home Page
-
   async function countdownTimer() {
     let now = dayjs();
     let endDate = infoStore.endDate.dayJs;
@@ -481,10 +500,13 @@
     // countdownMinutes.value = endDate.diff(now, 'minute');
     infoStore.countdownMinutes = formatTo1digit(countdownTotalMinutes % 60);
 
-    // countdownTimeout = window.setTimeout(
-    //   countdownTimer,
-    //   1000 * 60
-    // ); /* replicate wait 1 second */
+    countdownTimeout = window.setTimeout(
+      countdownTimer,
+      1000 * 60
+    ); /* replicate wait 1 second */
+
+    checkRouteAndDailyTime();
+    checkIfNotificationsLeft();
   }
 
   function checkRouteAndDailyTime() {
@@ -511,10 +533,7 @@
 
     // END get pending Notifications
 
-    if (
-      pendingNotifications.notifications.length === 0 &&
-      questionsStore.shortAnswersArray.length >= 1
-    ) {
+    if (pendingNotifications.notifications.length === 0) {
       console.log('BaseLayout - checkIfNotificationsLeft - No Notifications');
       userStore.setNotifications();
     }
@@ -533,98 +552,27 @@
   //   }
   // }
 
-  // async function initDate() {
-  //   console.log('BaseLayout - initDate');
-  //   let dateNow = dayjs();
-  //   let dateNext = dayjs(questionsStore.nextShortAnswerMs);
-  //   let lastShortAnswer = questionsStore.lastShortAnswer;
-  //   if (lastShortAnswer != undefined) {
-  //     // dateLast.value = dayjs(lastShortAnswer);
+  async function initDate() {
+    console.log('BaseLayout - initDate');
+    let dateNow = dayjs();
+    let dateNext = dayjs(questionsStore.nextShortAnswerMs);
+    let lastShortAnswer = questionsStore.lastShortAnswer;
+    if (lastShortAnswer != undefined) {
+      // dateLast.value = dayjs(lastShortAnswer);
 
-  //     infoStore.secToNext = dateNext.diff(dateNow, 's');
+      infoStore.secToNext = dateNext.diff(dateNow, 's');
 
-  //     clearTimeout(secT);
-  //     secTimer();
-  //   }
-  // }
+      clearTimeout(secT);
+      secTimer();
+    }
+  }
 
   onMounted(async () => {
     console.log('BaseLayout - onMounted');
     // questionsStore.checkIfInitalAnswerExists();
     // initDate();
-    secTimer();
-    oneMinuteTimer();
+    countdownTimer();
     // questionsStore.countShortAnswers();
-  });
-
-  watchEffect(() => {
-    // runs every Second, coz it contains infoStore.secToNext
-    console.log('BaseLayout - watchEffect - conditionsQuestionsShort -start');
-
-    // START Console.logs needet to trigger this computed function
-    userStore.localNotificationTapped;
-    userStore.userData.token;
-    infoStore.secToNext;
-    // console.log(
-    //   'BaseLayout - watchEffect - conditionsQuestionsShort - userStore.localNotificationTapped',
-    //   userStore.localNotificationTapped
-    // );
-    // console.log(
-    //   'BaseLayout - watchEffect - conditionsQuestionsShort - userStore.userData.token',
-    //   userStore.userData.token
-    // );
-    // console.log(
-    //   'BaseLayout - conditionsQuestionsShort - infoStore.secToNext',
-    //   infoStore.secToNext
-    // );
-    // console.log(
-    //   'BaseLayout - watchEffect - conditionsQuestionsShort - timerOver.value',
-    //   timerOver.value
-    // );
-
-    //END Console.logs needet to trigger this computed function
-
-    // START QuestionInitial Conditions
-    console.log(
-      'BaseLayout - watchEffect - conditionsQuestionsInitial - questionsStore.initialAnswerExist: ',
-      questionsStore.initialAnswerExist
-    );
-    console.log(
-      'BaseLayout - watchEffect - conditionsQuestionsInitial - userStore.complianceAccepted: ',
-      userStore.complianceAccepted
-    );
-    if (questionsStore.initialAnswerExist === false) {
-      if (userStore.complianceAccepted === true) {
-        console.log(
-          'BaseLayout - watchEffect - conditionsQuestionsInitial - true'
-        );
-        router.push('/questionsinitial');
-      } else {
-        // router.push('/welcome');
-      }
-    }
-    // END QuestionInitial Conditions
-
-    if (
-      userStore.briefingShortChecked === true &&
-      userStore.complianceAccepted === true &&
-      questionsStore.initialAnswerExist === true &&
-      questionsStore.todayShortAnswers < 6 &&
-      timeframe.value &&
-      dailyTime.value &&
-      infoStore.secToNext <= 1
-    ) {
-      conditionsQuestionsShort = true;
-      onStartQuestionsShort();
-
-      console.log('BaseLayout - watchEffect - conditionsQuestionsShort - true');
-    } else {
-      console.log(
-        'BaseLayout - watchEffect - conditionsQuestionsShort - false'
-      );
-
-      conditionsQuestionsShort = false;
-    }
   });
 
   // Scroll

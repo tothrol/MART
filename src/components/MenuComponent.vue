@@ -57,12 +57,12 @@
     flex-direction: column;
     margin-bottom: 20px;
     font-size: 25px;
-    background-color: var(--ion-color-secondary-opacy2);
-    backdrop-filter: blur(30px);
+    /* background-color: var(--ion-color-secondary-opacy); */
+    /* backdrop-filter: blur(30px); */
     top: 50px;
     right: 10px;
     min-width: 200px;
-    height: 100vw;
+    /* height: 100vw; */
 
     padding: 15px;
     /* box-shadow: var(--box_shadow); */

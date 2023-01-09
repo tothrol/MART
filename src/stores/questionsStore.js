@@ -3,7 +3,7 @@ import { validValue } from '../composables/ValidValue';
 import { useUserStore } from '@/stores/userStore';
 import { useStatsStore } from '@/stores/statsStore';
 import axios from 'axios';
-import { toDisplayString } from 'vue';
+import { toDisplayString, toRaw } from 'vue';
 import dayjs from 'dayjs';
 import { Storage } from '@ionic/storage';
 import { useInfoStore } from '@/stores/infoStore';
@@ -30,6 +30,8 @@ export const useQuestionsStore = defineStore('questionsStore', {
       nextShortAnswerMs: 0,
 
       todayShortAnswers: 0,
+      shortAnswersArray: [],
+      todayShortAnswersArray: [],
       totalShortAnswers: 0,
     };
   },
@@ -367,18 +369,19 @@ export const useQuestionsStore = defineStore('questionsStore', {
           const storage = new Storage();
           await storage.create();
           await storage.set('lastShortAnswer', dateLong);
+
           await storage.set('lastShortAnswerMs', this.lastShortAnswerMs);
+
           // await storage.set('nextShortAnswerMs', this.nextShortAnswerMs);
-          this.todayShortAnswers++;
-          await storage.set('todayShortAnswers', this.todayShortAnswers);
+          this.shortAnswersArray.push(now.valueOf());
+
+          this.calculateTodayShortAnswers();
+
           this.totalShortAnswers++;
+
           await storage.set('totalShortAnswers', this.totalShortAnswers);
 
           let setNotifications = await userStore.setNotifications();
-          console.log(
-            'questionsStore - sendShortAnswer - end201 -',
-            setNotifications
-          );
         }
         // await this.countShortAnswers();
 
@@ -401,6 +404,31 @@ export const useQuestionsStore = defineStore('questionsStore', {
           // }
         });
       }
+    },
+
+    async calculateTodayShortAnswers() {
+      // From the value of this.shortAnswersArray the rest will be calculated
+      const storage = new Storage();
+      await storage.create();
+      // START calculating todayShortAnswers
+      this.todayShortAnswersArray = [];
+
+      for (let answer of this.shortAnswersArray) {
+        if (
+          dayjs(answer).format('DD.MM.YYYY') === dayjs().format('DD.MM.YYYY')
+        ) {
+          this.todayShortAnswersArray.push(answer);
+        }
+      }
+      this.todayShortAnswers = this.todayShortAnswersArray.length;
+      await storage.set(
+        'todayShortAnswersArray',
+        toRaw(this.todayShortAnswersArray)
+      );
+      await storage.set('shortAnswersArray', toRaw(this.shortAnswersArray));
+
+      await storage.set('todayShortAnswers', toRaw(this.todayShortAnswers));
+      // END calculating todayShortAnswers
     },
     todayShortPlus() {
       // For Testing
@@ -469,23 +497,18 @@ export const useQuestionsStore = defineStore('questionsStore', {
           this.totalShortAnswers = response.headers['x-wp-total'];
         }
 
-        let counter = 0;
-
-        const today = dayjs().format('DD.MM.YY');
+        this.shortAnswersArray = [];
 
         for (const post of response.data) {
-          const postDay = dayjs(post.acf.dateLong_k).format('DD.MM.YY');
-
-          if (today === postDay) {
-            counter++;
-          }
+          const timestamp = Number(post.acf.timestamp_k);
+          this.shortAnswersArray.push(timestamp);
         }
 
-        this.todayShortAnswers = counter;
+        this.calculateTodayShortAnswers();
 
         return new Promise((resolve) => {
           // if (response.status == 200) {
-          resolve(counter);
+          resolve('finish');
           // }
         });
       } catch (e) {

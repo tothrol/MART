@@ -60,14 +60,6 @@
 
     console.log('LoginPage - login - response', response);
     if (response.status == 200) {
-      console.log('LoginPage - 3');
-
-      console.log('Platform: ', platform);
-      if (platform === 'web') {
-        router.push('/home');
-        return;
-      }
-
       if (questionsStore.initialAnswerExist === true) {
         console.log('LoginPage - initialAnswerExist === true');
         // console.log('LoginPage - Before Route -', userStore.userData.token);
@@ -105,16 +97,19 @@
     }
   );
 
-  async function checkAuth() {
-    const isAuth = await userStore.checkAuth();
-    console.log('Login', isAuth);
+  async function atAppStart() {
+    const isAuth = await userStore.atAppStart();
+    console.log('LoginPage - atAppStart', isAuth);
 
     if (isAuth == true) {
-      console.log('Login - Token exists', isAuth);
+      console.log('LoginPage - atAppStart - Token exists', isAuth);
 
       if (platform === 'web') {
-        router.push('/home');
-        return;
+        // START to simulate Mobile: comment out
+        // userStore.complianceAccepted = true;
+        // userStore.briefingShortChecked = true;
+        // questionsStore.initialAnswerExist = true;
+        // END to simulate Mobile: comment out
       }
 
       if (userStore.complianceAccepted === false) {
@@ -126,7 +121,7 @@
   }
 
   onMounted(() => {
-    checkAuth();
+    atAppStart();
   });
 </script>
 
