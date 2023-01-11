@@ -1156,7 +1156,7 @@
 
   .buttons {
     position: sticky;
-    bottom: 10px;
+    padding-bottom: 10px;
   }
   .buttons .next,
   .buttons .previous {
