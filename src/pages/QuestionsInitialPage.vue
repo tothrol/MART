@@ -109,11 +109,11 @@
               }`"
               type="number"
               :name="`${activeSheet.itemId}`"
-              v-model="answers.entries[activeSheet.itemId]"
               @click="
                 changeInputToNr($event.target, activeSheet.itemId, $event)
               "
             >
+              a
               <option
                 v-for="n in getRange(
                   scales[activeSheet.scaleId].options.min,
@@ -337,81 +337,79 @@
               :max="activeSheet.scale.options.max"
               step="1"
               :name="`${activeSheet.itemId}`"
-              v-model="answers.entries[activeSheet.itemId]"
               @input="
                 changeInputToNr($event.target, activeSheet.itemId, $event)
               "
             />
           </div>
           <!-- END Range Slider -->
-
-          <div
-            class="buttons"
-            :class="
-              activeSheetScaleOptions &&
-              activeSheet.scale.options.showTimer === true
-                ? 'margin-top-zero'
-                : ''
-            "
-          >
-            <ion-button
-              class="next"
-              @click="nextSheet()"
-              color="primary"
-              :disabled="
-                (activeSheet.itemId != '' &&
-                  answers.entries[activeSheet.itemId] === undefined) ||
-                (activeSheet.itemId != '' &&
-                  activeSheet.scale.options != undefined &&
-                  activeSheet.scale.options.fieldType === 'multi' &&
-                  answers.entries[activeSheet.itemId].length === 0)
-                // ||
-                // (activeSheet.itemId != '' &&
-                //   activeSheet.scale.options != undefined &&
-                //   activeSheet.scale.options.fieldType === 'radioAndFree' &&
-                //   answers.entries[activeSheet.itemId].length === 0)
-              "
-              v-if="
-                (time == 0 && time3 == 0) ||
-                (time == 5 &&
-                  time3 === 3 &&
-                  activeSheetOptions &&
-                  activeSheet.options.startTimer3 != true)
-              "
-            >
-              weiter
-            </ion-button>
-
+          <div>
             <div
-              v-if="
-                activeSheet != undefined &&
-                activeSheet.itemId != undefined &&
-                activeSheetOptions &&
-                activeSheet.options.startTimer3 === true
+              class="buttons"
+              :class="
+                activeSheetScaleOptions &&
+                activeSheet.scale.options.showTimer === true
+                  ? 'margin-top-zero'
+                  : ''
               "
             >
-              <div class="buttons">
+              <ion-button
+                class="next"
+                @click="nextSheet()"
+                color="primary"
+                :disabled="
+                  (activeSheet.itemId != '' &&
+                    answers.entries[activeSheet.itemId] === undefined) ||
+                  (activeSheet.itemId != '' &&
+                    activeSheet.scale.options != undefined &&
+                    activeSheet.scale.options.fieldType === 'multi' &&
+                    answers.entries[activeSheet.itemId].length === 0)
+                  // ||
+                  // (activeSheet.itemId != '' &&
+                  //   activeSheet.scale.options != undefined &&
+                  //   activeSheet.scale.options.fieldType === 'radioAndFree' &&
+                  //   answers.entries[activeSheet.itemId].length === 0)
+                "
+                v-if="
+                  (time == 0 && time3 == 0) ||
+                  (time == 5 &&
+                    time3 === 3 &&
+                    activeSheetOptions &&
+                    activeSheet.options.startTimer3 != true)
+                "
+              >
+                weiter
+              </ion-button>
+
+              <div
+                v-if="
+                  activeSheet != undefined &&
+                  activeSheet.itemId != undefined &&
+                  activeSheetOptions &&
+                  activeSheet.options.startTimer3 === true
+                "
+              >
                 <ion-button
-                  class="next"
+                  class="next yes"
                   v-if="showTimer3 == false"
                   @click="nextSheet()"
                   >Ja</ion-button
                 >
               </div>
-            </div>
 
-            <ion-button
-              class="previous"
-              @click="previousSheet()"
-              color="tertiary"
-              :disabled="false"
-              v-if="
-                (activeSheet.sheetId != 1 && time == 0 && time3 == 0) ||
-                (activeSheet.sheetId != 1 && time == 5 && time3 === 3)
-              "
-            >
-              zurück
-            </ion-button>
+              <ion-button
+                class="previous"
+                @click="previousSheet()"
+                color="tertiary"
+                :disabled="false"
+                v-if="
+                  (activeSheet.sheetId != 1 && time == 0 && time3 == 0) ||
+                  (activeSheet.sheetId != 1 && time == 5 && time3 === 3)
+                "
+              >
+                zurück
+              </ion-button>
+            </div>
           </div>
         </li>
         <!-- Absenden Seite -->
@@ -1187,10 +1185,16 @@
 
   .admin_buttons {
     position: absolute;
-    top: 25px;
+    top: 35px;
     left: 0;
     display: flex;
     z-index: 99;
+  }
+
+  .yes {
+    margin-right: auto;
+    margin-left: auto;
+    display: flex;
   }
 
   /* .admin {
