@@ -1156,6 +1156,7 @@
 
   .buttons {
     position: sticky;
+    bottom: 0;
     padding-bottom: 10px;
   }
   .buttons .next,
