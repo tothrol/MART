@@ -3,7 +3,7 @@
     ><div class="box blue">
       <div class="user_infos">
         <div>User Name: {{ userStore.userData.username }}</div>
-        <div>Version: Mart 0.21.0</div>
+        <div>Version: 0.22.0</div>
         <div></div>
       </div>
       <ion-button color="danger" @click="logout()">Logout</ion-button>

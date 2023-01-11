@@ -3,6 +3,8 @@ import { validValue } from '../composables/ValidValue';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { toRaw } from 'vue';
+import { Storage } from '@ionic/storage';
 // import { Storage } from '@ionic/storage';
 
 // import { useQuestionsStore } from '@/stores/questionsStore';
@@ -52,6 +54,7 @@ export const useInfoStore = defineStore('infoStore', {
       countdownMinutes: null,
 
       secToNext: 0,
+      minutesCounter: 0,
     };
   },
   actions: {
@@ -68,13 +71,14 @@ export const useInfoStore = defineStore('infoStore', {
           `https://fuberlin.nvii-dev.com/wp-json/acf/v2/options/`
         );
 
-        console.log('infoStore - getOptions - response', response);
+        console.log('infoStore - getOptions - response xcx', response);
         dayjs.extend(customParseFormat);
 
         if (response.status == 200) {
           // console.log('infoStore - getOptions - response', response);
 
-          //  Date
+          // START Date
+          // START startDate
           this.startDate.string = response.data.acf.startDate;
           this.startDate.jsDate = dayjs(
             response.data.acf.startDate,
@@ -91,6 +95,14 @@ export const useInfoStore = defineStore('infoStore', {
             'DD.MM.YYYY',
             true
           ).valueOf();
+
+          const storage = new Storage();
+          await storage.create();
+          await storage.set('startDate', toRaw(this.startDate));
+
+          // END startDate
+
+          // START endDate
 
           this.endDate.string = response.data.acf.endDate;
           this.endDate.jsDate = dayjs(
@@ -109,14 +121,18 @@ export const useInfoStore = defineStore('infoStore', {
             true
           ).valueOf();
 
+          await storage.create();
+          await storage.set('endDate', toRaw(this.endDate));
+
+          // END endDate
+
           //  ENd Date
 
-          //  Time
-          // let now = dayjs().valueOf();
+          //START  Time
 
           let todayStartOfDay = dayjs().startOf('day');
 
-          // start
+          //START startTime
           let startTimeString = response.data.acf.dailyStartTime2;
           this.dailyStartTime.string = startTimeString;
 
@@ -131,9 +147,12 @@ export const useInfoStore = defineStore('infoStore', {
           this.dailyStartTime.todayStartOfDayMs = todayStartOfDay.valueOf();
           this.dailyStartTime.todayStartTimeMs = todayStartTime.valueOf();
           this.dailyStartTime.todayStartTime = todayStartTime;
-          // END start
 
-          // end
+          await storage.create();
+          await storage.set('dailyStartTime', toRaw(this.dailyStartTime));
+          // END startTime
+
+          // START endTime
           let endTimeString = response.data.acf.dailyEndTime;
           this.dailyEndTime.string = endTimeString;
 
@@ -153,8 +172,11 @@ export const useInfoStore = defineStore('infoStore', {
           this.dailyEndTime.todayEndTimeMs = todayEndTime.valueOf();
           this.dailyEndTime.todayEndTime = todayEndTime;
 
-          // END end
-          //  ENd daily Time
+          await storage.create();
+          await storage.set('dailyEndTime', toRaw(this.dailyEndTime));
+
+          // END endTime
+          //  END daily Time
 
           // START Intervalldauer
           this.dailyInterval = Number(

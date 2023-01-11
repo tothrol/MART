@@ -38,6 +38,7 @@
     watchEffect,
     computed,
     onMounted,
+    toRaw,
   } from 'vue';
   import dayjs from 'dayjs';
   import { IonContent, ionMenu } from '@ionic/vue';
@@ -69,62 +70,6 @@
   const infoStore = useInfoStore();
   const router = useRouter();
   const route = useRoute();
-
-  // watch(
-  //   () => userStore.briefingShortChecked,
-  //   (newValue, oldValue) => {
-  //     // Similar to startQuestionsShort but without secToNext
-  //     // 2check: maybe solve this more elegant without repetition
-  //     console.log(
-  //       'BaseLayout - watch - userStore.briefingShortChecked',
-  //       oldValue,
-  //       newValue
-  //     );
-
-  //     if (newValue === true) {
-  //       // conditionsQuestionsShort will be triggered hereby
-  //       infoStore.secToNext = 0;
-  //     }
-  //   }
-  // );
-
-  // let timerOver = ref(false);
-
-  // watch(
-  //   () => infoStore.secToNext,
-  //   (newValue, oldValue) => {
-  //     // Similar to startQuestionsShort but without secToNext
-  //     // 2check: maybe solve this more elegant without repetition
-  //     console.log(
-  //       'BaseLayout - watch - infoStore.secToNext',
-  //       oldValue,
-  //       newValue
-  //     );
-
-  //     if (newValue < 1) {
-  //       // conditionsQuestionsShort will be triggered hereby
-  //       timerOver.value = true;
-  //     }
-  //   }
-  // );
-
-  // watch(
-  //   () => conditionsQuestionsShort,
-  //   (newValue, oldValue) => {
-  //     if (newValue.value === true) {
-  //       onStartQuestionsShort();
-  //       userStore.localNotificationTapped = false;
-  //     }
-  //   }
-  // );
-
-  // watchEffect(() => {
-
-  //   if(conditionsQuestionsShort.value === true){
-
-  //   }
-
-  // })
 
   let conditionsQuestionsShort = false;
 
@@ -218,7 +163,7 @@
     let startDateMs = infoStore.startDate.ms;
     let endDateMs = infoStore.endDate.ms;
     console.log('BaseLayout - timeframe - startDateMs: ', startDateMs);
-    console.log('BaseLayout - timeframe - startDateMs: ', endDateMs);
+    console.log('BaseLayout - timeframe - endDateMs: ', endDateMs);
     // endDateMs is midnight of the WP entry, so its initially exlusive of the WP entry, therefore hours and minutes of dailyEndTime have to be addet
     endDateMs =
       endDateMs +
@@ -226,7 +171,7 @@
       infoStore.dailyEndTime.minutes * 60 * 1000;
 
     console.log;
-    if (startDateMs != '' && endDateMs != '') {
+    if (infoStore.startDate.ms != '' && infoStore.endDate.ms != '') {
       if (nowMs < startDateMs) {
         // project timeframe has not started
         // userStore.appMessage = 'Der Projektzeitraum startet am' + infoStore.startDate.string + '.'
@@ -236,10 +181,11 @@
       } else if (nowMs > endDateMs) {
         // Project timeframe is over
         checkTimeframe('over');
-        console.log('BaseLayout - timeframe - false2');
+        console.log('BaseLayout - timeframe - false2', endDateMs);
 
         return false;
       } else {
+        console.log('BaseLayout - timeframe - true');
         resetTimeMessage();
         return true;
       }
@@ -262,19 +208,25 @@
   //   }
   // );
 
+  // only here to trigger updates to dailyTime
+
   let dailyTime = computed(() => {
     console.log('BaseLayout - dailyTime');
     let nowMs = dayjs().valueOf();
-    let startTimeMs = infoStore.dailyStartTime.todayStartTimeMs;
-    let endTimeMs = infoStore.dailyEndTime.todayEndTimeMs;
+    let dailyStartTime = infoStore.dailyStartTime;
+    let startTimeMs = dailyStartTime.todayStartTimeMs;
 
-    // countdwonMinutes is only needet to get an update every minute of daily time.
+    let dailyEndTime = infoStore.dailyEndTime;
+    let endTimeMs = dailyEndTime.todayEndTimeMs;
+
+    // minutes is only needet to get an update every minute of daily time.
     //  The update every minute is needeet to route away from questionsshort if the dailyTime is false
-    // countdownMinutes is set by the countdown computed
-    let countdownMinutes = infoStore.countdownMinutes;
+    // minutes is set by the oneMinuteTimer
+    let minutesCounter = infoStore.minutesCounter;
+    console.log('BaseLayout - dailyTime - min: ', minutesCounter);
     console.log(
-      'BaseLayout - dailyTime - countdownMinutes: ',
-      countdownMinutes
+      'BaseLayout - dailyTime - infoStore.dailyStartTime.todayStartTimeMs: ',
+      infoStore.dailyStartTime.todayStartTimeMs
     );
 
     if (startTimeMs != '' && endTimeMs != '') {
@@ -282,6 +234,7 @@
         // project timeframe has not started
         // userStore.appMessage = 'Der Projektzeitraum startet am' + infoStore.startDate.string + '.'
         setDailyTimeMessage();
+
         return false;
       } else if (nowMs > endTimeMs) {
         // Project timeframe is over
@@ -344,6 +297,8 @@
   App.addListener('appStateChange', ({ isActive }) => {
     console.log('App state changed. Is active?', isActive);
     secTimer();
+    // Needet to calculate shortAnswers when
+    questionsStore.calculateTodayShortAnswers();
   });
 
   // watch(
@@ -445,8 +400,13 @@
   let oneMinuteTimerTimeout;
 
   function oneMinuteTimer() {
+    clearTimeout(oneMinuteTimerTimeout);
+    let now = dayjs();
+    let then = dayjs(0);
+    infoStore.minutesCounter = now.diff(then, 'm');
     countdownTimer();
     checkRouteAndDailyTime();
+    questionsStore.calculateTodayShortAnswers();
     if (platform != 'web') {
       checkIfNotificationsLeft();
     }
@@ -457,34 +417,38 @@
     ); /* replicate wait 1 second */
   }
 
+  setInterval(oneMinuteTimer, 1000 * 60);
+
   // let countdownTimeout;
 
   // displays the Countdown on the Home Page
 
   async function countdownTimer() {
     let now = dayjs();
-    let endDate = infoStore.endDate.dayJs;
+    let endDate = dayjs(infoStore.endDate.dayJs);
     // endDate = endDate.add(Number(infoStore.dailyEndTime.hours));
     // endDate = endDate.add(Number(infoStore.dailyEndTime.minutes));
-    endDate = endDate.add(Number(infoStore.dailyEndTime.hours), 'hour');
-    endDate = endDate.add(Number(infoStore.dailyEndTime.minutes), 'minute');
+    console.log('BaseLayout - endDate', JSON.stringify(toRaw(endDate)));
+    console.log(
+      'BaseLayout - infoStore.dailyEndTime',
+      JSON.stringify(toRaw(infoStore.dailyEndTime))
+    );
+    if (infoStore.dailyEndTime.hours != '' && endDate != null) {
+      endDate = endDate.add(Number(infoStore.dailyEndTime.hours), 'hour');
+      endDate = endDate.add(Number(infoStore.dailyEndTime.minutes), 'minute');
 
-    console.log('BaseLayout - countdownTimer - now', now);
-    console.log('BaseLayout - countdownTimer - endDate', endDate);
+      console.log('BaseLayout - countdownTimer - now', now);
+      console.log('BaseLayout - countdownTimer - endDate', toRaw(endDate));
 
-    infoStore.countdownDays = endDate.diff(now, 'day');
-    let countdownTotalHours = endDate.diff(now, 'hour');
-    infoStore.countdownHours = formatTo1digit(countdownTotalHours % 24);
-    // something like 26 hours will become 2 hours
+      infoStore.countdownDays = endDate.diff(now, 'day');
 
-    let countdownTotalMinutes = endDate.diff(now, 'minute');
-    // countdownMinutes.value = endDate.diff(now, 'minute');
-    infoStore.countdownMinutes = formatTo1digit(countdownTotalMinutes % 60);
+      let countdownTotalHours = endDate.diff(now, 'hour');
+      infoStore.countdownHours = formatTo1digit(countdownTotalHours % 24);
+      // something like 26 hours will become 2 hours
 
-    // countdownTimeout = window.setTimeout(
-    //   countdownTimer,
-    //   1000 * 60
-    // ); /* replicate wait 1 second */
+      let countdownTotalMinutes = endDate.diff(now, 'minute');
+      infoStore.countdownMinutes = formatTo1digit(countdownTotalMinutes % 60);
+    }
   }
 
   function checkRouteAndDailyTime() {
@@ -559,16 +523,16 @@
 
   watchEffect(() => {
     // runs every Second, coz it contains infoStore.secToNext
-    console.log('BaseLayout - watchEffect - conditionsQuestionsShort -start');
+    // console.log('BaseLayout - watchEffect - conditionsQuestionsShort -start');
 
     // START Console.logs needet to trigger this computed function
     userStore.localNotificationTapped;
     userStore.userData.token;
     infoStore.secToNext;
-    // console.log(
-    //   'BaseLayout - watchEffect - conditionsQuestionsShort - userStore.localNotificationTapped',
-    //   userStore.localNotificationTapped
-    // );
+    console.log(
+      'BaseLayout - watchEffect - conditionsQuestionsShort - userStore.localNotificationTapped',
+      userStore.localNotificationTapped
+    );
     // console.log(
     //   'BaseLayout - watchEffect - conditionsQuestionsShort - userStore.userData.token',
     //   userStore.userData.token
@@ -585,19 +549,19 @@
     //END Console.logs needet to trigger this computed function
 
     // START QuestionInitial Conditions
-    console.log(
-      'BaseLayout - watchEffect - conditionsQuestionsInitial - questionsStore.initialAnswerExist: ',
-      questionsStore.initialAnswerExist
-    );
-    console.log(
-      'BaseLayout - watchEffect - conditionsQuestionsInitial - userStore.complianceAccepted: ',
-      userStore.complianceAccepted
-    );
+    // console.log(
+    //   'BaseLayout - watchEffect - conditionsQuestionsInitial - questionsStore.initialAnswerExist: ',
+    //   questionsStore.initialAnswerExist
+    // );
+    // console.log(
+    //   'BaseLayout - watchEffect - conditionsQuestionsInitial - userStore.complianceAccepted: ',
+    //   userStore.complianceAccepted
+    // );
     if (questionsStore.initialAnswerExist === false) {
       if (userStore.complianceAccepted === true) {
-        console.log(
-          'BaseLayout - watchEffect - conditionsQuestionsInitial - true'
-        );
+        // console.log(
+        //   'BaseLayout - watchEffect - conditionsQuestionsInitial - true'
+        // );
         router.push('/questionsinitial');
       } else {
         // router.push('/welcome');
@@ -617,11 +581,11 @@
       conditionsQuestionsShort = true;
       onStartQuestionsShort();
 
-      console.log('BaseLayout - watchEffect - conditionsQuestionsShort - true');
+      // console.log('BaseLayout - watchEffect - conditionsQuestionsShort - true');
     } else {
-      console.log(
-        'BaseLayout - watchEffect - conditionsQuestionsShort - false'
-      );
+      // console.log(
+      //   'BaseLayout - watchEffect - conditionsQuestionsShort - false'
+      // );
 
       conditionsQuestionsShort = false;
     }

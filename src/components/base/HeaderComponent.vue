@@ -13,12 +13,7 @@
       </ion-buttons>
       <div id="logo" @click="adminMode()">
         <router-link to="/home">
-          Mart
-          <img
-            @click="updateShort()"
-            class="logo display_none"
-            src="@/assets/images/Logo.svg"
-          />
+          <img class="logo" src="@/assets/images/MART_Bold.png" />
         </router-link>
       </div>
 
@@ -149,7 +144,7 @@
   #logo {
     margin-left: auto;
     margin-right: auto;
-    width: max-content;
+    width: 150px;
   }
 
   #title,

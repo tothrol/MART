@@ -151,4 +151,8 @@
   .home {
     display: none !important;
   }
+
+  .box.blue {
+    min-height: 95vh;
+  }
 </style>

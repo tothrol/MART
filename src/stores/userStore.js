@@ -116,10 +116,11 @@ export const useUserStore = defineStore('userStore', {
             this.complianceAccepted = true;
           }
 
-          this.dailyFunction();
+          // this.dailyFunction();
 
           if (this.uniqueUserId != uniqueUserId) {
             console.log('NewUniqueUserID');
+            const infoStore = useInfoStore();
             const storage = new Storage();
             await storage.create();
             await storage.set('uniqueUserId', uniqueUserId);
@@ -138,6 +139,10 @@ export const useUserStore = defineStore('userStore', {
             await storage.remove('notificationTimesRandom');
             await storage.remove('todayShortAnswersArray');
             await storage.remove('shortAnswersArray');
+            await storage.remove('endDate');
+            await storage.remove('dailyEndTime');
+            await storage.remove('startDate');
+            await storage.remove('dailyStartTime');
             this.createRandomArray();
             this.complianceAccepted = false;
             console.log(
@@ -154,9 +159,34 @@ export const useUserStore = defineStore('userStore', {
             questionsStore.todayShortAnswers = 0;
             questionsStore.totalShortAnswers = 0;
             questionsStore.initialAnswerExist = false;
+            infoStore.endDate = { string: '', jsDate: '', dayJs: '', ms: '' };
+            infoStore.startDate = { string: '', jsDate: '', dayJs: '', ms: '' };
+            infoStore.dailyStartTime = {
+              string: '',
+              jsDate: '',
+              dayJs: '',
+              ms: '',
+              todayStartOfDay: '',
+              todayStartOfDayMs: '',
+              todayStartTime: '',
+              todayStartTimeMs: '',
+            };
+            infoStore.dailyEndTime = {
+              string: '',
+              hours: 0,
+              minutes: 0,
+              jsDate: '',
+              dayJs: '',
+              ms: '',
+              todayStartOfDay: '',
+              todayStartOfDayMs: '',
+              todayStartTime: '',
+              todayStartTimeMs: '',
+            };
 
-            questionsStore.getLastShortAnswer();
-            questionsStore.countShortAnswers();
+            await questionsStore.getLastShortAnswer();
+            await questionsStore.countShortAnswers();
+            await infoStore.getOptions();
             // questionsStore.checkIfInitalAnswerExists();
 
             this.notificationTimes = [];
@@ -181,21 +211,20 @@ export const useUserStore = defineStore('userStore', {
     },
 
     async dailyFunction() {
-      this.dailyFunctionLoop;
-      // only works as long the App is in the foreground - when app is in background or closed interval stopps
-      this.dailyLoop = setInterval(this.dailyFunctionLoop, 1000 * 60 * 60 * 24);
+      // this.dailyFunctionLoop;
+      // // only works as long the App is in the foreground - when app is in background or closed interval stopps
+      // this.dailyLoop = setInterval(this.dailyFunctionLoop, 1000 * 60 * 60 * 24);
     },
     async dailyFunctionLoop() {
-      console.log('userStore - dailyFunctionLoop', dayjs());
-      let statsStore = useStatsStore();
-
-      const today = dayjs().format('DD.MM.YYYY');
-      const time = dayjs().format('HH:mm');
-      const dateLong = dayjs().format();
-      statsStore.getStats(today, time, dateLong);
+      // console.log('userStore - dailyFunctionLoop', dayjs());
+      // let statsStore = useStatsStore();
+      // const today = dayjs().format('DD.MM.YYYY');
+      // const time = dayjs().format('HH:mm');
+      // const dateLong = dayjs().format();
+      // statsStore.getStats(today, time, dateLong);
     },
     async clearDailyFunction() {
-      clearInterval(this.dailyInerval);
+      // clearInterval(this.dailyInerval);
     },
 
     async validateToken() {
@@ -234,6 +263,8 @@ export const useUserStore = defineStore('userStore', {
     async atAppStart() {
       // Runs at restart of page / restart of App, but not if app is only in the background and comes back to foreground
       console.log('atAppStart');
+      const questionsStore = useQuestionsStore();
+
       // At Start/Restart of App
       // wird getriggert wenn auf /login zugegriggen wird
 
@@ -249,7 +280,6 @@ export const useUserStore = defineStore('userStore', {
       if (complianceAccepted == true) {
         this.complianceAccepted = true;
       }
-      const questionsStore = useQuestionsStore();
 
       let todayShortAnswers = await storage.get('todayShortAnswers');
       if (todayShortAnswers != null) {
@@ -287,6 +317,10 @@ export const useUserStore = defineStore('userStore', {
       if (todayShortAnswersArray != null) {
         questionsStore.todayShortAnswersArray = todayShortAnswersArray;
       }
+      console.log(
+        'userStore - atAppStart - todayShortAnswersArray',
+        todayShortAnswersArray
+      );
 
       let nextShortAnswerMs = await storage.get('nextShortAnswerMs');
       if (nextShortAnswerMs != null) {
@@ -336,7 +370,29 @@ export const useUserStore = defineStore('userStore', {
 
       const infoStore = useInfoStore();
 
-      infoStore.getOptions();
+      // START times
+      let startDate = await storage.get('startDate');
+      if (startDate != null) {
+        infoStore.startDate = startDate;
+      }
+      let endDate = await storage.get('endDate');
+      if (endDate != null) {
+        infoStore.endDate = endDate;
+      }
+      let dailyStartTime = await storage.get('dailyStartTime');
+      if (dailyStartTime != null) {
+        infoStore.dailyStartTime = dailyStartTime;
+      }
+      let dailyEndTime = await storage.get('dailyEndTime');
+      if (dailyEndTime != null) {
+        infoStore.dailyEndTime = dailyEndTime;
+      }
+      console.log('dailyStartTime xcx', dailyStartTime);
+
+      // END times
+
+      await infoStore.getOptions();
+      // await questionsStore.calculateTodayShortAnswers();
       // END wird bei jedem refresh/restart ausgeführt
 
       const token = await storage.get('token');

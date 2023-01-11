@@ -109,16 +109,19 @@
               }`"
               type="number"
               :name="`${activeSheet.itemId}`"
-              v-model="answers.entries[activeSheet.scaleId]"
+              v-model="answers.entries[activeSheet.itemId]"
+              @click="
+                changeInputToNr($event.target, activeSheet.itemId, $event)
+              "
             >
               <option
                 v-for="n in getRange(
                   scales[activeSheet.scaleId].options.min,
                   scales[activeSheet.scaleId].options.max
                 )"
-                :key="n"
+                :key="Number(n)"
               >
-                {{ n }}
+                {{ Number(n) }}
               </option>
             </select>
           </div>
@@ -152,7 +155,7 @@
                 <input
                   :id="`${activeSheet.itemId}_${input.value}`"
                   type="radio"
-                  :value="input.value"
+                  :value="Number(input.value)"
                   v-model="answers.entries[activeSheet.itemId]"
                   :disabled="disableInput"
                 />
@@ -207,7 +210,7 @@
                 <input
                   :id="`${activeSheet.itemId}_${input.value}`"
                   type="radio"
-                  :value="input.value"
+                  :value="Number(input.value)"
                   v-model="answers.entries[activeSheet.itemId][0]"
                   :disabled="disableInput"
                 />
@@ -238,7 +241,7 @@
                 <input
                   :id="input.key"
                   type="checkbox"
-                  :value="input.value"
+                  :value="Number(input.value)"
                   v-model="answers.entries[activeSheet.itemId]"
                 />
 
@@ -335,6 +338,9 @@
               step="1"
               :name="`${activeSheet.itemId}`"
               v-model="answers.entries[activeSheet.itemId]"
+              @input="
+                changeInputToNr($event.target, activeSheet.itemId, $event)
+              "
             />
           </div>
           <!-- END Range Slider -->
@@ -914,7 +920,7 @@
     if (value.length <= target.getAttribute('maxlength')) {
       console.log('value <=', value);
       if (event.data >= 0 && event.data <= 9) {
-        answers.entries[itemId] = value;
+        answers.entries[itemId] = Number(value);
       } else {
         target.value = answers.entries[itemId];
       }
@@ -922,6 +928,21 @@
       target.value = answers.entries[itemId];
     }
   }
+
+  async function changeInputToNr(target: any, itemId: any, event: any) {
+    const value = target.value;
+    console.log('changeInputToNr - target', target);
+    console.log('changeInputToNr - event', event);
+    console.log(
+      'changeInputToNr - target.maxlength',
+      target.getAttribute('max')
+    );
+    console.log('changeInputToNr - itemId', itemId);
+
+    answers.entries[itemId] = Number(value);
+  }
+
+  // numberWithDropdownInput
 
   function setAllAnswers() {
     for (let [key, question] of Object.entries(sheets.value)) {
@@ -1094,6 +1115,20 @@
   }
 
   let freeFieldToAnswersValue = ref('');
+
+  function freeFieldToAnswersNumber(target, itemId, event) {
+    let value = Number(target.value);
+    console.log('freeFieldToAnswers - value', value);
+    console.log('freeFieldToAnswers - event', event);
+    if (/^[a-zA-Z ]+$/.test(event.data)) {
+      answers.entries[itemId][1] = value;
+      freeFieldToAnswersValueNumber.value = value;
+    } else {
+      target.value = answers.entries[itemId][1];
+    }
+  }
+
+  let freeFieldToAnswersValueNumber = ref();
 
   // function setQuestion2input() {
   //   console.log('setQuestion2input');

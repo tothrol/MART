@@ -1,20 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="1.7">
-      <module name="android.app" target="11" />
-      <module name="android.capacitor-android" target="11" />
-      <module name="android.capacitor-app" target="11" />
-      <module name="android.capacitor-app-launcher" target="11" />
-      <module name="android.capacitor-cordova-android-plugins" target="11" />
-      <module name="android.capacitor-device" target="11" />
-      <module name="android.capacitor-haptics" target="11" />
-      <module name="android.capacitor-keyboard" target="11" />
-      <module name="android.capacitor-local-notifications" target="11" />
-      <module name="android.capacitor-splash-screen" target="11" />
-      <module name="android.capacitor-status-bar" target="11" />
-      <module name="android.capacitor-usage-stats-manager" target="11" />
-      <module name="android.echo" target="11" />
-    </bytecodeTargetLevel>
+    <bytecodeTargetLevel target="11" />
   </component>
 </project>

@@ -80,6 +80,9 @@
               type="number"
               :name="`${activeSheet.itemId}`"
               v-model="answers.entries[activeSheet.scaleId]"
+              @click="
+                changeInputToNr($event.target, activeSheet.itemId, $event)
+              "
             >
               <option
                 v-for="n in getRange(
@@ -88,7 +91,7 @@
                 )"
                 :key="n"
               >
-                {{ n }}
+                {{ Number(n) }}
               </option>
             </select>
           </div>
@@ -118,7 +121,7 @@
                 <input
                   :id="`${activeSheet.itemId}_${input.value}`"
                   type="radio"
-                  :value="input.value"
+                  :value="Number(input.value)"
                   v-model="answers.entries[activeSheet.itemId]"
                   :disabled="disableInput"
                 />
@@ -209,7 +212,7 @@
                 <input
                   :id="input.key"
                   type="checkbox"
-                  :value="input.value"
+                  :value="Number(input.value)"
                   v-model="answers.entries[activeSheet.itemId]"
                 />
 
@@ -320,6 +323,9 @@
               step="1"
               :name="`${activeSheet.itemId}`"
               v-model="answers.entries[activeSheet.itemId]"
+              @input="
+                changeInputToNr($event.target, activeSheet.itemId, $event)
+              "
             />
           </div>
           <!-- END Range Slider -->
@@ -900,7 +906,7 @@
 
     if (value.length <= target.getAttribute('maxlength')) {
       console.log('value <=', value);
-      answers.entries[itemId] = value;
+      answers.entries[itemId] = Number(value);
     } else {
       target.value = answers.entries[itemId];
     }
@@ -1103,6 +1109,19 @@
     ) {
       return activeSheet.value.scale.options.marginTop;
     } else return '';
+  }
+
+  async function changeInputToNr(target: any, itemId: any, event: any) {
+    const value = target.value;
+    console.log('changeInputToNr - target', target);
+    console.log('changeInputToNr - event', event);
+    console.log(
+      'changeInputToNr - target.maxlength',
+      target.getAttribute('max')
+    );
+    console.log('changeInputToNr - itemId', itemId);
+
+    answers.entries[itemId] = Number(value);
   }
 </script>
 

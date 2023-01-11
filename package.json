@@ -1,6 +1,6 @@
 {
   "name": "Mart",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -10,9 +10,10 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@capacitor/android": "^4.1.0",
+    "@capacitor/android": "^4.6.1",
     "@capacitor/app": "^4.0.1",
     "@capacitor/app-launcher": "^4.1.0",
+    "@capacitor/assets": "^2.0.4",
     "@capacitor/core": "^4.1.0",
     "@capacitor/device": "^4.1.0",
     "@capacitor/haptics": "4.0.1",

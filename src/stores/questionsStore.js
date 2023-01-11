@@ -375,7 +375,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
           // await storage.set('nextShortAnswerMs', this.nextShortAnswerMs);
           this.shortAnswersArray.push(now.valueOf());
 
-          this.calculateTodayShortAnswers();
+          await this.calculateTodayShortAnswers();
 
           this.totalShortAnswers++;
 
@@ -407,28 +407,47 @@ export const useQuestionsStore = defineStore('questionsStore', {
     },
 
     async calculateTodayShortAnswers() {
-      // From the value of this.shortAnswersArray the rest will be calculated
-      const storage = new Storage();
-      await storage.create();
-      // START calculating todayShortAnswers
-      this.todayShortAnswersArray = [];
+      try {
+        // From the value of this.shortAnswersArray the rest will be calculated
+        if (this.shortAnswersArray.length != 0) {
+          const storage = new Storage();
+          await storage.create();
+          // START calculating todayShortAnswers
+          this.todayShortAnswersArray = [];
 
-      for (let answer of this.shortAnswersArray) {
-        if (
-          dayjs(answer).format('DD.MM.YYYY') === dayjs().format('DD.MM.YYYY')
-        ) {
-          this.todayShortAnswersArray.push(answer);
+          for (let answer of this.shortAnswersArray) {
+            if (
+              dayjs(answer).format('DD.MM.YYYY') ===
+              dayjs().format('DD.MM.YYYY')
+            ) {
+              this.todayShortAnswersArray.push(answer);
+            }
+          }
+          this.todayShortAnswers = this.todayShortAnswersArray.length;
+          await storage.set(
+            'todayShortAnswersArray',
+            toRaw(this.todayShortAnswersArray)
+          );
+          await storage.set('shortAnswersArray', toRaw(this.shortAnswersArray));
+
+          await storage.set('todayShortAnswers', toRaw(this.todayShortAnswers));
+          // END calculating todayShortAnswers
+
+          return new Promise((resolve) => {
+            console.log(
+              'questionsStore - calculateTodayShortAnswers - resolve'
+            );
+            resolve('done');
+            // }
+          });
         }
+      } catch (e) {
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          reject(e);
+          // }
+        });
       }
-      this.todayShortAnswers = this.todayShortAnswersArray.length;
-      await storage.set(
-        'todayShortAnswersArray',
-        toRaw(this.todayShortAnswersArray)
-      );
-      await storage.set('shortAnswersArray', toRaw(this.shortAnswersArray));
-
-      await storage.set('todayShortAnswers', toRaw(this.todayShortAnswers));
-      // END calculating todayShortAnswers
     },
     todayShortPlus() {
       // For Testing

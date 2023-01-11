@@ -142,14 +142,21 @@
       </div>
 
       <div v-if="userStore.userData.username == 'nviiadmin'">
-        secToNext: {{ infoStore.secToNext }}
+        secToNext: {{ infoStore.secToNext }}<br />
+        minutesCounter:
+        {{ infoStore.minutesCounter }}
+        <div>
+          initialAnswerExist: {{ questionsStore.initialAnswerExist }}<br />
+          dailyTime: {{ infoStore.dailyTime }}<br />
+          timeframe: {{ infoStore.timeframe }}<br />
+        </div>
         <router-link class="link_button" to="/iosstats">
           <ion-button color="medium">iosStats</ion-button>
         </router-link>
         <ion-button color="medium" @click="questionsStore.countShortAnswers()"
           >countShortAnswers</ion-button
         >
-        <div>initialAnswerExist: {{ questionsStore.initialAnswerExist }}</div>
+
         <ion-button color="medium" @click="userStore.setTestNotifications"
           >set Test Notifications</ion-button
         >
