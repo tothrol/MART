@@ -52,12 +52,14 @@
             </div>
           </div>
           <!-- END 3sec Timer  -->
-          <p class="item_text">
-            <span
-              style="white-space: pre-line"
-              v-html="activeSheet.item"
-            ></span>
-          </p>
+          <div class="item_text">
+            <p>
+              <span
+                style="white-space: pre-line"
+                v-html="activeSheet.item"
+              ></span>
+            </p>
+          </div>
 
           <!-- number with dropdown -->
           <div
@@ -401,7 +403,7 @@
         </li>
         <!-- Absenden Seite -->
         <li class="sheet" v-if="currentSheet == sheets.length">
-          <div class="absenden_text">Bereit zum Absenden?</div>
+          <div class="absenden_text"><p>Bereit zum Absenden?</p></div>
 
           <div class="buttons">
             <ion-button
