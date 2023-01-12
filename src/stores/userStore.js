@@ -652,7 +652,7 @@ export const useUserStore = defineStore('userStore', {
           let notificationEntry = {
             id: i,
             channelId: 1,
-            title: `Mart`,
+            title: `MART`,
             body: `Sie können einen weiteren Fragebogen ausfüllen`,
             schedule: {
               at: new Date(notificationTime),

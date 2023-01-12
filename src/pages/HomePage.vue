@@ -149,6 +149,10 @@
           <br />
           infoStore.appStateChangeCounter:
           {{ infoStore.appStateChangeCounter }} <br /><br />
+          <div>
+            infoStore.countdownTimerCounter:
+            {{ infoStore.countdownTimerCounter }}
+          </div>
           initialAnswerExist: {{ questionsStore.initialAnswerExist }}<br />
           dailyTime: {{ infoStore.dailyTime }}<br />
           timeframe: {{ infoStore.timeframe }}<br />
@@ -160,11 +164,13 @@
           infoStore.conditionsQuestionsShort:
           {{ infoStore.conditionsQuestionsShort }}<br /><br />
           infoStore.startDate:
-          {{ infoStore.startDate }} <br />
-          <br /><br />infoStore.dailyEndTime:
-          {{ infoStore.dailyEndTime }}
+          {{ infoStore.startDate }} <br /><br />
+          infoStore.endDate:
+          {{ infoStore.endDate }} <br />
           <br /><br />infoStore.dailyStartTime:
           {{ infoStore.dailyStartTime }}
+          <br /><br />infoStore.dailyEndTime: {{ infoStore.dailyEndTime
+          }}<br /><br />
         </div>
         <router-link class="link_button" to="/iosstats">
           <ion-button color="medium">iosStats</ion-button>
@@ -242,13 +248,13 @@
         answer.message +
         '';
 
-      router.push('/login');
+      router.replace('/login');
       return;
     }
 
     // end check for validTokenminutes
 
-    router.push('/questionsinitial');
+    router.replace('/questionsinitial');
   }
 
   function formatTo2digit(input) {

@@ -5,9 +5,10 @@
       <p class="text_big">
         Danke,<br />dass Sie sich<br />die Zeit<br />genommen<br />haben!
       </p>
-      <router-link class="link_button" to="/home">
-        <ion-button color="secondary">Startseite</ion-button>
-      </router-link>
+
+      <ion-button color="secondary" @click="onStartseite"
+        >Startseite</ion-button
+      >
     </div>
   </base-layout>
 </template>
@@ -18,8 +19,13 @@
   import { useUserStore } from '@/stores/userStore';
   import { Icon } from '@iconify/vue';
   import heart from '@iconify-icons/codicon/heart-filled';
+  import router from '@/router';
 
   const userStore = useUserStore();
+
+  function onStartseite() {
+    router.replace('/home');
+  }
 </script>
 
 <style scoped>

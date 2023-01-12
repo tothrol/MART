@@ -107,7 +107,7 @@
           answer.message +
           '';
         console.log('BaseLayout - onStartQuestionsShort - push - login');
-        router.push('/login');
+        router.replace('/login');
         return;
       }
 
@@ -143,12 +143,12 @@
           console.log(
             'BaseLayout - onStartQuestionsShort - push - briefing-short'
           );
-          router.push('/briefing-short');
+          router.replace('/briefing-short');
         } else {
           console.log(
             'BaseLayout - onStartQuestionsShort - push - questionsShort'
           );
-          router.push('/questionsshort');
+          router.replace('/questionsshort');
         }
       } else {
         console.log('BaseLayout - onStartQuestionsShort - NOpush');
@@ -444,8 +444,9 @@
   // displays the Countdown on the Home Page
 
   async function countdownTimer() {
+    infoStore.countdownTimerCounter++;
     let now = dayjs();
-    let endDate = dayjs(infoStore.endDate.dayJs);
+    let endDate = dayjs(infoStore.endDate.ms);
     // endDate = endDate.add(Number(infoStore.dailyEndTime.hours));
     // endDate = endDate.add(Number(infoStore.dailyEndTime.minutes));
     console.log('BaseLayout - endDate', JSON.stringify(toRaw(endDate)));
@@ -582,7 +583,7 @@
         // console.log(
         //   'BaseLayout - watchEffect - conditionsQuestionsInitial - true'
         // );
-        router.push('/questionsinitial');
+        router.replace('/questionsinitial');
       } else {
         // router.push('/welcome');
       }

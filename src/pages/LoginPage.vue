@@ -66,7 +66,7 @@
 
         router.push('/home');
       } else {
-        router.push('/welcome');
+        router.replace('/welcome');
       }
     } else if (response.status != 200) {
       userStore.appMessage =
@@ -76,7 +76,7 @@
         response.message +
         '';
 
-      router.push('/login');
+      router.replace('/login');
       return;
     }
   }
@@ -113,7 +113,7 @@
       }
 
       if (userStore.complianceAccepted === false) {
-        router.push('/welcome');
+        router.replace('/welcome');
       } else {
         router.push('/home');
       }

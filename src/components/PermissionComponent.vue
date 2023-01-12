@@ -2,7 +2,7 @@
   <div class="permission_modal">
     <div class="box blue">
       <p class="text" v-if="showOk">
-        Bitte tippen Sie im folgenden Fenster auf <b>Mart</b> und erteilen Sie
+        Bitte tippen Sie im folgenden Fenster auf <b>MART</b> und erteilen Sie
         die Berechtigung zum Zugriff auf Nutzungsdaten.
       </p>
 

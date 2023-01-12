@@ -59,6 +59,7 @@ export const useInfoStore = defineStore('infoStore', {
       conditionsQuestionsShort: false,
       // needet to trigger computed function timeframe at app Start
       appStateChangeCounter: 0,
+      countdownTimerCounter: 0,
     };
   },
   actions: {
