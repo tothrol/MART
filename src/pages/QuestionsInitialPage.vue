@@ -26,281 +26,281 @@
           class="sheet"
           v-if="activeSheet != undefined && currentSheet != sheets.length"
         >
-          <div class="sheet_content_wrapper">
-            <div
-              class="progress"
-              v-if="
-                activeSheet.itemId === '' ||
-                (activeSheet.scale != undefined &&
-                  activeSheet.scale.options != undefined &&
-                  activeSheet.scale.options.showTimer != true)
-              "
-            >
-              {{ Math.round((activeSheet.sheetId / sheets.length) * 100) }} %
-            </div>
-            <!-- 5secTimer -->
-            <div
-              class="timer"
-              v-if="
-                time != undefined &&
-                activeSheet != undefined &&
-                activeSheet.item != undefined &&
-                activeSheet.itemId != undefined &&
-                activeSheet.scale != undefined &&
+          <div
+            class="progress"
+            v-if="
+              activeSheet.itemId === '' ||
+              (activeSheet.scale != undefined &&
                 activeSheet.scale.options != undefined &&
-                activeSheet.scale.options.showTimer === true &&
-                activeSheet.options != undefined &&
-                activeSheet.options.inputDisabled != true
-              "
-            >
-              {{ time.toFixed(1) }} Sekunden
+                activeSheet.scale.options.showTimer != true)
+            "
+          >
+            {{ Math.round((activeSheet.sheetId / sheets.length) * 100) }} %
+          </div>
+          <!-- 5secTimer -->
+          <div
+            class="timer"
+            v-if="
+              time != undefined &&
+              activeSheet != undefined &&
+              activeSheet.item != undefined &&
+              activeSheet.itemId != undefined &&
+              activeSheet.scale != undefined &&
+              activeSheet.scale.options != undefined &&
+              activeSheet.scale.options.showTimer === true &&
+              activeSheet.options != undefined &&
+              activeSheet.options.inputDisabled != true
+            "
+          >
+            {{ time.toFixed(1) }} Sekunden
+            <div class="progress_bar">
+              <div
+                class="progress_bar_inner"
+                :style="{ width: 20 * time + '%' }"
+              ></div>
+            </div>
+          </div>
+
+          <!-- End 5sec Timer -->
+          <!-- 3sec Timer  -->
+          <div
+            class="timer3"
+            v-if="
+              activeSheet != undefined &&
+              activeSheet.itemId != undefined &&
+              activeSheet.options != undefined &&
+              activeSheet.options.timer === 3 &&
+              showTimer3 === true
+            "
+          >
+            <div class="timer" v-if="showTimer3">
+              <span v-if="time3 >= 0.1">{{ time3.toFixed(1) }} </span>
+              <span v-if="time3 < 0.1"> 0.0 </span>
               <div class="progress_bar">
                 <div
                   class="progress_bar_inner"
-                  :style="{ width: 20 * time + '%' }"
+                  :style="{ width: 33 * time3 + '%' }"
                 ></div>
               </div>
             </div>
+          </div>
+          <!-- END 3sec Timer  -->
+          <p class="item_text">
+            <span
+              style="white-space: pre-line"
+              v-html="activeSheet.item"
+            ></span>
+          </p>
 
-            <!-- End 5sec Timer -->
-            <!-- 3sec Timer  -->
-            <div
-              class="timer3"
-              v-if="
-                activeSheet != undefined &&
-                activeSheet.itemId != undefined &&
-                activeSheet.options != undefined &&
-                activeSheet.options.timer === 3 &&
-                showTimer3 === true
+          <!-- number with dropdown -->
+          <div
+            class="number"
+            v-if="
+              activeSheet.itemId != '' &&
+              activeSheetScaleOptions &&
+              activeSheet.scale.options.fieldType === 'number' &&
+              activeSheet.scale.options.dropdown === true
+            "
+          >
+            <select
+              class="dropdown"
+              :id="`${activeSheet.itemId}_${
+                scales[activeSheet.scaleId].scaleRepeater.value
+              }`"
+              type="number"
+              :name="`${activeSheet.itemId}`"
+              v-model="answers.entries[activeSheet.itemId]"
+              @click="
+                changeInputToNr(
+                  $event.target,
+                  activeSheet.itemId,
+                  $event,
+                  'noZero'
+                )
               "
             >
-              <div class="timer" v-if="showTimer3">
-                <span v-if="time3 >= 0.1">{{ time3.toFixed(1) }} </span>
-                <span v-if="time3 < 0.1"> 0.0 </span>
-                <div class="progress_bar">
-                  <div
-                    class="progress_bar_inner"
-                    :style="{ width: 33 * time3 + '%' }"
-                  ></div>
-                </div>
+              a
+              <option></option>
+              <option
+                v-for="n in getRange(
+                  scales[activeSheet.scaleId].options.min,
+                  scales[activeSheet.scaleId].options.max
+                )"
+                :key="Number(n)"
+              >
+                {{ Number(n) }}
+              </option>
+            </select>
+          </div>
+          <!-- END Number with Dropdwon -->
+          <!-- Normal radios -->
+          <div
+            class="radios"
+            :class="
+              activeSheetScaleOptions &&
+              activeSheet.scale.options.showTimer === true
+                ? 'margin-top'
+                : ''
+            "
+            v-if="
+              activeSheet != undefined &&
+              activeSheet.scaleId != undefined &&
+              activeSheet.scaleId != '' &&
+              activeSheet.scale != undefined &&
+              activeSheet.scale.options != undefined &&
+              activeSheet.scale.options.fieldType != undefined &&
+              activeSheet.scale.options.fieldType === 'radio'
+            "
+          >
+            <fieldset class="radio_fieldset">
+              <div
+                :class="`radio ${activeSheet.scaleId} ${input.value}`"
+                v-for="(input, key) in scales[activeSheet.scaleId]
+                  .scaleRepeater"
+                :key="key"
+              >
+                <input
+                  :id="`${activeSheet.itemId}_${input.value}`"
+                  type="radio"
+                  :value="Number(input.value)"
+                  v-model="answers.entries[activeSheet.itemId]"
+                  :disabled="disableInput"
+                />
+
+                <label :for="`${activeSheet.itemId}_${input.value}`">{{
+                  input.key
+                }}</label>
               </div>
-            </div>
-            <!-- END 3sec Timer  -->
-            <p class="item_text">
-              <span
-                style="white-space: pre-line"
-                v-html="activeSheet.item"
-              ></span>
-            </p>
-
-            <!-- number with dropdown -->
-            <div
-              class="number"
-              v-if="
-                activeSheet.itemId != '' &&
-                activeSheetScaleOptions &&
-                activeSheet.scale.options.fieldType === 'number' &&
-                activeSheet.scale.options.dropdown === true
+              <div class="display_none">
+                answers.entries[activeSheet.itemId] :
+                {{ answers.entries[activeSheet.itemId] }}
+              </div>
+            </fieldset>
+          </div>
+          <!--END normal radios -->
+          <!-- radios with Freifeld -->
+          <div
+            class="radios"
+            :class="
+              activeSheetScaleOptions &&
+              activeSheet.scale.options.showTimer === true
+                ? 'margin-top'
+                : ''
+            "
+            v-if="
+              activeSheet != undefined &&
+              activeSheet.scaleId != undefined &&
+              activeSheet.scaleId != '' &&
+              activeSheetScaleOptions &&
+              activeSheet.scale.options.fieldType != undefined &&
+              activeSheet.scale.options.fieldType === 'radioAndFree'
+            "
+          >
+            <input
+              :id="`${activeSheet.itemId}_freifeld`"
+              class="freeFieldToAnswers"
+              type="text"
+              @input="
+                freeFieldToAnswers($event.target, activeSheet.itemId, $event)
               "
-            >
-              <select
-                class="dropdown"
-                :id="`${activeSheet.itemId}_${
-                  scales[activeSheet.scaleId].scaleRepeater.value
-                }`"
-                type="number"
-                :name="`${activeSheet.itemId}`"
-                @click="
-                  changeInputToNr(
-                    $event.target,
-                    activeSheet.itemId,
-                    $event,
-                    'noZero'
-                  )
-                "
+              :disabled="disableInput"
+              v-model="freeFieldToAnswersValue"
+              :placeholder="activeSheet.options.placeholder"
+            />
+            <fieldset class="radio_fieldset">
+              <div
+                :class="`radio ${activeSheet.scaleId} ${input.value}`"
+                v-for="(input, key) in scales[activeSheet.scaleId]
+                  .scaleRepeater"
+                :key="key"
               >
-                a
-                <option></option>
-                <option
-                  v-for="n in getRange(
-                    scales[activeSheet.scaleId].options.min,
-                    scales[activeSheet.scaleId].options.max
-                  )"
-                  :key="Number(n)"
-                >
-                  {{ Number(n) }}
-                </option>
-              </select>
-            </div>
-            <!-- END Number with Dropdwon -->
-            <!-- Normal radios -->
-            <div
-              class="radios"
+                <input
+                  :id="`${activeSheet.itemId}_${input.value}`"
+                  type="radio"
+                  :value="Number(input.value)"
+                  v-model="answers.entries[activeSheet.itemId][0]"
+                  :disabled="disableInput"
+                />
+
+                <label :for="`${activeSheet.itemId}_${input.value}`">{{
+                  input.key
+                }}</label>
+              </div>
+            </fieldset>
+          </div>
+          <!--END radios with Freifeld -->
+          <!-- Multiple radios -->
+          <div
+            class="radios"
+            v-if="
+              activeSheet != undefined &&
+              activeSheet.scaleId != undefined &&
+              activeSheet.scaleId != '' &&
+              activeSheet.scale.options.fieldType === 'multi'
+            "
+          >
+            <fieldset>
+              <div
+                :class="`radio ${activeSheet.scaleId} ${input.value}`"
+                v-for="input in scales[activeSheet.scaleId].scaleRepeater"
+                :key="input.key"
+              >
+                <input
+                  :id="input.key"
+                  type="checkbox"
+                  :value="Number(input.value)"
+                  v-model="answers.entries[activeSheet.itemId]"
+                />
+
+                <label :for="input.key">{{ input.key }}</label>
+              </div>
+              <div class="display_none">
+                answers.entries[activeSheet.itemId] :
+                {{ answers.entries[activeSheet.itemId] }}
+              </div>
+            </fieldset>
+          </div>
+          <!--END Multiple radios -->
+
+          <!-- Number input no Dropdown -->
+          <div
+            class="number"
+            v-if="
+              activeSheet != undefined &&
+              activeSheet.itemId != undefined &&
+              activeSheet.itemId != '' &&
+              activeSheet.scale.options.fieldType === 'number' &&
+              activeSheet.scale.options.dropdown === false
+            "
+          >
+            <input
+              :id="`${activeSheet.itemId}_${
+                scales[activeSheet.scaleId].scaleRepeater.value
+              }`"
+              :name="`${activeSheet.itemId}`"
+              :value="answers.entries[activeSheet.itemId]"
+              @input="
+                validateNrInput($event.target, activeSheet.itemId, $event)
+              "
+              min="0"
+              max="999"
+              :maxlength="activeSheet.scale.options.fieldDigits"
+              type="number"
               :class="
-                activeSheetScaleOptions &&
-                activeSheet.scale.options.showTimer === true
-                  ? 'margin-top'
+                activeSheet.options.scaleText != undefined
+                  ? 'no_margin_right'
                   : ''
               "
-              v-if="
-                activeSheet != undefined &&
-                activeSheet.scaleId != undefined &&
-                activeSheet.scaleId != '' &&
-                activeSheet.scale != undefined &&
-                activeSheet.scale.options != undefined &&
-                activeSheet.scale.options.fieldType != undefined &&
-                activeSheet.scale.options.fieldType === 'radio'
-              "
+            />
+            <span
+              class="scaleText"
+              v-if="activeSheet.options.scaleText != undefined"
+              >{{ activeSheet.options.scaleText }}</span
             >
-              <fieldset class="radio_fieldset">
-                <div
-                  :class="`radio ${activeSheet.scaleId} ${input.value}`"
-                  v-for="(input, key) in scales[activeSheet.scaleId]
-                    .scaleRepeater"
-                  :key="key"
-                >
-                  <input
-                    :id="`${activeSheet.itemId}_${input.value}`"
-                    type="radio"
-                    :value="Number(input.value)"
-                    v-model="answers.entries[activeSheet.itemId]"
-                    :disabled="disableInput"
-                  />
-
-                  <label :for="`${activeSheet.itemId}_${input.value}`">{{
-                    input.key
-                  }}</label>
-                </div>
-                <div class="display_none">
-                  answers.entries[activeSheet.itemId] :
-                  {{ answers.entries[activeSheet.itemId] }}
-                </div>
-              </fieldset>
-            </div>
-            <!--END normal radios -->
-            <!-- radios with Freifeld -->
-            <div
-              class="radios"
-              :class="
-                activeSheetScaleOptions &&
-                activeSheet.scale.options.showTimer === true
-                  ? 'margin-top'
-                  : ''
-              "
-              v-if="
-                activeSheet != undefined &&
-                activeSheet.scaleId != undefined &&
-                activeSheet.scaleId != '' &&
-                activeSheetScaleOptions &&
-                activeSheet.scale.options.fieldType != undefined &&
-                activeSheet.scale.options.fieldType === 'radioAndFree'
-              "
-            >
-              <input
-                :id="`${activeSheet.itemId}_freifeld`"
-                class="freeFieldToAnswers"
-                type="text"
-                @input="
-                  freeFieldToAnswers($event.target, activeSheet.itemId, $event)
-                "
-                :disabled="disableInput"
-                v-model="freeFieldToAnswersValue"
-                :placeholder="activeSheet.options.placeholder"
-              />
-              <fieldset class="radio_fieldset">
-                <div
-                  :class="`radio ${activeSheet.scaleId} ${input.value}`"
-                  v-for="(input, key) in scales[activeSheet.scaleId]
-                    .scaleRepeater"
-                  :key="key"
-                >
-                  <input
-                    :id="`${activeSheet.itemId}_${input.value}`"
-                    type="radio"
-                    :value="Number(input.value)"
-                    v-model="answers.entries[activeSheet.itemId][0]"
-                    :disabled="disableInput"
-                  />
-
-                  <label :for="`${activeSheet.itemId}_${input.value}`">{{
-                    input.key
-                  }}</label>
-                </div>
-              </fieldset>
-            </div>
-            <!--END radios with Freifeld -->
-            <!-- Multiple radios -->
-            <div
-              class="radios"
-              v-if="
-                activeSheet != undefined &&
-                activeSheet.scaleId != undefined &&
-                activeSheet.scaleId != '' &&
-                activeSheet.scale.options.fieldType === 'multi'
-              "
-            >
-              <fieldset>
-                <div
-                  :class="`radio ${activeSheet.scaleId} ${input.value}`"
-                  v-for="input in scales[activeSheet.scaleId].scaleRepeater"
-                  :key="input.key"
-                >
-                  <input
-                    :id="input.key"
-                    type="checkbox"
-                    :value="Number(input.value)"
-                    v-model="answers.entries[activeSheet.itemId]"
-                  />
-
-                  <label :for="input.key">{{ input.key }}</label>
-                </div>
-                <div class="display_none">
-                  answers.entries[activeSheet.itemId] :
-                  {{ answers.entries[activeSheet.itemId] }}
-                </div>
-              </fieldset>
-            </div>
-            <!--END Multiple radios -->
-
-            <!-- Number input no Dropdown -->
-            <div
-              class="number"
-              v-if="
-                activeSheet != undefined &&
-                activeSheet.itemId != undefined &&
-                activeSheet.itemId != '' &&
-                activeSheet.scale.options.fieldType === 'number' &&
-                activeSheet.scale.options.dropdown === false
-              "
-            >
-              <input
-                :id="`${activeSheet.itemId}_${
-                  scales[activeSheet.scaleId].scaleRepeater.value
-                }`"
-                :name="`${activeSheet.itemId}`"
-                :value="answers.entries[activeSheet.itemId]"
-                @input="
-                  validateNrInput($event.target, activeSheet.itemId, $event)
-                "
-                min="0"
-                max="999"
-                :maxlength="activeSheet.scale.options.fieldDigits"
-                type="number"
-                :class="
-                  activeSheet.options.scaleText != undefined
-                    ? 'no_margin_right'
-                    : ''
-                "
-              />
-              <span
-                class="scaleText"
-                v-if="activeSheet.options.scaleText != undefined"
-                >{{ activeSheet.options.scaleText }}</span
-              >
-            </div>
-            <!-- END Number input -->
-            <!-- Text input -->
-            <!-- <div
+          </div>
+          <!-- END Number input -->
+          <!-- Text input -->
+          <!-- <div
             class="text"
             v-if="
               activeSheet != undefined &&
@@ -315,47 +315,48 @@
               >{{ activeSheet.options.scaleText }}</span
             >
           </div> -->
-            <!-- END Text input -->
-            <!-- Range Slider -->
-            <div
-              class="range_slider_wrapper"
-              v-if="
-                activeSheet.scale != undefined &&
-                activeSheet.scale.options != undefined &&
-                activeSheet.scale.options.fieldType === 'slider'
-              "
-            >
-              <div class="range_slider_current_value">
-                <span
-                  class="questionOneState"
-                  v-if="answers.entries[activeSheet.itemId] != undefined"
-                >
-                  {{ answers.entries[activeSheet.itemId] }}%</span
-                >
-              </div>
-
-              <input
-                class="range_slider"
-                :id="`${activeSheet.itemId}_${
-                  scales[activeSheet.scaleId].scaleRepeater.value
-                }`"
-                type="range"
-                :min="activeSheet.scale.options.min"
-                :max="activeSheet.scale.options.max"
-                step="1"
-                :name="`${activeSheet.itemId}`"
-                @input="
-                  changeInputToNr(
-                    $event.target,
-                    activeSheet.itemId,
-                    $event,
-                    'zeroOK'
-                  )
-                "
-              />
+          <!-- END Text input -->
+          <!-- Range Slider -->
+          <div
+            class="range_slider_wrapper"
+            v-if="
+              activeSheet.scale != undefined &&
+              activeSheet.scale.options != undefined &&
+              activeSheet.scale.options.fieldType === 'slider'
+            "
+          >
+            <div class="range_slider_current_value">
+              <span
+                class="questionOneState"
+                v-if="answers.entries[activeSheet.itemId] != undefined"
+              >
+                {{ answers.entries[activeSheet.itemId] }}%</span
+              >
             </div>
-            <!-- END Range Slider -->
+
+            <input
+              class="range_slider"
+              :id="`${activeSheet.itemId}_${
+                scales[activeSheet.scaleId].scaleRepeater.value
+              }`"
+              type="range"
+              :min="activeSheet.scale.options.min"
+              :max="activeSheet.scale.options.max"
+              step="1"
+              :name="`${activeSheet.itemId}`"
+              v-model="answers.entries[activeSheet.itemId]"
+              @input="
+                changeInputToNr(
+                  $event.target,
+                  activeSheet.itemId,
+                  $event,
+                  'zeroOK'
+                )
+              "
+            />
           </div>
+          <!-- END Range Slider -->
+
           <div class="buttons_wrapper">
             <div
               class="buttons"
@@ -428,24 +429,19 @@
         <!-- Absenden Seite -->
         <li class="sheet" v-if="currentSheet == sheets.length">
           <div class="absenden_text">Bereit zum Absenden?</div>
-
-          <div class="buttons">
-            <ion-button
-              color="primary"
-              @click="sendInitialAnswers()"
-              :disabled="
-                numberOfItems != Object.keys(answers.entries).length ||
-                questionsStore.initialAnswerExist === true
-              "
-              >Fragebogen absenden</ion-button
-            ><ion-button @click="previousSheet()" color="tertiary"
-              >zurück</ion-button
-            ><ion-button
-              color="tertiary"
-              @click="backHome()"
-              v-if="showBackHomeButton"
-              >Startseite</ion-button
-            >
+          <div class="buttons_wrapper">
+            <div class="buttons">
+              <ion-button color="primary" @click="sendInitialAnswers()"
+                >Fragebogen absenden</ion-button
+              ><ion-button @click="previousSheet()" color="tertiary"
+                >zurück</ion-button
+              ><ion-button
+                color="tertiary"
+                @click="backHome()"
+                v-if="showBackHomeButton"
+                >Startseite</ion-button
+              >
+            </div>
           </div>
         </li>
       </div>
@@ -1170,12 +1166,17 @@
   }
 
   .buttons_wrapper {
-    position: sticky;
-    bottom: 0;
+    /* position: sticky; */
+    max-width: 100%;
+    width: 100%;
+    /* bottom: 0; */
     padding-bottom: 10px;
+    /* left: 0; */
+    /* margin-top: auto; */
   }
 
   .buttons {
+    min-height: 116px;
   }
   .buttons .next,
   .buttons .previous {
@@ -1224,22 +1225,21 @@
   } */
 
   /* sheet without buttons */
-  .sheet_content_wrapper {
+  /* .sheet_content_wrapper {
     display: flex;
     flex-direction: column;
     height: 76vh;
-  }
+    overflow: scroll;
+  } */
 
-  .sheet_content_wrapper:-webkit-scrollbar {
-    display: none;
-  }
-
-  .sheet::-webkit-scrollbar {
-    display: none;
-  }
-
-  .wrapper_h100::-webkit-scrollbar {
-    display: none;
+  .sheet {
+    padding: 25px 15px 0px 15px;
+    border-radius: 15px;
+    background-color: var(--light_light_grey);
+    display: flex;
+    flex-direction: column;
+    min-height: 99vh;
+    position: relative;
   }
 
   .item_text {
