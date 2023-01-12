@@ -397,9 +397,7 @@ export const useUserStore = defineStore('userStore', {
 
       const token = await storage.get('token');
       if (token != null) {
-        // Wird nur ausgeführt wenn ein Token vorhanden ist
         this.userData.token = token;
-
         return true;
       } else return false;
     },

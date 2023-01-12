@@ -55,6 +55,10 @@ export const useInfoStore = defineStore('infoStore', {
 
       secToNext: 0,
       minutesCounter: 0,
+
+      conditionsQuestionsShort: false,
+      // needet to trigger computed function timeframe at app Start
+      appStateChangeCounter: 0,
     };
   },
   actions: {

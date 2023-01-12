@@ -1142,10 +1142,10 @@
     padding: 25px 15px;
     border-radius: 15px;
     background-color: var(--light_light_grey);
-    margin-bottom: 20px;
+
     display: flex;
     flex-direction: column;
-    min-height: 94vh;
+    min-height: 96vh;
     position: relative;
   }
   .radios {

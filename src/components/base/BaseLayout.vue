@@ -162,6 +162,18 @@
     let nowMs = dayjs().valueOf();
     let startDateMs = infoStore.startDate.ms;
     let endDateMs = infoStore.endDate.ms;
+
+    // minutes is only needet to get an update every minute of daily time.
+    //  The update every minute is needeet to route away from questionsshort if the dailyTime is false
+    // minutes is set by the oneMinuteTimer
+    let minutesCounter = infoStore.minutesCounter;
+    console.log('BaseLayout - timeframe - minutesCounter: ', minutesCounter);
+    let appStateChangeCounter = infoStore.appStateChangeCounter;
+    console.log(
+      'BaseLayout - timeframe - appStateChangeCounter: ',
+      appStateChangeCounter
+    );
+
     console.log('BaseLayout - timeframe - startDateMs: ', startDateMs);
     console.log('BaseLayout - timeframe - endDateMs: ', endDateMs);
     // endDateMs is midnight of the WP entry, so its initially exlusive of the WP entry, therefore hours and minutes of dailyEndTime have to be addet
@@ -224,6 +236,12 @@
     // minutes is set by the oneMinuteTimer
     let minutesCounter = infoStore.minutesCounter;
     console.log('BaseLayout - dailyTime - min: ', minutesCounter);
+    let appStateChangeCounter = infoStore.appStateChangeCounter;
+    // appStateChangeCounter needet to trigger changes whenever app starts again
+    console.log(
+      'BaseLayout - dailyTime - appStateChangeCounter: ',
+      appStateChangeCounter
+    );
     console.log(
       'BaseLayout - dailyTime - infoStore.dailyStartTime.todayStartTimeMs: ',
       infoStore.dailyStartTime.todayStartTimeMs
@@ -297,6 +315,8 @@
   App.addListener('appStateChange', ({ isActive }) => {
     console.log('App state changed. Is active?', isActive);
     secTimer();
+    oneMinuteTimer();
+    infoStore.appStateChangeCounter++;
     // Needet to calculate shortAnswers when
     questionsStore.calculateTodayShortAnswers();
   });
@@ -579,6 +599,7 @@
       infoStore.secToNext <= 1
     ) {
       conditionsQuestionsShort = true;
+      infoStore.conditionsQuestionsShort = true;
       onStartQuestionsShort();
 
       // console.log('BaseLayout - watchEffect - conditionsQuestionsShort - true');
@@ -586,7 +607,7 @@
       // console.log(
       //   'BaseLayout - watchEffect - conditionsQuestionsShort - false'
       // );
-
+      infoStore.conditionsQuestionsShort = false;
       conditionsQuestionsShort = false;
     }
   });
@@ -619,7 +640,7 @@
     margin-left: auto;
     min-height: 100%;
     height: min-content;
-    padding: 20px 0px;
+    padding: 0px 0px;
   }
 
   /* MENU */

@@ -146,9 +146,25 @@
         minutesCounter:
         {{ infoStore.minutesCounter }}
         <div>
+          <br />
+          infoStore.appStateChangeCounter:
+          {{ infoStore.appStateChangeCounter }} <br /><br />
           initialAnswerExist: {{ questionsStore.initialAnswerExist }}<br />
           dailyTime: {{ infoStore.dailyTime }}<br />
           timeframe: {{ infoStore.timeframe }}<br />
+          userStore.briefingShortChecked:
+          {{ userStore.briefingShortChecked }}<br />
+          userStore.complianceAccepted: {{ userStore.complianceAccepted }}<br />
+          questionsStore.todayShortAnswers:
+          {{ questionsStore.todayShortAnswers }}<br /><br />
+          infoStore.conditionsQuestionsShort:
+          {{ infoStore.conditionsQuestionsShort }}<br /><br />
+          infoStore.startDate:
+          {{ infoStore.startDate }} <br />
+          <br /><br />infoStore.dailyEndTime:
+          {{ infoStore.dailyEndTime }}
+          <br /><br />infoStore.dailyStartTime:
+          {{ infoStore.dailyStartTime }}
         </div>
         <router-link class="link_button" to="/iosstats">
           <ion-button color="medium">iosStats</ion-button>

@@ -120,7 +120,7 @@ ion-button.auto_width {
   justify-content: center;
   justify-items: center;
   height: 100%;
-  min-height: 85vh;
+  min-height: 90vh;
   width: 100%;
   padding: 20px 20px;
   align-items: center;
@@ -155,11 +155,18 @@ ion-button.auto_width {
 .devbox {
   position: fixed;
   left: 0;
-  bottom: 100px;
-  background-color: rgba(156, 156, 156, 0.44);
+  bottom: 44px;
+  background-color: rgba(179, 179, 179, 0.638);
   padding: 20px;
   width: 300px;
   border-radius: 10px;
+  overflow-y: scroll;
+  height: calc(100vh - 100px);
+  scrollbar-width: none;
+}
+
+.devbox::-webkit-scrollbar {
+  display: none;
 }
 
 .devbox ion-button,

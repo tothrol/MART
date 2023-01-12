@@ -12,7 +12,7 @@
         ></router-link>
       </ion-buttons>
       <div id="logo" @click="adminMode()">
-        <router-link to="/home">
+        <router-link class="link_home" to="/home">
           <img class="logo" src="@/assets/images/MART_Bold.png" />
         </router-link>
       </div>
@@ -107,7 +107,7 @@
   #logo a {
     text-decoration: none;
     color: var(--ion-color-secondary);
-    font-size: 35px;
+    /* font-size: 35px; */
     font-weight: 600;
     letter-spacing: 7px;
   }
@@ -144,7 +144,7 @@
   #logo {
     margin-left: auto;
     margin-right: auto;
-    width: 150px;
+    width: 120px;
   }
 
   #title,
@@ -181,5 +181,11 @@
 
   .back_button_link {
     min-width: 40px;
+  }
+
+  .link_home {
+    height: auto !important;
+    display: flex;
+    /* padding: 5px; */
   }
 </style>
