@@ -1243,6 +1243,6 @@
   }
 
   .item_text {
-    min-height: 118px;
+    min-height: 122px;
   }
 </style>
