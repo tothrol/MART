@@ -85,12 +85,12 @@
             </div>
           </div>
           <!-- END 3sec Timer  -->
-          <p class="item_text">
+          <div class="item_text">
             <span
               style="white-space: pre-line"
               v-html="activeSheet.item"
             ></span>
-          </p>
+          </div>
 
           <!-- number with dropdown -->
           <div
@@ -428,7 +428,10 @@
         </li>
         <!-- Absenden Seite -->
         <li class="sheet" v-if="currentSheet == sheets.length">
-          <div class="absenden_text">Bereit zum Absenden?</div>
+          <div class="progress"></div>
+          <div class="absenden_text">
+            <div class="item_text"><p>Bereit zum Absenden?</p></div>
+          </div>
           <div class="buttons_wrapper">
             <div class="buttons">
               <ion-button color="primary" @click="sendInitialAnswers()"
@@ -1148,6 +1151,9 @@
 </script>
 
 <style scoped>
+  .progress {
+    min-height: 15px;
+  }
   .progress_bar {
     border-color: var(--ion-color-secondary);
     border: 2px solid;
