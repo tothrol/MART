@@ -444,7 +444,10 @@
 
   async function checkIfNotificationsLeft() {
     // Checks if any notifications are left
-    console.log('BaseLayout - checkIfNotificationsLeft');
+    console.log(
+      'BaseLayout - checkIfNotificationsLeft - userStore.briefingShortChecked',
+      userStore.briefingShortChecked.toString()
+    );
 
     // START get pending Notifications
     let pendingNotifications = await LocalNotifications.getPending();
@@ -455,11 +458,16 @@
     // END get pending Notifications
 
     if (
-      pendingNotifications.notifications.length === 0 ||
+      (pendingNotifications.notifications.length <= 10 &&
+        pendingNotifications.notifications.length > 0) ||
       (questionsStore.shortAnswersArray.length === 0 &&
-        questionsStore.briefingShortChecked)
+        userStore.briefingShortChecked === true)
     ) {
       console.log('BaseLayout - checkIfNotificationsLeft - No Notifications');
+      console.log(
+        'BaseLayout - checkIfNotificationsLeft - No Notifications - userStore.briefingShortChecked',
+        userStore.briefingShortChecked.toString()
+      );
       userStore.setNotifications();
     }
   }
