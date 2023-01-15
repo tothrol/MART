@@ -64,9 +64,9 @@
         console.log('LoginPage - initialAnswerExist === true');
         // console.log('LoginPage - Before Route -', userStore.userData.token);
 
-        router.push('/home');
+        router.replace({ path: '/home' });
       } else {
-        router.replace('/welcome');
+        router.replace({ path: '/welcome' });
       }
     } else if (response.status != 200) {
       userStore.appMessage =
@@ -76,7 +76,7 @@
         response.message +
         '';
 
-      router.replace('/login');
+      router.replace({ path: '/login' });
       return;
     }
   }
@@ -113,9 +113,9 @@
       }
 
       if (userStore.complianceAccepted === false) {
-        router.replace('/welcome');
+        router.replace({ path: '/welcome' });
       } else {
-        router.push('/home');
+        router.replace({ path: '/home' });
       }
     }
   }
@@ -153,6 +153,6 @@
   }
 
   .box.blue {
-    min-height: 95vh;
+    min-height: 99vh;
   }
 </style>

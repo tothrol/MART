@@ -27,7 +27,7 @@
 
   function logout() {
     userStore.logout();
-    router.replace('/login');
+    router.replace({ path: '/login' });
   }
 </script>
 

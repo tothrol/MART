@@ -11,12 +11,12 @@
           type="checkbox"
           v-model="accepted"
         />
-        <label for="compliance"></label
-        ><span class="compliance_text"
-          >Ich stimme der <br />
-          <router-link to="/compliance">Datenschutzverordnung</router-link>
-          zu</span
-        >
+        <label for="compliance"></label>
+        <div class="compliance_text">
+          Ich stimme der <br />
+          <span class="link" @click="routing()">Datenschutzverordnung</span>
+          zu
+        </div>
       </div>
 
       <ion-button
@@ -49,6 +49,9 @@
     infoStore.getWelcomeText();
   });
 
+  function routing() {
+    router.replace({ path: '/compliance' });
+  }
   let accepted = ref(false);
 
   async function accept() {
@@ -61,11 +64,16 @@
     // await statsStore.checkAndroidPermissions();
 
     // routing will be handled by BaseLayout watchEffect
-    // router.push('/questionsInitial');
+    // router.replace('/questionsInitial');
   }
 </script>
 
 <style scoped>
+  .link {
+    color: var(--ion-color-secondary);
+    text-decoration: underline;
+    cursor: pointer;
+  }
   .heart {
     color: white;
   }

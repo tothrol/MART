@@ -43,18 +43,6 @@
         </div>
       </div>
 
-      <div
-        class="timer_wrapper display_none"
-        v-if="infoStore.secToNext >= 1 && questionsStore.todayShortAnswers < 6"
-      >
-        <div class="timer_text display_none">
-          Zeit bis zum nächsten Kurzfragebogen:
-        </div>
-        <div class="timer">
-          <div>{{ minutes }}:{{ seconds }}</div>
-        </div>
-      </div>
-
       <div class="timeframe_messages">
         {{ infoStore.timeframeMessage }}
       </div>
@@ -62,12 +50,13 @@
         {{ infoStore.dailyTimeMessage }}
       </div>
 
-      <div class="buttons" v-if="showButtons">
+      <div class="buttons" v-if="userStore.showAdminButtonsHome">
         <ion-button @click="onStartQuestionsInitial()"
           >Initialen Fragebogen starten</ion-button
         >
-        <router-link class="link_button" to="/questionsshort">
-          <ion-button>Kurzfragebogen starten</ion-button></router-link
+
+        <ion-button @click="onStartQuestionsShort()"
+          >Kurzfragebogen starten</ion-button
         >
 
         <div
@@ -87,123 +76,8 @@
       </div>
     </div>
 
-    <div
-      class="adminbox"
-      v-if="
-        userStore.userData.username === 'nviiadmin' ||
-        userStore.userData.username === 'RolandToth'
-      "
-    >
-      <ion-button
-        color="medium"
-        @click="userStore.showDevbox = !userStore.showDevbox"
-        >info</ion-button
-      >
+    <Infoboxhome-Component></Infoboxhome-Component>
 
-      <ion-button color="medium" @click="showButtons = !showButtons"
-        >showButtons</ion-button
-      >
-
-      <ion-button
-        color="medium"
-        @click="questionsStore.nextShortAnswerMs = dayjs().add(5, 'second')"
-        >Skip Timer</ion-button
-      >
-      <router-link class="link_button" to="/iosstats">
-        <ion-button color="medium">iOS Stats</ion-button>
-      </router-link>
-    </div>
-
-    <div class="devbox" v-if="userStore.showDevbox">
-      <div class="next_notifications">
-        Next Intervals:
-        <div
-          class="notification_times"
-          v-for="notification of userStore.notificationTimes.slice(0, 5)"
-          :key="notification"
-        >
-          {{ dayjs(notification).format('DD.MM.YY HH:mm') }}
-        </div>
-      </div>
-      <div class="next_notifications">
-        Next Notifications Random:
-        <div
-          class="notification_times"
-          v-for="notification of userStore.notificationTimesRandom.slice(0, 5)"
-          :key="notification"
-        >
-          {{ dayjs(notification).format('DD.MM.YY HH:mm') }}
-        </div>
-      </div>
-      <br />
-      <div class="timer_text">Time to next Interval:</div>
-      <div class="timer">
-        <div>{{ minutes }}:{{ seconds }}</div>
-      </div>
-
-      <div v-if="userStore.userData.username == 'nviiadmin'">
-        secToNext: {{ infoStore.secToNext }}<br />
-        minutesCounter:
-        {{ infoStore.minutesCounter }}
-        <div>
-          <br />
-          infoStore.appStateChangeCounter:
-          {{ infoStore.appStateChangeCounter }} <br /><br />
-          <div>
-            infoStore.countdownTimerCounter:
-            {{ infoStore.countdownTimerCounter }}
-          </div>
-          initialAnswerExist: {{ questionsStore.initialAnswerExist }}<br />
-          dailyTime: {{ infoStore.dailyTime }}<br />
-          timeframe: {{ infoStore.timeframe }}<br />
-          userStore.briefingShortChecked:
-          {{ userStore.briefingShortChecked }}<br />
-          userStore.complianceAccepted: {{ userStore.complianceAccepted }}<br />
-          questionsStore.todayShortAnswers:
-          {{ questionsStore.todayShortAnswers }}<br /><br />
-          infoStore.conditionsQuestionsShort:
-          {{ infoStore.conditionsQuestionsShort }}<br /><br />
-          infoStore.startDate:
-          {{ infoStore.startDate }} <br /><br />
-          infoStore.endDate:
-          {{ infoStore.endDate }} <br />
-          <br /><br />infoStore.dailyStartTime:
-          {{ infoStore.dailyStartTime }}
-          <br /><br />infoStore.dailyEndTime: {{ infoStore.dailyEndTime
-          }}<br /><br />
-        </div>
-        <router-link class="link_button" to="/iosstats">
-          <ion-button color="medium">iosStats</ion-button>
-        </router-link>
-        <ion-button color="medium" @click="questionsStore.countShortAnswers()"
-          >countShortAnswers</ion-button
-        >
-
-        <ion-button color="medium" @click="userStore.setTestNotifications"
-          >set Test Notifications</ion-button
-        >
-
-        <ion-button color="medium" @click="userStore.setNotifications"
-          >set Notifications</ion-button
-        >
-        <ion-button
-          color="medium"
-          @click="questionsStore.nextShortAnswerMs = dayjs().add(15, 'second')"
-          >Skip Timer</ion-button
-        >
-
-        getOptionsCounter: {{ infoStore.testCounter }}
-        <ion-button color="medium" @click="statsStore.getStats"
-          >get Stats</ion-button
-        >
-        <ion-button color="medium" @click="questionsStore.todayShortPlus"
-          >shortanswer ++</ion-button
-        >
-        <ion-button color="medium" @click="questionsStore.todayShortAnswers--"
-          >shortanswer --</ion-button
-        >
-      </div>
-    </div>
     <!-- <modal-component :welcome></modal-component>
     <modal-component :datenschutz></modal-component> -->
   </base-layout>
@@ -216,6 +90,7 @@
   import { useStatsStore } from '@/stores/statsStore';
   import { useInfoStore } from '@/stores/infoStore';
   import { useQuestionsStore } from '@/stores/questionsStore';
+  import InfoboxhomeComponent from '@/components/InfoboxhomeComponent.vue';
 
   import dayjs from 'dayjs';
 
@@ -227,6 +102,10 @@
   const infoStore = useInfoStore();
 
   const showButtons = ref(false);
+
+  function onStartQuestionsShort() {
+    router.replace({ path: '/questionsshort' });
+  }
 
   async function onStartQuestionsInitial() {
     // check for validToken
@@ -248,31 +127,14 @@
         answer.message +
         '';
 
-      router.replace('/login');
+      router.replace({ path: '/login' });
       return;
     }
 
     // end check for validTokenminutes
 
-    router.replace('/questionsinitial');
+    router.replace({ path: '/questionsinitial' });
   }
-
-  function formatTo2digit(input) {
-    let formated = input.toLocaleString('de-DE', {
-      minimumIntegerDigits: 2,
-      useGrouping: false,
-    });
-
-    return formated;
-  }
-
-  let minutes = computed(() => {
-    return formatTo2digit(Math.floor(infoStore.secToNext / 60));
-  });
-
-  let seconds = computed(() => {
-    return formatTo2digit(infoStore.secToNext % 60);
-  });
 </script>
 
 <style scoped>
@@ -303,6 +165,7 @@
 
   .uiqueUserId {
     margin-bottom: 50px;
+    text-align: center;
   }
 
   .result_buttons {

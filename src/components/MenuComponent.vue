@@ -1,20 +1,23 @@
 <template>
   <div class="menu_wrapper" @click="$emit('toggleMenu')">
     <div class="menu">
-      <router-link
+      <div
         class="menu_entry"
         v-for="link of menuEntries"
-        :to="link.route"
         slot="end"
         :key="link.route"
+        @click="routing(link.route)"
       >
         {{ link.name }}
-      </router-link>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
+  import { useRouter, useRoute } from 'vue-router';
+  const router = useRouter();
+
   let menuEntries = [
     {
       name: 'Home',
@@ -29,6 +32,11 @@
     { name: 'Datenschutz', route: '/compliance' },
     { name: 'User', route: '/user' },
   ];
+
+  function routing(route) {
+    console.log('MenuComponent - routing', route);
+    router.replace({ path: route });
+  }
 </script>
 
 <style scoped>
@@ -68,6 +76,7 @@
     /* box-shadow: var(--box_shadow); */
     border-radius: 5px;
     /* background-color: var(--ion-color-secondary-opacy); */
+    color: var(--ion-color-primary);
   }
 
   .menu_entry {

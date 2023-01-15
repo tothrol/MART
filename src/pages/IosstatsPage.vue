@@ -53,10 +53,10 @@
           response.message +
           '';
       } else {
-        router.replace('/success');
+        router.replace({ path: '/success' });
       }
     } else {
-      router.replace('/success');
+      router.replace({ path: '/success' });
     }
   }
 </script>

@@ -21,7 +21,7 @@
 
   function onHome() {
     userStore.appMessage = '';
-    router.push('/home');
+    router.replace({ path: '/home' });
   }
 </script>
 

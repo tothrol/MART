@@ -402,7 +402,13 @@
           </div>
         </li>
         <!-- Absenden Seite -->
-        <li class="sheet" v-if="currentSheet == sheets.length">
+        <li
+          class="sheet"
+          v-if="
+            currentSheet == sheets.length &&
+            Object.keys(answers.entries).length > 4
+          "
+        >
           <div class="absenden_text"><p>Bereit zum Absenden?</p></div>
 
           <div class="buttons">
@@ -427,56 +433,7 @@
         </li>
       </div>
     </div>
-    <div
-      class="development devbox"
-      v-if="userStore.showDevbox && userStore.userData.username == 'nviiadmin'"
-    >
-      <ion-button @click="userStore.showDevbox = false">close</ion-button>
 
-      <div>
-        <div
-          v-if="activeSheet != undefined && activeSheet.batteryId != undefined"
-        >
-          <div>number Of Total sheets: {{ sheets.length }}</div>
-          <div>number Of Total Items: {{ numberOfItems }}</div>
-          <br />
-          <div>activeSheet.sheetId :{{ activeSheet.sheetId }}</div>
-
-          <div class="">activeSheet.itemId: {{ activeSheet.itemId }}</div>
-          <div class="">activeSheet.orderId: {{ activeSheet.orderId }}</div>
-          <br />
-          <div class="">activeSheet.batteryId: {{ activeSheet.batteryId }}</div>
-          <!-- <div
-            class=""
-            v-if="
-              activeSheet.batteryId != '' &&
-              batteries[activeSheet.batteryId].batteryName != undefined
-            "
-          >
-            batteryName: {{ batteries[activeSheet.batteryId].batteryName }}
-          </div> -->
-          <!-- <div
-            class=""
-            v-if="batteries[activeSheet.batteryId].batteryMeta != undefined"
-          >
-            batteryMeta: {{ batteries[activeSheet.batteryId].batteryMeta }}
-          </div> -->
-
-          <div>currentSheet: {{ currentSheet }}</div>
-        </div>
-
-        <ion-button @click="getQuestionsShort"
-          >Axios get Questions Short</ion-button
-        >
-        <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
-      </div>
-      <div>answers.entries: {{ answers.entries }}</div>
-      <div class="spinner" v-if="showSpinner">
-        <ion-spinner name="dots"></ion-spinner>
-      </div>
-      <div>currentSheet: {{ currentSheet }}</div>
-      <input placeholder="currentSheet" type="number" v-model="currentSheet" />
-    </div>
     <spinner-component v-if="showSpinner"
       >Daten werden gesendet.</spinner-component
     >
@@ -485,6 +442,77 @@
       v-if="showPermissionModal === true"
       :closeModal="closePermissionModal"
     ></permission-component>
+    <!-- START Devbox -->
+    <div v-if="userStore.userData.username == 'nviiadmin'">
+      <div class="admin_buttons">
+        <div
+          class="admin"
+          v-if="userStore.userData.username === 'nviiadmin'"
+          @click="userStore.showInfoboxShort = !userStore.showInfoboxShort"
+        >
+          <ion-button color="medium" class="">info</ion-button>
+        </div>
+
+        <div
+          class="admin"
+          v-if="
+            userStore.userData.username === 'nviiadmin' ||
+            userStore.userData.username === 'RolandToth'
+          "
+          @click="setAllAnswers"
+        >
+          <ion-button color="medium" class="display_none">setAll</ion-button>
+        </div>
+      </div>
+      <div class="development devbox" v-if="userStore.showInfoboxShort">
+        <ion-button @click="userStore.showInfoboxShort = false"
+          >close</ion-button
+        >
+
+        <div>
+          <div
+            v-if="
+              activeSheet != undefined && activeSheet.batteryId != undefined
+            "
+          >
+            <div>number Of Total sheets: {{ sheets.length }}</div>
+            <div>number Of Total Items: {{ numberOfItems }}</div>
+            <br />
+            <div>activeSheet.sheetId :{{ activeSheet.sheetId }}</div>
+
+            <div class="">activeSheet.itemId: {{ activeSheet.itemId }}</div>
+            <div class="">activeSheet.orderId: {{ activeSheet.orderId }}</div>
+            <br />
+            <div class="">
+              activeSheet.batteryId: {{ activeSheet.batteryId }}
+            </div>
+
+            <div>currentSheet: {{ currentSheet }}</div>
+            <div>
+              Object.keys(answers.entries).length:
+              {{ Object.keys(answers.entries).length }}
+            </div>
+          </div>
+
+          <ion-button @click="getQuestionsShort"
+            >Axios get Questions Short</ion-button
+          >
+          <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
+        </div>
+        <div>answers.entries: {{ answers.entries }}</div>
+
+        <div class="spinner" v-if="showSpinner">
+          <ion-spinner name="dots"></ion-spinner>
+        </div>
+        <div>currentSheet: {{ currentSheet }}</div>
+        <input
+          placeholder="currentSheet"
+          type="number"
+          v-model="currentSheet"
+        />
+      </div>
+    </div>
+    <!-- END Devbox -->
   </base-layout>
 </template>
 
@@ -507,6 +535,7 @@
   import { useRouter, useRoute } from 'vue-router';
   import { Storage } from '@ionic/storage';
   import { useStatsStore } from '@/stores/statsStore';
+  import { useInfoStore } from '@/stores/infoStore';
   import PermissionComponent from '@/components/PermissionComponent.vue';
   import { Capacitor } from '@capacitor/core';
 
@@ -515,6 +544,7 @@
   const router = useRouter();
 
   const statsStore = useStatsStore();
+  const infoStore = useInfoStore();
 
   let showPermissionModal = ref(false);
 
@@ -555,8 +585,21 @@
 
   let currentSheet = ref(0);
 
-  function getQuestionsShort() {
-    questionsStore.getShortQuestions();
+  async function getQuestionsShort() {
+    showSpinner.value = true;
+    let request = await questionsStore.getShortQuestions();
+    if (request.status != 200 && request.status != 201) {
+      userStore.appMessage =
+        'Es gab einen Fehler: ' +
+        request.code +
+        '<br>Message: ' +
+        request.message +
+        '';
+      console.log('BaseLayout - onStartQuestionsShort - push - login');
+      router.replace({ path: '/login' });
+      return;
+    }
+    showSpinner.value = false;
   }
   getQuestionsShort();
 
@@ -1041,16 +1084,16 @@
           response.message +
           '';
 
-        // router.push('/login');
+        // router.replace('/login');
         showBackHomeButton.value = true;
         return;
       }
 
       resetAllAnswers();
       if (platform === 'ios') {
-        router.replace('/iosstats');
+        router.replace({ path: '/iosstats' });
       } else {
-        router.replace('/success');
+        router.replace({ path: '/success' });
       }
     });
   }
@@ -1061,7 +1104,7 @@
     showBackHomeButton.value = false;
     resetAllAnswers();
 
-    router.replace('/home');
+    router.replace({ path: '/home' });
   }
 
   function resetAllAnswers() {
@@ -1125,6 +1168,33 @@
 
     answers.entries[itemId] = Number(value);
   }
+
+  // START Routing away if timeframe or dailyTime is false
+
+  let route = useRoute();
+
+  watchEffect(() => {
+    console.log(
+      'QuestionsShort - watchEffect - infoStore.timeframe',
+      infoStore.timeframe
+    );
+    const timeframe = infoStore.timeframe;
+    const dailyTime = infoStore.dailyTime;
+
+    let path = route.path;
+    console.log('questionsShortPage - watchEffect - route', path);
+    console.log('questionsShortPage - watchEffect - route', route);
+    if (path === '/questionsshort') {
+      if (timeframe === false || dailyTime == false) {
+        console.log(
+          'questionsShortPage - watchEffect - checkRouteAndDailyTime - false'
+        );
+        // 2check: routing to home does not work, route changes, but doesnt get away from questionsshort
+        // evtl routing from Page questionsShort instead of here
+        router.replace({ path: '/home' });
+      }
+    }
+  });
 </script>
 
 <style>
@@ -1501,5 +1571,18 @@
 
   .timer3 .timer {
     font-size: 40px;
+  }
+
+  /* .admin_buttons {
+    position: fixed;
+    top: 35px;
+    left: 10px;
+  } */
+  .admin_buttons {
+    position: fixed;
+    top: 35px;
+    left: 0;
+    display: flex;
+    z-index: 99;
   }
 </style>

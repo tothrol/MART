@@ -24,6 +24,7 @@
         ><p v-html="userStore.appMessage" style="white-space: pre-line"></p
       ></messagebox-component>
     </transition>
+    <devbox-component></devbox-component>
   </ion-page>
 </template>
 
@@ -50,34 +51,40 @@
   import HeaderComponent from '@/components/base/HeaderComponent.vue';
   import FooterComponent from '@/components/base/FooterComponent.vue';
   import MessageboxComponent from '@/components/MessageboxComponent.vue';
+  import DevboxComponent from '@/components/DevboxComponent.vue';
   import type { InjectionKey } from 'vue';
   import MenuComponent from '../MenuComponent.vue';
   import { useUserStore } from '@/stores/userStore';
   import { useInfoStore } from '@/stores/infoStore';
+  import { useStatsStore } from '@/stores/statsStore';
 
   import { useQuestionsStore } from '@/stores/questionsStore';
 
   import { useRouter, useRoute } from 'vue-router';
-  import { App } from '@capacitor/app';
+
   import relativeTime from 'dayjs/plugin/relativeTime';
   import { Capacitor } from '@capacitor/core';
   import { LocalNotifications } from '@capacitor/local-notifications';
+  import { useBackButton, useIonRouter } from '@ionic/vue';
+  import { App } from '@capacitor/app';
 
   let platform = Capacitor.getPlatform();
 
   const questionsStore = useQuestionsStore();
   const userStore = useUserStore();
   const infoStore = useInfoStore();
+  const statsStore = useStatsStore();
   const router = useRouter();
   const route = useRoute();
 
   let conditionsQuestionsShort = false;
 
   async function onStartQuestionsShort() {
-    // console.log(
-    //   'BaseLayout - onStartQuestionsShort - token',
-    //   userStore.userData.token
-    // );
+    console.log(
+      'BaseLayout - onStartQuestionsShort - infoStore.secToNext',
+      infoStore.secToNext
+    );
+
     // console.log(
     //   'BaseLayout - onStartQuestionsShort - userData: ',
     //   userStore.userData
@@ -107,7 +114,7 @@
           answer.message +
           '';
         console.log('BaseLayout - onStartQuestionsShort - push - login');
-        router.replace('/login');
+        router.replace({ path: '/login' });
         return;
       }
 
@@ -143,16 +150,16 @@
           console.log(
             'BaseLayout - onStartQuestionsShort - push - briefing-short'
           );
-          router.replace('/briefing-short');
+          router.replace({ path: '/briefing-short' });
         } else {
           console.log(
             'BaseLayout - onStartQuestionsShort - push - questionsShort'
           );
-          router.replace('/questionsshort');
+          router.replace({ path: '/questionsshort' });
         }
       } else {
         console.log('BaseLayout - onStartQuestionsShort - NOpush');
-        // router.push('/home');
+        // router.replace('/home');
       }
     }
   }
@@ -161,7 +168,7 @@
     // Question: When is timeframe computed
     let nowMs = dayjs().valueOf();
     let startDateMs = infoStore.startDate.ms;
-    let endDateMs = infoStore.endDate.ms;
+    let endDateMs = toRaw(infoStore.endDate.ms);
 
     // minutes is only needet to get an update every minute of daily time.
     //  The update every minute is needeet to route away from questionsshort if the dailyTime is false
@@ -212,13 +219,6 @@
     console.log('BaseLayout - watchEffect - timeframe.value', timeframe.value);
     infoStore.timeframe = timeframe.value;
   });
-
-  //   watch () => timeframe,
-  //   (newValue, oldValue) => {
-  //     console.log('BaseLayout - watch - timeframe', oldValue, newValue);
-  //     userStore.timeframe = newValue;
-  //   }
-  // );
 
   // only here to trigger updates to dailyTime
 
@@ -274,14 +274,6 @@
     infoStore.dailyTime = dailyTime.value;
   });
 
-  // watchEffect(
-  //   () => dailyTime,
-  //   (newValue, oldValue) => {
-  //     console.log('BaseLayout - watch - dailyTime', oldValue, newValue);
-  //     userStore.dailyTime = newValue;
-  //   }
-  // );
-
   function checkTimeframe(value) {
     if (value === 'notStarted') {
       let message =
@@ -321,14 +313,6 @@
     questionsStore.calculateTodayShortAnswers();
   });
 
-  // watch(
-  //   () => questionsStore.lastShortAnswer,
-  //   (newValue, oldValue) => {
-  //     console.log('BaseLayout - changes detected', oldValue, newValue);
-  //     initDate();
-  //   }
-  // );
-
   watch(
     () => questionsStore.nextShortAnswerMs,
     (newValue, oldValue) => {
@@ -340,18 +324,6 @@
       secTimer();
     }
   );
-
-  // watch(
-  //   () => infoStore.breakBetweenShortQuestions,
-  //   (newValue, oldValue) => {
-  //     console.log(
-  //       'BaseLayout - changes detected -infoStore.breakBetweenShortQuestions',
-  //       oldValue,
-  //       newValue
-  //     );
-  //     initDate();
-  //   }
-  // );
 
   watch(
     () => infoStore.endDate.dayJs,
@@ -413,10 +385,6 @@
     }
   }
 
-  // let countdownMinutes = ref(null);
-  // let countdownHours = ref(null);
-  // let countdownDays = ref(null);
-
   let oneMinuteTimerTimeout;
 
   function oneMinuteTimer() {
@@ -425,10 +393,12 @@
     let then = dayjs(0);
     infoStore.minutesCounter = now.diff(then, 'm');
     countdownTimer();
-    checkRouteAndDailyTime();
+
     questionsStore.calculateTodayShortAnswers();
     if (platform != 'web') {
       checkIfNotificationsLeft();
+    } else {
+      infoStore.pendingNotificationsCount = 'its Web';
     }
 
     oneMinuteTimerTimeout = window.setTimeout(
@@ -472,20 +442,6 @@
     }
   }
 
-  function checkRouteAndDailyTime() {
-    // checking if dailyTime is false, this gets triggered every Minute
-    // purpose: routing away from questionsshort if dailyTime is false
-    let path = route.path;
-    console.log('BaseLayout - route', path);
-    console.log('BaseLayout - route', route);
-    if (path === '/questionsshort') {
-      if (timeframe.value === false || dailyTime.value == false) {
-        console.log('BaseLayout - checkRouteAndDailyTime - false');
-        router.push('/home');
-      }
-    }
-  }
-
   async function checkIfNotificationsLeft() {
     // Checks if any notifications are left
     console.log('BaseLayout - checkIfNotificationsLeft');
@@ -493,45 +449,20 @@
     // START get pending Notifications
     let pendingNotifications = await LocalNotifications.getPending();
     console.log('Notifiations - pendingNotifications', pendingNotifications);
+    infoStore.pendingNotificationsCount =
+      pendingNotifications.notifications.length;
 
     // END get pending Notifications
 
     if (
-      pendingNotifications.notifications.length === 0 &&
-      questionsStore.shortAnswersArray.length >= 1
+      pendingNotifications.notifications.length === 0 ||
+      (questionsStore.shortAnswersArray.length === 0 &&
+        questionsStore.briefingShortChecked)
     ) {
       console.log('BaseLayout - checkIfNotificationsLeft - No Notifications');
       userStore.setNotifications();
     }
   }
-
-  // async function countdownTimer() {
-  //   if (countdownHours.value >= 1) {
-  //     secToNext.value = secToNext.value - 1;
-
-  //     countdownTimeout = window.setTimeout(
-  //       secTimer,
-  //       1000 * 60 * 60
-  //     ); /* replicate wait 1 second */
-  //   } else {
-  //     return;
-  //   }
-  // }
-
-  // async function initDate() {
-  //   console.log('BaseLayout - initDate');
-  //   let dateNow = dayjs();
-  //   let dateNext = dayjs(questionsStore.nextShortAnswerMs);
-  //   let lastShortAnswer = questionsStore.lastShortAnswer;
-  //   if (lastShortAnswer != undefined) {
-  //     // dateLast.value = dayjs(lastShortAnswer);
-
-  //     infoStore.secToNext = dateNext.diff(dateNow, 's');
-
-  //     clearTimeout(secT);
-  //     secTimer();
-  //   }
-  // }
 
   onMounted(async () => {
     console.log('BaseLayout - onMounted');
@@ -550,48 +481,42 @@
     userStore.localNotificationTapped;
     userStore.userData.token;
     infoStore.secToNext;
-    console.log(
-      'BaseLayout - watchEffect - conditionsQuestionsShort - userStore.localNotificationTapped',
-      userStore.localNotificationTapped
-    );
-    // console.log(
-    //   'BaseLayout - watchEffect - conditionsQuestionsShort - userStore.userData.token',
-    //   userStore.userData.token
-    // );
-    // console.log(
-    //   'BaseLayout - conditionsQuestionsShort - infoStore.secToNext',
-    //   infoStore.secToNext
-    // );
-    // console.log(
-    //   'BaseLayout - watchEffect - conditionsQuestionsShort - timerOver.value',
-    //   timerOver.value
-    // );
 
-    //END Console.logs needet to trigger this computed function
-
-    // START QuestionInitial Conditions
-    // console.log(
-    //   'BaseLayout - watchEffect - conditionsQuestionsInitial - questionsStore.initialAnswerExist: ',
-    //   questionsStore.initialAnswerExist
-    // );
-    // console.log(
-    //   'BaseLayout - watchEffect - conditionsQuestionsInitial - userStore.complianceAccepted: ',
-    //   userStore.complianceAccepted
-    // );
     if (questionsStore.initialAnswerExist === false) {
       if (userStore.complianceAccepted === true) {
         // console.log(
         //   'BaseLayout - watchEffect - conditionsQuestionsInitial - true'
         // );
-        router.replace('/questionsinitial');
+        router.replace({ path: '/questionsinitial' });
       } else {
-        // router.push('/welcome');
+        // router.replace('/welcome');
       }
     }
     // END QuestionInitial Conditions
 
+    // START before first questionsShort
+
+    // same as below, but without secToNext, as Notifications (and secToNext) get set before first short questions
+    // and therefore we need to trigger quesstions short without sec to next.
+
     if (
-      userStore.briefingShortChecked === true &&
+      questionsStore.shortAnswersArray.length === 0 &&
+      userStore.complianceAccepted === true &&
+      questionsStore.initialAnswerExist === true &&
+      questionsStore.todayShortAnswers < 6 &&
+      timeframe.value &&
+      dailyTime.value
+    ) {
+      console.log(
+        'BaseLayout - watchEffect - its the first time shortQuestions starts'
+      );
+      conditionsQuestionsShort = true;
+      infoStore.conditionsQuestionsShort = true;
+      onStartQuestionsShort();
+      // END before first questionsShort
+
+      // START conditions questionsShort
+    } else if (
       userStore.complianceAccepted === true &&
       questionsStore.initialAnswerExist === true &&
       questionsStore.todayShortAnswers < 6 &&
@@ -603,11 +528,10 @@
       infoStore.conditionsQuestionsShort = true;
       onStartQuestionsShort();
 
-      // console.log('BaseLayout - watchEffect - conditionsQuestionsShort - true');
+      // END conditions questionsShort
     } else {
-      // console.log(
-      //   'BaseLayout - watchEffect - conditionsQuestionsShort - false'
-      // );
+      // conditions not met for questionsShort
+
       infoStore.conditionsQuestionsShort = false;
       conditionsQuestionsShort = false;
     }

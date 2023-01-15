@@ -4,13 +4,14 @@
     ><div class="box green">
       <h1>{{ infoStore.compliance.title }}</h1>
       <p class="info_text" v-html="infoStore.compliance.text"></p>
-      <router-link
+
+      <ion-button
+        @click="onOK"
         v-if="userStore.complianceAccepted === false"
         class="link_button"
-        to="/welcome"
+        color="secondary"
+        >OK</ion-button
       >
-        <ion-button color="secondary">OK</ion-button>
-      </router-link>
     </div>
   </base-layout>
 </template>
@@ -22,9 +23,14 @@
   import { Icon } from '@iconify/vue';
   import heart from '@iconify-icons/codicon/heart-filled';
   import { useUserStore } from '@/stores/userStore';
+  import router from '@/router';
 
   const infoStore = useInfoStore();
   const userStore = useUserStore();
+
+  function onOK() {
+    router.replace({ path: '/welcome' });
+  }
 
   onMounted(() => {
     infoStore.getCompliance();

@@ -24,7 +24,7 @@
   const userStore = useUserStore();
 
   function onStartseite() {
-    router.replace('/home');
+    router.replace({ path: '/home' });
   }
 </script>
 

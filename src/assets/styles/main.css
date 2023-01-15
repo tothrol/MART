@@ -155,13 +155,13 @@ ion-button.auto_width {
 .devbox {
   position: fixed;
   left: 0;
-  bottom: 44px;
+  top: 65px;
   background-color: rgba(170, 170, 170, 0.95);
-  padding: 20px;
+  padding: 12px;
   width: 300px;
   border-radius: 10px;
   overflow-y: scroll;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 120px);
   scrollbar-width: none;
 }
 

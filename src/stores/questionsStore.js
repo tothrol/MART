@@ -36,10 +36,13 @@ export const useQuestionsStore = defineStore('questionsStore', {
     };
   },
   actions: {
-    getInitialQuestions() {
-      axios
-        .get(`https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen`)
-        .then((response) => {
+    async getInitialQuestions() {
+      try {
+        let response = await axios.get(
+          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen`
+        );
+
+        if (response.status === 200) {
           // JSON responses are automatically parsed.
           // console.log('RRRRR', response);
 
@@ -61,12 +64,28 @@ export const useQuestionsStore = defineStore('questionsStore', {
           for (const scale of scales) {
             this.scalesInitial[scale.scaleId] = scale;
           }
+        }
 
-          return;
-        })
-        .catch((e) => {
-          return e;
+        console.log(
+          'questionsStore - getInitialQuestions -  getIQ response: ',
+          response
+        );
+
+        return new Promise((resolve) => {
+          console.log(
+            'questionsStore - getInitialQuestions - resolvw - getIQ response: '
+          );
+          resolve(response);
         });
+      } catch (e) {
+        return new Promise((reject) => {
+          console.log(
+            'questionsStore - getInitialQuestions - resolv - getIQ error: ',
+            e
+          );
+          reject(e);
+        });
+      }
     },
     async sendInitialAnswers(answers) {
       try {
@@ -219,37 +238,27 @@ export const useQuestionsStore = defineStore('questionsStore', {
     },
 
     // Questions Short
-    getShortQuestions() {
-      axios
-        .get(`https://fuberlin.nvii-dev.com/wp-json/wp/v2/kurzfragebogen`)
-        .then((response) => {
-          // JSON responses are automatically parsed.
-          console.log(
-            'questionsStore - getShortQuestions - response',
-            response
-          );
+    async getShortQuestions() {
+      try {
+        let response = await axios.get(
+          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/kurzfragebogen`
+        );
 
-          const sheets = response.data[0].acf.questionRepeater_k;
-          const batteries = response.data[0].acf.batteries_k;
-          const scales = response.data[0].acf.scalesRepeater_k;
+        // JSON responses are automatically parsed.
+        console.log('questionsStore - getShortQuestions - response', response);
 
-          console.log(
-            'questionsStore - getShortQuestions - response ---',
-            response
-          );
+        const sheets = response.data[0].acf.questionRepeater_k;
+        const batteries = response.data[0].acf.batteries_k;
+        const scales = response.data[0].acf.scalesRepeater_k;
 
-          for (let i = 0; i < sheets.length; i++) {
-            if (sheets[i].itemId_k != undefined && sheets[i].itemId_k != '') {
-              this.questionsShort[sheets[i].itemId_k] = {
-                batteryId: sheets[i].batteryId_k,
-                choiceId: sheets[i].choiceId_k,
-                itemId: sheets[i].itemId_k,
-                item: sheets[i].item_k,
-                scaleId: sheets[i].skaleId_k,
-                options: sheets[i].options,
-              };
-            }
-            this.sheetsShort[i + 1] = {
+        console.log(
+          'questionsStore - getShortQuestions - response ---',
+          response
+        );
+
+        for (let i = 0; i < sheets.length; i++) {
+          if (sheets[i].itemId_k != undefined && sheets[i].itemId_k != '') {
+            this.questionsShort[sheets[i].itemId_k] = {
               batteryId: sheets[i].batteryId_k,
               choiceId: sheets[i].choiceId_k,
               itemId: sheets[i].itemId_k,
@@ -258,44 +267,60 @@ export const useQuestionsStore = defineStore('questionsStore', {
               options: sheets[i].options,
             };
           }
-          for (const battery of batteries) {
-            this.batteriesShort[battery.batteryId_k] = {
-              batteryId: battery.batteryId_k,
-              batteryName: battery.batteryName_k,
-              batteryText: battery.batteryText_k,
-              batteryMeta: battery.batteryMeta_k,
-              options: battery.options,
-            };
+          this.sheetsShort[i + 1] = {
+            batteryId: sheets[i].batteryId_k,
+            choiceId: sheets[i].choiceId_k,
+            itemId: sheets[i].itemId_k,
+            item: sheets[i].item_k,
+            scaleId: sheets[i].skaleId_k,
+            options: sheets[i].options,
+          };
+        }
+        for (const battery of batteries) {
+          this.batteriesShort[battery.batteryId_k] = {
+            batteryId: battery.batteryId_k,
+            batteryName: battery.batteryName_k,
+            batteryText: battery.batteryText_k,
+            batteryMeta: battery.batteryMeta_k,
+            options: battery.options,
+          };
+        }
+        for (const scale of scales) {
+          const scaleRep = [];
+          for (const [index, repeater] of Object.entries(
+            scale.scaleRepeater_k
+          )) {
+            scaleRep.push({
+              key: repeater.key_k,
+              value: repeater.value_k,
+            });
           }
-          for (const scale of scales) {
-            const scaleRep = [];
-            for (const [index, repeater] of Object.entries(
-              scale.scaleRepeater_k
-            )) {
-              scaleRep.push({
-                key: repeater.key_k,
-                value: repeater.value_k,
-              });
-            }
-            this.scalesShort[scale.skaleId_k] = {
-              choiceId: scale.choiceId_k,
-              scaleRepeater: scaleRep,
-              scaleId: scale.skaleId_k,
-              options: scale.options,
-            };
-          }
+          this.scalesShort[scale.skaleId_k] = {
+            choiceId: scale.choiceId_k,
+            scaleRepeater: scaleRep,
+            scaleId: scale.skaleId_k,
+            options: scale.options,
+          };
+        }
 
-          // console.log(
-          //   'questionsStore - getShortQuestions - response',
-          //   response
-          // );
+        // console.log(
+        //   'questionsStore - getShortQuestions - response',
+        //   response
+        // );
 
-          return;
-        })
-        .catch((e) => {
-          // console.log('questionsStore - getShortQuestions - error', e);
-          return e;
+        return new Promise((resolve) => {
+          console.log('questionsStore - getShortQuestions - resolve', response);
+          resolve(response);
+          // }
         });
+      } catch (e) {
+        console.log('questionsStore - getShortQuestions - error', e);
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          reject(e);
+          // }
+        });
+      }
     },
     async sendShortAnswers(answers) {
       try {

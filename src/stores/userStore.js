@@ -26,6 +26,11 @@ export const useUserStore = defineStore('userStore', {
 
       // showQuestions: false,
       showDevbox: false,
+      showInfoboxHome: false,
+      showInfoboxInitial: false,
+
+      showInfoboxShort: false,
+      showAdminButtonsHome: false,
       uniqueUserId: '',
       randomArray: [],
       complianceAccepted: false,
@@ -135,14 +140,10 @@ export const useUserStore = defineStore('userStore', {
             await storage.remove('todayShortAnswers');
             await storage.remove('totalShortAnswers');
             await storage.remove('initialAnswerExist');
-            await storage.remove('notificationTimes');
-            await storage.remove('notificationTimesRandom');
+
             await storage.remove('todayShortAnswersArray');
             await storage.remove('shortAnswersArray');
-            await storage.remove('endDate');
-            await storage.remove('dailyEndTime');
-            await storage.remove('startDate');
-            await storage.remove('dailyStartTime');
+            await storage.remove('datesAndTimes');
             this.createRandomArray();
             this.complianceAccepted = false;
             console.log(
@@ -184,13 +185,11 @@ export const useUserStore = defineStore('userStore', {
               todayStartTimeMs: '',
             };
 
+            await this.resetNotifications();
             await questionsStore.getLastShortAnswer();
             await questionsStore.countShortAnswers();
             await infoStore.getOptions();
             // questionsStore.checkIfInitalAnswerExists();
-
-            this.notificationTimes = [];
-            this.notificationTimesRandom = [];
           }
         }
         return new Promise((resolve) => {
@@ -370,26 +369,14 @@ export const useUserStore = defineStore('userStore', {
 
       const infoStore = useInfoStore();
 
-      // START times
-      let startDate = await storage.get('startDate');
-      if (startDate != null) {
-        infoStore.startDate = startDate;
+      // START dateAndTimes
+      let datesAndTimes = await storage.get('datesAndTimes');
+      if (datesAndTimes != null) {
+        infoStore.datesAndTimes = datesAndTimes;
+        infoStore.calculateDatesAndTimes(datesAndTimes);
       }
-      let endDate = await storage.get('endDate');
-      if (endDate != null) {
-        infoStore.endDate = endDate;
-      }
-      let dailyStartTime = await storage.get('dailyStartTime');
-      if (dailyStartTime != null) {
-        infoStore.dailyStartTime = dailyStartTime;
-      }
-      let dailyEndTime = await storage.get('dailyEndTime');
-      if (dailyEndTime != null) {
-        infoStore.dailyEndTime = dailyEndTime;
-      }
-      console.log('dailyStartTime xcx', dailyStartTime);
-
-      // END times
+      console.log('userStore - atAppStart - datesAndTimes: ', datesAndTimes);
+      // END dateAndTimes
 
       await infoStore.getOptions();
       // await questionsStore.calculateTodayShortAnswers();
@@ -697,6 +684,8 @@ export const useUserStore = defineStore('userStore', {
           'Notifiations - pendingNotifications',
           pendingNotifications
         );
+        infoStore.pendingNotificationsCount =
+          pendingNotifications.notifications.length;
 
         // END get pending Notifications
 
@@ -724,6 +713,16 @@ export const useUserStore = defineStore('userStore', {
           // }
         });
       }
+    },
+    async getPendingNotifications() {
+      let infoStore = useInfoStore();
+      // START get pending Notifications
+      let pendingNotifications = await LocalNotifications.getPending();
+      console.log('Notifiations - pendingNotifications', pendingNotifications);
+      infoStore.pendingNotificationsCount =
+        pendingNotifications.notifications.length;
+
+      // END get pending Notifications
     },
     async resetNotifications() {
       try {
@@ -760,6 +759,15 @@ export const useUserStore = defineStore('userStore', {
             });
           }
         }
+        let infoStore = useInfoStore();
+        infoStore.localNotificationsCount = 'reset';
+
+        const storage = new Storage();
+        await storage.create();
+        await storage.remove('notificationTimes');
+        await storage.remove('notificationTimesRandom');
+        this.notificationTimes = [];
+        this.notificationTimesRandom = [];
 
         return new Promise((resolve) => {
           // if (response.status == 200) {

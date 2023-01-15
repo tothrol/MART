@@ -42,6 +42,8 @@ export const useInfoStore = defineStore('infoStore', {
       },
       dailyInterval: 0,
       breakBetweenShortQuestions: 0,
+      datesAndTimes: {},
+      // datesAndTimes only here for testing, comming from storage from atAppStart()
       testCounter: 0,
       timeframe: false,
       dailyTime: false,
@@ -60,6 +62,7 @@ export const useInfoStore = defineStore('infoStore', {
       // needet to trigger computed function timeframe at app Start
       appStateChangeCounter: 0,
       countdownTimerCounter: 0,
+      pendingNotificationsCount: 'initial',
     };
   },
   actions: {
@@ -81,121 +84,31 @@ export const useInfoStore = defineStore('infoStore', {
 
         if (response.status == 200) {
           // console.log('infoStore - getOptions - response', response);
-
-          // START Date
-          // START startDate
-          this.startDate.string = response.data.acf.startDate;
-          this.startDate.jsDate = dayjs(
-            response.data.acf.startDate,
-            'DD.MM.YYYY',
-            true
-          ).toDate();
-          this.startDate.dayJs = dayjs(
-            response.data.acf.startDate,
-            'DD.MM.YYYY',
-            true
-          );
-          this.startDate.ms = dayjs(
-            response.data.acf.startDate,
-            'DD.MM.YYYY',
-            true
-          ).valueOf();
-
           const storage = new Storage();
-          await storage.create();
-          await storage.set('startDate', toRaw(this.startDate));
 
-          // END startDate
-
-          // START endDate
-
-          this.endDate.string = response.data.acf.endDate;
-          this.endDate.jsDate = dayjs(
-            response.data.acf.endDate,
-            'DD.MM.YYYY',
-            true
-          ).toDate();
-          this.endDate.dayJs = dayjs(
-            response.data.acf.endDate,
-            'DD.MM.YYYY',
-            true
-          );
-          this.endDate.ms = dayjs(
-            response.data.acf.endDate,
-            'DD.MM.YYYY',
-            true
-          ).valueOf();
-
-          await storage.create();
-          await storage.set('endDate', toRaw(this.endDate));
-
-          // END endDate
-
-          //  ENd Date
-
-          //START  Time
-
-          let todayStartOfDay = dayjs().startOf('day');
-
-          //START startTime
-          let startTimeString = response.data.acf.dailyStartTime2;
-          this.dailyStartTime.string = startTimeString;
-
-          let startTimeHours = startTimeString.slice(0, 2);
-          let startTimeMinutes = startTimeString.slice(3, 5);
-          let todayStartTime = dayjs()
-            .startOf('day')
-            .minute(startTimeMinutes)
-            .hour(startTimeHours);
-
-          this.dailyStartTime.todayStartOfDay = todayStartOfDay;
-          this.dailyStartTime.todayStartOfDayMs = todayStartOfDay.valueOf();
-          this.dailyStartTime.todayStartTimeMs = todayStartTime.valueOf();
-          this.dailyStartTime.todayStartTime = todayStartTime;
-
-          await storage.create();
-          await storage.set('dailyStartTime', toRaw(this.dailyStartTime));
-          // END startTime
-
-          // START endTime
-          let endTimeString = response.data.acf.dailyEndTime;
-          this.dailyEndTime.string = endTimeString;
-
-          let endTimeHours = endTimeString.slice(0, 2);
-          this.dailyEndTime.hours = endTimeHours;
-
-          let endTimeMinutes = endTimeString.slice(3, 5);
-          this.dailyEndTime.minutes = endTimeMinutes;
-          this.dailyEndTime.string = endTimeString;
-          let todayEndTime = dayjs()
-            .startOf('day')
-            .minute(endTimeMinutes)
-            .hour(endTimeHours);
-
-          this.dailyEndTime.todayStartOfDay = todayStartOfDay;
-          this.dailyEndTime.todayStartOfDayMs = todayStartOfDay.valueOf();
-          this.dailyEndTime.todayEndTimeMs = todayEndTime.valueOf();
-          this.dailyEndTime.todayEndTime = todayEndTime;
-
-          await storage.create();
-          await storage.set('dailyEndTime', toRaw(this.dailyEndTime));
-
-          // END endTime
-          //  END daily Time
-
-          // START Intervalldauer
-          this.dailyInterval = Number(
-            response.data.acf.dailyInterval.intervalTime
-          );
-
-          // END Intervalldauer
-
-          // START breakBetweenShortQuestions
-          this.breakBetweenShortQuestions = Number(
+          let startDate = response.data.acf.startDate;
+          let endDate = response.data.acf.endDate;
+          let dailyStartTime = response.data.acf.dailyStartTime2;
+          let dailyEndTime = response.data.acf.dailyEndTime;
+          let dailyInterval = response.data.acf.dailyInterval.intervalTime;
+          let breakBetweenShortQuestions = Number(
             response.data.acf.dailyInterval.breakBetweenShortQuestions
           );
 
+          let datesAndTimes = {
+            startDate,
+            endDate,
+            dailyStartTime,
+            dailyEndTime,
+            dailyInterval,
+            breakBetweenShortQuestions,
+          };
+          await storage.create();
+          await storage.set('datesAndTimes', datesAndTimes);
+
           // END breakBetweenShortQuestions
+
+          this.calculateDatesAndTimes(datesAndTimes);
         }
 
         return new Promise((resolve) => {
@@ -212,6 +125,95 @@ export const useInfoStore = defineStore('infoStore', {
         });
       }
     },
+
+    calculateDatesAndTimes(datesAndTimes) {
+      const {
+        startDate,
+        endDate,
+        dailyStartTime,
+        dailyEndTime,
+        dailyInterval,
+        breakBetweenShortQuestions,
+      } = datesAndTimes;
+
+      dayjs.extend(customParseFormat);
+
+      console.log('infoStore - calcDates - datesAndTimes: ', datesAndTimes);
+      // START startDate
+      this.startDate.string = startDate;
+      this.startDate.jsDate = dayjs(startDate, 'DD.MM.YYYY', true).toDate();
+      this.startDate.dayJs = dayjs(startDate, 'DD.MM.YYYY', true);
+      this.startDate.ms = dayjs(startDate, 'DD.MM.YYYY', true).valueOf();
+
+      // END startDate
+
+      // START endDate
+      this.endDate.string = endDate;
+      let endDateDayJs = dayjs(endDate, 'DD.MM.YYYY', true);
+      this.endDate.dayJs = endDateDayJs;
+      this.endDate.jsDate = endDateDayJs.toDate();
+      this.endDate.ms = endDateDayJs.valueOf();
+      console.log(
+        'infoStore - calculateDatesAndTimes - this.endDate',
+        JSON.stringify(toRaw(this.endDate))
+      );
+      console.log(
+        'infoStore - calculateDatesAndTimes - this.endDate.ms',
+        toRaw(this.endDate.ms)
+      );
+      // END endDate
+
+      // START startTime
+
+      // 2check... does this needs to run every day?
+      let todayStartOfDay = dayjs().startOf('day');
+
+      let startTimeString = dailyStartTime;
+      this.dailyStartTime.string = startTimeString;
+
+      let startTimeHours = startTimeString.slice(0, 2);
+      let startTimeMinutes = startTimeString.slice(3, 5);
+      let todayStartTime = dayjs()
+        .startOf('day')
+        .minute(startTimeMinutes)
+        .hour(startTimeHours);
+
+      this.dailyStartTime.todayStartOfDay = todayStartOfDay;
+      this.dailyStartTime.todayStartOfDayMs = todayStartOfDay.valueOf();
+      this.dailyStartTime.todayStartTimeMs = todayStartTime.valueOf();
+      this.dailyStartTime.todayStartTime = todayStartTime;
+      // END startTime
+
+      // START endTime
+      let endTimeString = dailyEndTime;
+      this.dailyEndTime.string = endTimeString;
+
+      let endTimeHours = endTimeString.slice(0, 2);
+      this.dailyEndTime.hours = endTimeHours;
+
+      let endTimeMinutes = endTimeString.slice(3, 5);
+      this.dailyEndTime.minutes = endTimeMinutes;
+      this.dailyEndTime.string = endTimeString;
+      let todayEndTime = dayjs()
+        .startOf('day')
+        .minute(endTimeMinutes)
+        .hour(endTimeHours);
+
+      this.dailyEndTime.todayStartOfDay = todayStartOfDay;
+      this.dailyEndTime.todayStartOfDayMs = todayStartOfDay.valueOf();
+      this.dailyEndTime.todayEndTimeMs = todayEndTime.valueOf();
+      this.dailyEndTime.todayEndTime = todayEndTime;
+      // END endTime
+
+      // START dailyInterval
+      this.dailyInterval = Number(dailyInterval);
+      // END dailyInterval
+
+      // START breakBetweenShortQuestions
+      this.breakBetweenShortQuestions = breakBetweenShortQuestions;
+      // END breakBetweenShortQuestions
+    },
+
     async getWelcomeText() {
       try {
         const response = await axios.get(

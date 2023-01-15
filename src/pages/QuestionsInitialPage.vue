@@ -1,26 +1,6 @@
 <template>
   <base-layout ref="baseComp" :fullscreen="true">
     <div class="wrapper_h100">
-      <div class="admin_buttons">
-        <div
-          class="admin"
-          v-if="userStore.userData.username === 'nviiadmin'"
-          @click="userStore.showDevbox = !userStore.showDevbox"
-        >
-          <ion-button color="medium">admin</ion-button>
-        </div>
-        <div
-          class="admin"
-          v-if="
-            userStore.userData.username === 'nviiadmin' ||
-            userStore.userData.username === 'RolandToth'
-          "
-          @click="setAllAnswers"
-        >
-          <ion-button color="medium">setAll</ion-button>
-        </div>
-      </div>
-
       <div class="sheets">
         <li
           class="sheet"
@@ -120,7 +100,7 @@
               "
             >
               a
-              <option></option>
+              <option class="height_zero"></option>
               <option
                 v-for="n in getRange(
                   scales[activeSheet.scaleId].options.min,
@@ -427,7 +407,13 @@
           </div>
         </li>
         <!-- Absenden Seite -->
-        <li class="sheet" v-if="currentSheet == sheets.length">
+        <li
+          class="sheet"
+          v-if="
+            currentSheet == sheets.length &&
+            Object.keys(answers.entries).length > 5
+          "
+        >
           <div class="progress"></div>
           <div class="absenden_text">
             <div class="item_text"><p>Bereit zum Absenden?</p></div>
@@ -449,21 +435,45 @@
         </li>
       </div>
     </div>
-    <div class="development devbox" v-if="userStore.showDevbox">
-      <div>
+    <!-- START Devbox -->
+    <div
+      v-if="
+        userStore.userData.username === 'nviiadmin' ||
+        userStore.userData.username === 'RolandToth'
+      "
+    >
+      <div class="admin_buttons">
         <div
-          v-if="activeSheet != undefined && activeSheet.batteryId != undefined"
+          class="admin"
+          v-if="userStore.userData.username === 'nviiadmin'"
+          @click="userStore.showInfoboxInitial = !userStore.showInfoboxInitial"
         >
-          <div>number Of Total sheets: {{ sheets.length }}</div>
-          <div>number Of Total Items: {{ numberOfItems }}</div>
-          <br />
-          <div>activeSheet.sheetId :{{ activeSheet.sheetId }}</div>
+          <ion-button color="medium">info</ion-button>
+        </div>
 
-          <div class="">activeSheet.itemId: {{ activeSheet.itemId }}</div>
-          <div class="">activeSheet.orderId: {{ activeSheet.orderId }}</div>
-          <br />
-          <div class="">activeSheet.batteryId: {{ activeSheet.batteryId }}</div>
-          <!-- <div
+        <div class="admin" @click="setAllAnswers">
+          <ion-button color="medium">setAll</ion-button>
+        </div>
+      </div>
+      <div class="development devbox" v-if="userStore.showInfoboxInitial">
+        <div>
+          <div
+            v-if="
+              activeSheet != undefined && activeSheet.batteryId != undefined
+            "
+          >
+            <div>number Of Total sheets: {{ sheets.length }}</div>
+            <div>number Of Total Items: {{ numberOfItems }}</div>
+            <br />
+            <div>activeSheet.sheetId :{{ activeSheet.sheetId }}</div>
+
+            <div class="">activeSheet.itemId: {{ activeSheet.itemId }}</div>
+            <div class="">activeSheet.orderId: {{ activeSheet.orderId }}</div>
+            <br />
+            <div class="">
+              activeSheet.batteryId: {{ activeSheet.batteryId }}
+            </div>
+            <!-- <div
             class=""
             v-if="
               activeSheet.batteryId != '' &&
@@ -472,28 +482,38 @@
           >
             batteryName: {{ batteries[activeSheet.batteryId].batteryName }}
           </div> -->
-          <!-- <div
+            <!-- <div
             class=""
             v-if="batteries[activeSheet.batteryId].batteryMeta != undefined"
           >
             batteryMeta: {{ batteries[activeSheet.batteryId].batteryMeta }}
           </div> -->
-          attentionTestSheetNr: {{ attentionTestSheetNr }}
-          <div>currentSheet: {{ currentSheet }}</div>
-        </div>
+            attentionTestSheetNr: {{ attentionTestSheetNr }}
+            <div>
+              Object.keys(answers.entries).length:
+              {{ Object.keys(answers.entries).length }}
+            </div>
+            <div>currentSheet: {{ currentSheet }}</div>
+          </div>
 
-        <ion-button @click="getQuestionsInitial"
-          >Axios get Questions Initial</ion-button
-        >
-        <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
+          <ion-button @click="getQuestionsInitial"
+            >Axios get Questions Initial</ion-button
+          >
+          <ion-button @click="setAllAnswers()">setAllAnswers()</ion-button>
+        </div>
+        <div>answers.entries: {{ answers.entries }}</div>
+        <div class="spinner" v-if="showSpinner">
+          <ion-spinner name="dots"></ion-spinner>
+        </div>
+        <div>currentSheet: {{ currentSheet }}</div>
+        <input
+          placeholder="currentSheet"
+          type="number"
+          v-model="currentSheet"
+        />
       </div>
-      <div>answers.entries: {{ answers.entries }}</div>
-      <div class="spinner" v-if="showSpinner">
-        <ion-spinner name="dots"></ion-spinner>
-      </div>
-      <div>currentSheet: {{ currentSheet }}</div>
-      <input placeholder="currentSheet" type="number" v-model="currentSheet" />
     </div>
+    <!-- END Devbox -->
     <spinner-component v-if="showSpinner"
       >Daten werden gesendet.</spinner-component
     >
@@ -557,8 +577,23 @@
 
   let currentSheet = ref(0);
 
-  function getQuestionsInitial() {
-    questionsStore.getInitialQuestions();
+  async function getQuestionsInitial() {
+    showSpinner.value = true;
+
+    let request = await questionsStore.getInitialQuestions();
+    console.log('getIQ - result: ', request);
+    if (request.status != 200 && request.status != 201) {
+      userStore.appMessage =
+        'Es gab einen Fehler: ' +
+        request.code +
+        '<br>Message: ' +
+        request.message +
+        '';
+
+      router.replace({ path: '/login' });
+      return;
+    }
+    showSpinner.value = false;
   }
   getQuestionsInitial();
 
@@ -1086,12 +1121,12 @@
           response.message +
           '';
 
-        // router.push('/login');
+        // router.replace('/login');
         showBackHomeButton.value = true;
         return;
       }
       resetAllAnswers();
-      router.replace('/briefing-short');
+      router.replace({ path: '/briefing-short' });
     });
   }
 
@@ -1101,7 +1136,7 @@
     console.log('QuestionShortPage - backHome');
     showBackHomeButton.value = false;
     resetAllAnswers();
-    router.replace('/home');
+    router.replace({ path: '/home' });
   }
 
   function resetAllAnswers() {
@@ -1210,14 +1245,6 @@
     margin-bottom: 20px;
   }
 
-  .admin_buttons {
-    position: absolute;
-    top: 35px;
-    left: 0;
-    display: flex;
-    z-index: 99;
-  }
-
   .yes {
     margin-right: auto;
     margin-left: auto;
@@ -1250,5 +1277,10 @@
 
   .item_text {
     min-height: 122px;
+  }
+
+  .height_zero {
+    height: 0px !important;
+    display: none !important;
   }
 </style>

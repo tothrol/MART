@@ -366,14 +366,14 @@ export const useUserStore = defineStore('userStore', () => {
         answer.message +
         '';
 
-      // router.push('/login');
+      // router.replace('/login');
       return;
     }
 
     // end check for validToken
 
     if (briefingShortChecked.value === false) {
-      // router.push('/briefing-short');
+      // router.replace('/briefing-short');
     } else if (
       complianceAccepted.value === true &&
       questionsStore.initialAnswerExist === true &&
@@ -383,10 +383,10 @@ export const useUserStore = defineStore('userStore', () => {
       // secToNext <= 1
     ) {
       console.log('onStartQuestionsShort - push - questionsShort');
-      // router.push('/questionsshort');
+      // router.replace('/questionsshort');
     } else {
       console.log('onStartQuestionsShort - push - questionsShort');
-      // router.push('/home');
+      // router.replace('/home');
     }
   }
 
@@ -449,7 +449,7 @@ export const useUserStore = defineStore('userStore', () => {
         // const router = useRouter();
 
         // eslint-disable-next-line no-undef
-        router.replace('/user');
+        router.replace({ path: '/user' });
         // this.onStartQuestionsShort();
       }
     );
@@ -461,7 +461,7 @@ export const useUserStore = defineStore('userStore', () => {
     this.router.currentRoute.value.path;
     // const router = useRouter();
     // eslint-disable-next-line no-undef
-    this.router.push('/user');
+    this.router.replace('/user');
   }
 
   async function setNotifications() {

@@ -24,7 +24,7 @@ import Iosstats from '../pages/IosstatsPage.vue';
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/login',
+    redirect: '/home',
   },
   {
     path: '/login',
@@ -108,7 +108,8 @@ router.beforeEach(async (to: any, from: any) => {
   // console.log('Navigation guard token:', userData.token);
   if (userStore.userData.token === '' && to.path !== '/login') {
     console.log('Navigation guard - no token');
-    return '/login';
+
+    return { path: '/login', replace: true };
   } else {
     console.log('Navigation guard - token Exists');
     if (!from.name === null || !programmatic) {
@@ -119,9 +120,9 @@ router.beforeEach(async (to: any, from: any) => {
           console.log(
             'Navigation guard - token Exists questionsStore.initialAnswerExist === true'
           );
-          return '/home';
+          return { path: '/home', replace: true };
           // next({ path: '/home' });
-          // router.push('/home');
+          // router.replace('/home');
           // return '/home';
         }
       }
@@ -139,10 +140,10 @@ router.afterEach((to, from) => {
     );
     if (questionsStore.initialAnswerExist === true) {
       console.log('Navigation guard - afterEach - 3');
-      router.push('/home');
+      return { path: '/home', replace: true };
 
       // next({ path: '/home' });
-      // router.push('/home');
+      // router.replace('/home');
       // return '/home';
     }
   }
