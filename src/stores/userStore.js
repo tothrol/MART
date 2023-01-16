@@ -8,6 +8,7 @@ import { useStatsStore } from '@/stores/statsStore';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import dayjs from 'dayjs';
 import { useRouter, useRoute } from 'vue-router';
+import { Capacitor } from '@capacitor/core';
 // import router from '../router';
 
 // import { useQuestionsStore } from '@/stores/questionsStore';
@@ -532,7 +533,16 @@ export const useUserStore = defineStore('userStore', {
         let newEntry = todayStartTimeMs;
         let newEntryRandom;
 
-        for (let i = 0; i <= 100; ) {
+        let amountNotifications;
+
+        let platform = Capacitor.getPlatform();
+        if (platform == 'web' || platform === 'android') {
+          amountNotifications = 100;
+        } else {
+          amountNotifications = 63;
+        }
+
+        for (let i = 0; i <= amountNotifications; ) {
           let randomMinute = Math.floor(Math.random() * dailyInterval * 60);
 
           let randomMs = randomMinute * 60 * 1000;

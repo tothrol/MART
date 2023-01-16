@@ -63,10 +63,12 @@
   import { useRouter, useRoute } from 'vue-router';
 
   import relativeTime from 'dayjs/plugin/relativeTime';
-  import { Capacitor } from '@capacitor/core';
+
   import { LocalNotifications } from '@capacitor/local-notifications';
   import { useBackButton, useIonRouter } from '@ionic/vue';
   import { App } from '@capacitor/app';
+
+  import { Capacitor } from '@capacitor/core';
 
   let platform = Capacitor.getPlatform();
 
@@ -98,12 +100,12 @@
       let answer = await userStore.validateToken();
       console.log('BaseLayout - await validateToken - answer', answer);
       if (answer.code === 'ERR_NETWORK') {
-        userStore.appMessage =
-          'Bitte stellen Sie sicher das eine Internetverbindung besteht! <br><br> Code: ' +
-          answer.code +
-          '<br>Message: ' +
-          answer.message +
-          '';
+        // userStore.appMessage =
+        //   'Bitte stellen Sie sicher das eine Internetverbindung besteht! <br><br> Code: ' +
+        //   answer.code +
+        //   '<br>Message: ' +
+        //   answer.message +
+        //   '';
         console.log('BaseLayout - onStartQuestionsShort - NOpush -Err_Network');
         return;
       } else if (answer.status != 200 && answer.status != 201) {
@@ -382,6 +384,23 @@
 
       infoStore.secToNext = dateNext.diff(dateNow, 's');
       secT = window.setTimeout(secTimer, 1000); /* replicate wait 1 second */
+
+      // START check for next day to reset infoStore.dailyStart/EndTime.todayStartTimeMs
+      // todayStartTimeMs is either today or yesterday
+      console.log(
+        'secTimer - infoStore.dailyStartTime.todayStartTimeMs',
+        infoStore.dailyStartTime.todayStartTimeMs
+      );
+      let todayStartTimeMs = dayjs(
+        infoStore.dailyStartTime.todayStartTimeMs
+      ).format('DD.MM.YY');
+      let nowString = dayjs().format('DD.MM.YY');
+      console.log('secTimer - todayStartTimeMs', todayStartTimeMs, nowString);
+      if (nowString != todayStartTimeMs) {
+        console.log('secTimer - its a new day', todayStartTimeMs, nowString);
+        infoStore.calculateDatesAndTimes();
+      }
+      // END check for next day to reset infoStore.dailyStart/EndTime.todayStartTimeMs
     }
   }
 
@@ -458,8 +477,8 @@
     // END get pending Notifications
 
     if (
-      (pendingNotifications.notifications.length <= 10 &&
-        pendingNotifications.notifications.length > 0) ||
+      (pendingNotifications.notifications.length === 0 &&
+        questionsStore.shortAnswersArray.length >= 1) ||
       (questionsStore.shortAnswersArray.length === 0 &&
         userStore.briefingShortChecked === true)
     ) {
