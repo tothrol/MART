@@ -43,7 +43,7 @@ export const useInfoStore = defineStore('infoStore', {
       dailyInterval: 0,
       breakBetweenShortQuestions: 0,
       datesAndTimes: {},
-      // datesAndTimes only here for testing, comming from storage from atAppStart()
+
       testCounter: 0,
       timeframe: false,
       dailyTime: false,
@@ -107,6 +107,7 @@ export const useInfoStore = defineStore('infoStore', {
           await storage.set('datesAndTimes', datesAndTimes);
 
           // END breakBetweenShortQuestions
+          this.datesAndTimes = datesAndTimes;
 
           this.calculateDatesAndTimes(datesAndTimes);
         }

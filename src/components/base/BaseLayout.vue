@@ -387,18 +387,19 @@
 
       // START check for next day to reset infoStore.dailyStart/EndTime.todayStartTimeMs
       // todayStartTimeMs is either today or yesterday
-      console.log(
-        'secTimer - infoStore.dailyStartTime.todayStartTimeMs',
-        infoStore.dailyStartTime.todayStartTimeMs
-      );
+      // console.log(
+      //   'secTimer - infoStore.dailyStartTime.todayStartTimeMs',
+      //   infoStore.dailyStartTime.todayStartTimeMs
+      // );
       let todayStartTimeMs = dayjs(
         infoStore.dailyStartTime.todayStartTimeMs
       ).format('DD.MM.YY');
       let nowString = dayjs().format('DD.MM.YY');
-      console.log('secTimer - todayStartTimeMs', todayStartTimeMs, nowString);
+      // console.log('secTimer - todayStartTimeMs', todayStartTimeMs, nowString);
       if (nowString != todayStartTimeMs) {
         console.log('secTimer - its a new day', todayStartTimeMs, nowString);
-        infoStore.calculateDatesAndTimes();
+        infoStore.calculateDatesAndTimes(infoStore.datesAndTimes);
+        // console.log('secTimer - its a new day 2', todayStartTimeMs, nowString);
       }
       // END check for next day to reset infoStore.dailyStart/EndTime.todayStartTimeMs
     }
