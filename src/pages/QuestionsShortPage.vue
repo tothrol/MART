@@ -322,7 +322,11 @@
               type="range"
               :min="activeSheet.scale.options.min"
               :max="activeSheet.scale.options.max"
-              step="1"
+              :step="
+                activeSheet.scale.options.step
+                  ? activeSheet.scale.options.step
+                  : 1
+              "
               :name="`${activeSheet.itemId}`"
               v-model="answers.entries[activeSheet.itemId]"
               @input="
@@ -388,7 +392,7 @@
             </div>
 
             <ion-button
-              class="previous display_none"
+              class="previous"
               @click="previousSheet()"
               color="tertiary"
               :disabled="false"
@@ -417,18 +421,15 @@
               @click="sendShortAnswers()"
               :disabled="Object.keys(answers.entries).length <= 4"
               >Kurzfragebogen absenden</ion-button
-            ><ion-button
-              class="display_none"
-              @click="previousSheet()"
-              color="tertiary"
+            ><ion-button class="" @click="previousSheet()" color="tertiary"
               >zurück</ion-button
             >
-            <ion-button
+            <!-- <ion-button
               color="tertiary"
               @click="backHome()"
               v-if="showBackHomeButton"
               >Startseite</ion-button
-            >
+            > -->
           </div>
         </li>
       </div>
@@ -488,6 +489,7 @@
             </div>
 
             <div>currentSheet: {{ currentSheet }}</div>
+
             <div>
               Object.keys(answers.entries).length:
               {{ Object.keys(answers.entries).length }}
@@ -899,8 +901,21 @@
     return array;
   }
 
+  let jumpedFrom = ref();
+  let jumpedTo = ref();
+
   function previousSheet() {
-    currentSheet.value > 0 && currentSheet.value--;
+    console.log('previousSheet');
+    if (
+      jumpedTo.value != undefined &&
+      jumpedTo.value === currentSheet.value &&
+      answers.entries[currentSheet.value - 1] === undefined
+    ) {
+      console.log('previousSheet - jumpTo');
+      currentSheet.value = jumpedFrom.value;
+    } else {
+      currentSheet.value > 0 && currentSheet.value--;
+    }
   }
 
   function nextSheet() {
@@ -911,6 +926,16 @@
       answers.entries[activeSheet.value.itemId] ==
         activeSheet.value.scale.options.jumpIfChoice
     ) {
+      jumpedFrom.value = currentSheet.value;
+      jumpedTo.value = activeSheet.value.scale.options.jumpToSheet - 1;
+      // START Reset all values from jumpedFrom to jumpedTo
+      let start = jumpedFrom.value + 2;
+      let end = jumpedTo.value;
+      for (let i = start; i < end; i++) {
+        delete answers.entries[i];
+      }
+
+      // END Reset all values from jumpedFrom to jumpedTo
       currentSheet.value = activeSheet.value.scale.options.jumpToSheet - 1;
       console.log('nextSheetJump', currentSheet.value);
 
@@ -1069,6 +1094,7 @@
 
   function sendShortAnswers() {
     showSpinner.value = true;
+    let todayShortAnswers = toRaw(questionsStore.todayShortAnswers);
 
     questionsStore.sendShortAnswers(answers.entries).then((response) => {
       let platform = Capacitor.getPlatform();
@@ -1085,27 +1111,30 @@
           '';
 
         // router.replace('/login');
-        showBackHomeButton.value = true;
+        // showBackHomeButton.value = true;
         return;
       }
 
       resetAllAnswers();
-      if (platform === 'ios') {
-        router.replace({ path: '/iosstats' });
+      if (platform === 'ios' || platform === 'web') {
+        if (todayShortAnswers === 0) router.replace({ path: '/iosstats' });
+        else {
+          router.replace({ path: '/success' });
+        }
       } else {
         router.replace({ path: '/success' });
       }
     });
   }
-  const showBackHomeButton = ref(false);
+  // const showBackHomeButton = ref(false);
 
-  function backHome() {
-    console.log('QuestionShortPage - backHome');
-    showBackHomeButton.value = false;
-    resetAllAnswers();
+  // function backHome() {
+  //   console.log('QuestionShortPage - backHome');
+  //   showBackHomeButton.value = false;
+  //   resetAllAnswers();
 
-    router.replace({ path: '/home' });
-  }
+  //   router.replace({ path: '/home' });
+  // }
 
   function resetAllAnswers() {
     console.log('QuestionShortPage - resetAllAnswers');
@@ -1113,6 +1142,8 @@
     answers.entries = {};
     answers.unchangeable = {};
     currentSheet.value = 0;
+    jumpedFrom.value = undefined;
+    jumpedTo.value = undefined;
   }
 
   function getRandomInt(max) {
@@ -1202,9 +1233,12 @@
     text-align: center;
   }
   .wrapper_h100 {
+    height: 100%;
+    width: 100%;
   }
 
   .sheets {
+    height: 100%;
   }
 
   .buttons {
@@ -1212,12 +1246,12 @@
   }
   .sheet {
     padding: 25px 15px;
-    border-radius: 15px;
+    /* border-radius: 15px; */
     background-color: var(--light_light_grey);
 
     display: flex;
     flex-direction: column;
-    min-height: 96vh;
+    height: 100%;
     position: relative;
   }
   .radios {
@@ -1539,6 +1573,7 @@
   }
 
   .dropdown {
+    color: black;
     background-color: white;
     margin-left: auto;
     margin-right: auto;
@@ -1558,6 +1593,9 @@
 
   .grey {
     color: var(--ion-color-medium);
+  }
+  .number {
+    color: black;
   }
 
   .radio_fieldset {
@@ -1584,5 +1622,13 @@
     left: 0;
     display: flex;
     z-index: 99;
+  }
+
+  .buttons {
+    min-height: 116px;
+  }
+
+  option {
+    color: black;
   }
 </style>

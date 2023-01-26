@@ -1,24 +1,62 @@
 <template>
-  <base-layout :fullscreen="true"
-    ><div class="box green">
+  <base-layout :fullscreen="true" backgroundColor="primary"
+    ><div class="box">
       <p class="">
-        Bitte navigieren Sie nun in Ihrem Telefon zu<br />
-        <b>Einstellungen -> Bildschirmzeit</b><br />
-        und geben Sie in das Eingabefeld unten den
-        <b>Tagesdurchschnitswert</b> ein.
+        Bitte öffnen Sie nun die Einstellungen Ihres iPhones. Tippen Sie dort
+        auf den Menüpunkt „Bildschirmzeit“
+        <span @click="showExample(1)">Beispiel</span> und darin auf „Alle
+        Aktivitäten anzeigen“
+        <span @click="showExample(2)">Beispiel</span>.<br /><br />
+        Bitte merken Sie sich den Tagesdurchschnitt, der unter „Bildschirmzeit“
+        <span @click="showExample(3)">Beispiel</span> angezeigt wird. Scrollen
+        Sie dann herunter und merken Sie sich auch Ihren Tagesdurchschnitt, der
+        unter „Aktivierungen“
+        <span @click="showExample(4)">Beispiel</span> angezeigt wird. Tragen Sie
+        dann beide Informationen hier ein:<br /><br />
       </p>
-      <div>
-        <div>
-          <input min="0" max="99" v-model="iosStats[0]" type="number" />
-          Stunden
+      <div class="flex column wrap m-b-1">
+        <div class="m-b-2">Bildschirmzeit:</div>
+        <div class="flex row wrap">
+          <div>
+            <input
+              min="0"
+              max="999"
+              @input="validateNrInput($event.target, 'hours')"
+              type="number"
+            />
+            Stunden
+          </div>
+          <div>
+            <input
+              min="0"
+              max="59"
+              @input="validateNrInput($event.target, 'minutes')"
+              type="number"
+            />
+            Minuten
+          </div>
         </div>
+      </div>
+      <div class="flex column wrap m-b-1">
+        <div class="m-b-2">Aktivierungen:</div>
         <div>
-          <input min="0" max="60" v-model="iosStats[1]" type="number" />
-          Minuten
+          <input
+            min="0"
+            max="9999"
+            @input="validateNrInput($event.target, 'activations')"
+            type="number"
+          />
         </div>
       </div>
 
       <ion-button @click="onNext()" color="secondary">Weiter</ion-button>
+    </div>
+    <div class="modal" v-if="showModal">
+      <div class="closeModal" @click="closeModal">
+        <ion-icon :icon="closeCircleOutline"></ion-icon>
+      </div>
+      <img :src="getsrc()" />
+      <!-- <img src="@/assets/images/beispiel/beispiel1.jpg" /> -->
     </div>
   </base-layout>
 </template>
@@ -33,6 +71,7 @@
   import { useRouter, useRoute } from 'vue-router';
 
   import { Capacitor } from '@capacitor/core';
+  import { closeCircleOutline } from 'ionicons/icons';
 
   const router = useRouter();
 
@@ -40,11 +79,12 @@
   const statsStore = useStatsStore();
   let platform = Capacitor.getPlatform();
 
-  let iosStats = ref([0, 0]);
+  let iosStats = reactive({ hours: 0, minutes: 0, activations: 0 });
+  // let aktivierungen = ref('');
 
   async function onNext() {
-    if (platform === 'ios') {
-      let response = await statsStore.sendIosStats(iosStats.value);
+    if (platform === 'ios' || platform === 'web') {
+      let response = await statsStore.sendIosStats(iosStats);
       if (response.status != 200 && response.status != 201) {
         userStore.appMessage =
           'Es gab einen Fehler!<br> Bitte versuchen Sie es erneut und überprüfen Sie ob Sie online sind. <br><br> Code: ' +
@@ -59,15 +99,109 @@
       router.replace({ path: '/success' });
     }
   }
+
+  let imgsrc = ref('');
+
+  function showExample(nr) {
+    imgsrc.value = nr;
+    showModal.value = true;
+  }
+
+  function getsrc() {
+    var images = require.context('../assets/images/beispiel/', false, /\.jpg$/);
+    return images('./beispiel' + imgsrc.value + '.jpg');
+  }
+
+  let showModal = ref(false);
+
+  function closeModal() {
+    showModal.value = false;
+  }
+
+  async function validateNrInput(target: any, item: any) {
+    const value = Number(target.value);
+    // console.log('target', target);
+    console.log('target value', value);
+    // console.log('target value.length', value.length);
+    // console.log('target.maxlength', target.getAttribute('maxlength'));
+    console.log('target.max', target.getAttribute('max'));
+    // console.log('target itemId', itemId);
+
+    if (
+      value <= Number(target.getAttribute('max')) &&
+      value >= Number(target.getAttribute('min'))
+    ) {
+      console.log('target value <=', value);
+      iosStats[item] = Number(value);
+    } else {
+      target.value = iosStats[item];
+    }
+    console.log('target iosStats', iosStats);
+  }
 </script>
 
 <style scoped>
-  .box.green {
+  #main {
+    position: relative;
+  }
+  .modal {
+    position: absolute;
+    top: 5vh;
+    padding: 20px;
+    background: var(--ion-color-secondary);
+    box-shadow: var(--box_shadow);
+    max-height: 90vh;
+    height: 100%;
+    max-width: 600px;
+    width: 100%;
+    border-radius: 20px;
+  }
+
+  .modal img {
+    object-fit: contain;
+  }
+
+  .closeModal {
+    position: absolute;
+    top: 6px;
+    right: 2px;
+    font-size: 45px;
+  }
+
+  .modal img {
+    height: 100%;
+  }
+  p span {
+    color: var(--ion-color-secondary);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .box {
     height: 93vh !important;
+  }
+  div {
+    font-size: 20px;
+  }
+
+  .flex {
+    justify-items: center;
+    width: 100%;
+  }
+
+  .m-b-1 {
+    margin-bottom: 30px;
+  }
+
+  .m-b-2 {
+    margin-bottom: 10px;
+  }
+  .flex div {
+    margin-right: 15px;
   }
   p {
     font-size: 20px;
-    margin-bottom: 50px;
+    margin-bottom: 10px;
+    width: 100%;
   }
   .heart {
     color: white;

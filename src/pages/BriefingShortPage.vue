@@ -1,6 +1,6 @@
 <template>
-  <base-layout
-    ><div class="box green">
+  <base-layout backgroundColor="primary"
+    ><div class="box">
       <div v-if="userStore.briefingShortChecked === false">
         <h1>{{ infoStore.briefingShort.title }}</h1>
         <p class="info_text" v-html="infoStore.briefingShort.text"></p>

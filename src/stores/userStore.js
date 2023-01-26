@@ -190,7 +190,7 @@ export const useUserStore = defineStore('userStore', {
             await questionsStore.getLastShortAnswer();
             await questionsStore.countShortAnswers();
             await infoStore.getOptions();
-            // questionsStore.checkIfInitalAnswerExists();
+            await questionsStore.checkIfInitalAnswerExists();
           }
         }
         return new Promise((resolve) => {
@@ -227,9 +227,9 @@ export const useUserStore = defineStore('userStore', {
       // clearInterval(this.dailyInerval);
     },
 
-    async validateToken() {
+    async validateToken(token) {
       try {
-        const token = this.userData.token;
+        console.log(`userStore - validateToken - token: ${token}`);
 
         const config = {
           headers: { Authorization: `Bearer ${token}` },
@@ -384,9 +384,16 @@ export const useUserStore = defineStore('userStore', {
       // END wird bei jedem refresh/restart ausgeführt
 
       const token = await storage.get('token');
+
       if (token != null) {
-        this.userData.token = token;
-        return true;
+        let validateToken = await this.validateToken(token);
+        console.log('userStore - atAppStart - validateToken', validateToken);
+        if (validateToken.status === 200) {
+          this.userData.token = token;
+          return true;
+        } else {
+          return false;
+        }
       } else return false;
     },
 
@@ -650,7 +657,7 @@ export const useUserStore = defineStore('userStore', {
             id: i,
             channelId: 1,
             title: `MART`,
-            body: `Sie können einen weiteren Fragebogen ausfüllen`,
+            body: `Bitte Kurzfragebogen ausfüllen!`,
             schedule: {
               at: new Date(notificationTime),
               allowWhileIdle: true,

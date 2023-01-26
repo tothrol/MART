@@ -1,6 +1,6 @@
 <template>
   <base-layout
-    ><div class="box blue">
+    ><div class="box">
       <div class="user_infos">
         <div>User Name: {{ userStore.userData.username }}</div>
         <div>Version: 0.22.0</div>

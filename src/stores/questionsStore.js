@@ -8,6 +8,9 @@ import dayjs from 'dayjs';
 import { Storage } from '@ionic/storage';
 import { useInfoStore } from '@/stores/infoStore';
 import { Device } from '@capacitor/device';
+import { Capacitor } from '@capacitor/core';
+
+let platform = Capacitor.getPlatform();
 
 export const useQuestionsStore = defineStore('questionsStore', {
   state: () => {
@@ -202,12 +205,13 @@ export const useQuestionsStore = defineStore('questionsStore', {
             `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_initial/?meta_key=uniqueUserId&meta_value=${userStore.uniqueUserId}`
           );
 
-          // console.log(
-          //   'questionsStore - checkIfInitalAnswersExists - response',
-          //   response
-          // );
+          console.log(
+            'questionsStore - checkIfInitalAnswersExists - response',
+            response
+          );
           if (response.data.length >= 1) {
-            userStore.initialAnswerExist = true;
+            console.log('questionsStore - checkIfInitalAnswersExists - TRUE');
+            this.initialAnswerExist = true;
 
             await storage.set('initialAnswerExist', true);
             // userStore.showQuestions = true;
@@ -218,7 +222,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
               // }
             });
           } else {
-            userStore.initialAnswerExist = false;
+            this.initialAnswerExist = false;
             await storage.set('initialAnswerExist', false);
 
             return new Promise((resolve) => {
@@ -406,7 +410,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
           await storage.set('totalShortAnswers', this.totalShortAnswers);
 
-          let setNotifications = await userStore.setNotifications();
+          await userStore.setNotifications();
         }
         // await this.countShortAnswers();
 

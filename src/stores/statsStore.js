@@ -85,7 +85,7 @@ export const useStatsStore = defineStore('statsStore', {
 
         let platform = Capacitor.getPlatform();
 
-        if (platform != 'ios') {
+        if (platform != 'ios' && platform != 'web') {
           let queryUsageStats = await echo.getStats();
           // console.log('queryUsageStats - stats: ', queryUsageStats);
           let queryUsageStatsJSON = JSON.parse(
@@ -127,6 +127,7 @@ export const useStatsStore = defineStore('statsStore', {
             queryEventStatsString,
             deviceInfoString,
             deviceUuid.uuid,
+            '',
             ''
           );
         } else {
@@ -242,8 +243,9 @@ export const useStatsStore = defineStore('statsStore', {
     },
 
     async sendIosStats(iosStats) {
-      let iosStatsString = iosStats.toString();
-      console.log('statsStore - sendIosStats', iosStatsString);
+      let { hours, minutes, activations } = iosStats;
+      let iosScreentimeString = `${hours}:${minutes}`;
+      console.log('statsStore - sendIosStats', iosScreentimeString);
       try {
         let result = await this.sendStatistics(
           this.iosClipboard.today,
@@ -253,7 +255,8 @@ export const useStatsStore = defineStore('statsStore', {
           '',
           this.iosClipboard.deviceInfoString,
           this.iosClipboard.deviceUuid,
-          iosStatsString
+          iosScreentimeString,
+          activations
         );
         if (result.status == 201) {
           this.iosClipboard = {
@@ -312,7 +315,8 @@ export const useStatsStore = defineStore('statsStore', {
       queryEventStatsString,
       deviceInfoString,
       deviceUuid,
-      iosStats
+      iosScreenTime,
+      iosActivations
     ) {
       try {
         console.log(
@@ -324,7 +328,8 @@ export const useStatsStore = defineStore('statsStore', {
           queryEventStatsString,
           deviceInfoString,
           deviceUuid,
-          iosStats
+          iosScreenTime,
+          iosActivations
         );
         const userStore = useUserStore();
         // const statsStore = useStatsStore();
@@ -350,7 +355,8 @@ export const useStatsStore = defineStore('statsStore', {
             timeStats: time,
             dateLongStats: dateLong,
             uniqueUserIdStats: userStore.uniqueUserId,
-            iosStats: iosStats,
+            iosscreentime: iosScreenTime,
+            iosactivations: iosActivations.toString(),
           },
           slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
           title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,

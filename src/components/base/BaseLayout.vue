@@ -13,7 +13,11 @@
       @toggleMenu="showMenu = !showMenu"
     ></header-component>
 
-    <ion-content ref="myContent" :scrollTop="scrollTop">
+    <ion-content
+      :color="backgroundColor"
+      ref="myContent"
+      :scrollTop="scrollTop"
+    >
       <div id="main">
         <slot></slot>
       </div>
@@ -70,6 +74,8 @@
 
   import { Capacitor } from '@capacitor/core';
 
+  let contentColor = 'primary';
+
   let platform = Capacitor.getPlatform();
 
   const questionsStore = useQuestionsStore();
@@ -80,6 +86,8 @@
   const route = useRoute();
 
   let conditionsQuestionsShort = false;
+
+  let lastAppMessage;
 
   async function onStartQuestionsShort() {
     console.log(
@@ -97,7 +105,7 @@
     // );
     // check for validToken of token is '', then check auth will handel it
     if (userStore.userData.token != '') {
-      let answer = await userStore.validateToken();
+      let answer = await userStore.validateToken(userStore.userData.token);
       console.log('BaseLayout - await validateToken - answer', answer);
       if (answer.code === 'ERR_NETWORK') {
         // userStore.appMessage =
@@ -109,12 +117,18 @@
         console.log('BaseLayout - onStartQuestionsShort - NOpush -Err_Network');
         return;
       } else if (answer.status != 200 && answer.status != 201) {
-        userStore.appMessage =
+        let appMessage =
           'Bitte melden Sie sich erneut an! <br><br> Code: ' +
           answer.code +
           '<br>Message: ' +
           answer.message +
           '';
+        if (appMessage != lastAppMessage) {
+          // preventing appMessage popup to often
+          lastAppMessage = appMessage;
+          userStore.appMessage = appMessage;
+        }
+
         console.log('BaseLayout - onStartQuestionsShort - push - login');
         router.replace({ path: '/login' });
         return;
@@ -398,7 +412,9 @@
       // console.log('secTimer - todayStartTimeMs', todayStartTimeMs, nowString);
       if (nowString != todayStartTimeMs) {
         console.log('secTimer - its a new day', todayStartTimeMs, nowString);
-        infoStore.calculateDatesAndTimes(infoStore.datesAndTimes);
+        if (Object.keys(infoStore.datesAndTimes).length != 0) {
+          infoStore.calculateDatesAndTimes(toRaw(infoStore.datesAndTimes));
+        }
         // console.log('secTimer - its a new day 2', todayStartTimeMs, nowString);
       }
       // END check for next day to reset infoStore.dailyStart/EndTime.todayStartTimeMs
@@ -570,7 +586,11 @@
 
   defineExpose({ scrollTop });
 
-  let props = defineProps({ fullscreen: Boolean });
+  let props = defineProps({ fullscreen: Boolean, backgroundColor: String });
+
+  let backgroundColor = ref(
+    props.backgroundColor ? props.backgroundColor : 'secondary'
+  );
 
   function scrollTop() {
     console.log('ScrollThat');
@@ -583,17 +603,26 @@
 
 <style scoped>
   ion-content {
-    --padding-end: 5px;
-    --padding-start: 5px;
-    --padding-top: 5px;
+    --padding-end: 0px;
+    --padding-start: 0px;
+    --padding-top: 0px;
   }
   #main {
     max-width: 600px;
     margin-right: auto;
     margin-left: auto;
-    min-height: 100%;
-    height: min-content;
+
     padding: 0px 0px;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    height: 100%;
+  }
+
+  .ios #main-content {
+    /* height: calc(100% - 20px); */
+    padding-top: 30px;
+    padding-bottom: 0px;
   }
 
   /* MENU */

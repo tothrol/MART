@@ -1,6 +1,6 @@
 <template>
-  <base-layout
-    ><div class="box green">
+  <base-layout backgroundColor="primary"
+    ><div class="box">
       <Icon class="heart" :icon="heart" />
       <p class="text_big">
         Danke,<br />dass Sie sich<br />die Zeit<br />genommen<br />haben!

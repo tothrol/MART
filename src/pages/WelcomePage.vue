@@ -1,7 +1,8 @@
 <template>
   <base-layout
     :fullscreen="userStore.complianceAccepted === false ? true : false"
-    ><div class="box green">
+    backgroundColor="primary"
+    ><div class="box">
       <h1>{{ infoStore.welcomeText.title }}</h1>
       <p class="info_text" v-html="infoStore.welcomeText.text"></p>
       <div class="flex_row" v-if="userStore.complianceAccepted === false">

@@ -1,16 +1,16 @@
 <template>
   <base-layout>
-    <div class="box blue">
+    <div class="box">
       <div class="info">
         <div class="uiqueUserId">
-          Teilnehmer Id: <span class="big">{{ userStore.uniqueUserId }}</span>
+          ID: <span class="big">{{ userStore.uniqueUserId }}</span>
         </div>
         <div class="total_nr_answers">
-          Insgesamt ausgefüllte Fragebögen:
+          Insgesamt ausgefüllte Kurzfragebögen:
           <span class="big">{{ questionsStore.totalShortAnswers }}</span>
         </div>
         <div class="today_nr_answers">
-          Heute ausgefüllte Fragebögen:
+          Heute ausgefüllte Kurzfragebögen:
           <span class="big">{{ questionsStore.todayShortAnswers }}/6</span>
         </div>
       </div>
@@ -74,9 +74,8 @@
           </router-link>
         </div>
       </div>
+      <Infoboxhome-Component></Infoboxhome-Component>
     </div>
-
-    <Infoboxhome-Component></Infoboxhome-Component>
 
     <!-- <modal-component :welcome></modal-component>
     <modal-component :datenschutz></modal-component> -->
@@ -109,7 +108,7 @@
 
   async function onStartQuestionsInitial() {
     // check for validToken
-    let answer = await userStore.validateToken();
+    let answer = await userStore.validateToken(userStore.userData.token);
     console.log('Home await validateToken - answer', answer);
     if (answer.code === 'ERR_NETWORK') {
       userStore.appMessage =

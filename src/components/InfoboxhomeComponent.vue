@@ -104,6 +104,11 @@
 </script>
 
 <style scoped>
+  .adminbox {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
   .devbox {
     color: black;
   }

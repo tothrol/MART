@@ -1,6 +1,6 @@
 <template>
   <base-layout :fullscreen="true">
-    <div class="box blue">
+    <div class="box">
       <div class="text_big">Willkommen<br /></div>
       <input type="text" v-model="loginData.name" placeholder="Benutzername" />
       <input
@@ -8,11 +8,7 @@
         v-model="loginData.password"
         placeholder="Passwort"
       />
-      <input
-        type="text"
-        placeholder="Teilnehmer ID"
-        v-model="loginData.uniqueUserId"
-      />
+      <input type="text" placeholder="ID" v-model="loginData.uniqueUserId" />
       <ion-button @click="login()" :disabled="checkLogin()"
         >Anmelden</ion-button
       >

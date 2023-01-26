@@ -113,17 +113,16 @@ ion-button.auto_width {
 }
 
 .box {
-  border-radius: 20px;
+  /* border-radius: 20px; */
   display: flex;
   flex-direction: column;
-  align-content: center;
-  justify-content: center;
-  justify-items: center;
-  height: 100%;
-  min-height: 90vh;
+
+  /* min-height: 90vh; */
   width: 100%;
   padding: 20px 20px;
   align-items: center;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .box.green {
@@ -189,4 +188,23 @@ ion-button.auto_width {
 }
 
 .development {
+}
+
+input {
+  color: black;
+}
+
+.flex {
+  display: flex;
+}
+.column {
+  flex-direction: column;
+}
+
+.row {
+  flex-direction: row;
+}
+
+.wrap {
+  flex-wrap: wrap;
 }

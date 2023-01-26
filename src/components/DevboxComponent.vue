@@ -117,6 +117,8 @@
           >get Pending Notific.</ion-button
         ><ion-button @click="infoStore.dailyTime = !infoStore.dailyTime"
           >infoStore.dailyTime Toggle</ion-button
+        ><ion-button @click="userStore.validateToken(userStore.userData.token)"
+          >userStore.validateToken</ion-button
         >
       </div>
     </div>

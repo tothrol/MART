@@ -187,7 +187,15 @@
               v-model="freeFieldToAnswersValue"
               :placeholder="activeSheet.options.placeholder"
             />
-            <fieldset class="radio_fieldset">
+            <fieldset
+              class="radio_fieldset"
+              :class="{
+                invisible:
+                  answers.entries[activeSheet.itemId] != undefined &&
+                  (answers.entries[activeSheet.itemId].length === 0 ||
+                    answers.entries[activeSheet.itemId][1] === ''),
+              }"
+            >
               <div
                 :class="`radio ${activeSheet.scaleId} ${input.value}`"
                 v-for="(input, key) in scales[activeSheet.scaleId]
@@ -322,7 +330,11 @@
               type="range"
               :min="activeSheet.scale.options.min"
               :max="activeSheet.scale.options.max"
-              step="1"
+              :step="
+                activeSheet.scale.options.step
+                  ? activeSheet.scale.options.step
+                  : 1
+              "
               :name="`${activeSheet.itemId}`"
               v-model="answers.entries[activeSheet.itemId]"
               @input="
@@ -357,7 +369,12 @@
                   (activeSheet.itemId != '' &&
                     activeSheet.scale.options != undefined &&
                     activeSheet.scale.options.fieldType === 'multi' &&
-                    answers.entries[activeSheet.itemId].length === 0)
+                    answers.entries[activeSheet.itemId].length === 0) ||
+                  (activeSheet.itemId != '' &&
+                    activeSheet.scale.options != undefined &&
+                    activeSheet.scale.options.fieldType === 'radioAndFree' &&
+                    answers.entries[activeSheet.itemId].length != 0 &&
+                    answers.entries[activeSheet.itemId][0] == null)
                   // ||
                   // (activeSheet.itemId != '' &&
                   //   activeSheet.scale.options != undefined &&
@@ -494,6 +511,10 @@
               {{ Object.keys(answers.entries).length }}
             </div>
             <div>currentSheet: {{ currentSheet }}</div>
+            <div v-if="answers.entries[activeSheet.itemId] != undefined">
+              answers.entries[activeSheet.itemId].length :
+              {{ answers.entries[activeSheet.itemId].length }}
+            </div>
           </div>
 
           <ion-button @click="getQuestionsInitial"
@@ -1161,6 +1182,9 @@
     } else {
       target.value = answers.entries[itemId][1];
     }
+    if (answers.entries[itemId][1] === '') {
+      answers.entries[itemId] = [];
+    }
   }
 
   let freeFieldToAnswersValue = ref('');
@@ -1216,9 +1240,6 @@
     /* margin-top: auto; */
   }
 
-  .buttons {
-    min-height: 116px;
-  }
   .buttons .next,
   .buttons .previous {
     /* position: sticky !important; */
@@ -1267,11 +1288,11 @@
 
   .sheet {
     padding: 25px 15px 0px 15px;
-    border-radius: 15px;
+    /* border-radius: 15px; */
     background-color: var(--light_light_grey);
     display: flex;
     flex-direction: column;
-    min-height: 99vh;
+    min-height: 100vh;
     position: relative;
   }
 
@@ -1282,5 +1303,9 @@
   .height_zero {
     height: 0px !important;
     display: none !important;
+  }
+
+  .invisible {
+    visibility: hidden;
   }
 </style>
