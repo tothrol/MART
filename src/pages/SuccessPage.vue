@@ -1,5 +1,5 @@
 <template>
-  <base-layout backgroundColor="primary"
+  <base-layout backgroundColor="primary" :fullscreen="true"
     ><div class="box">
       <Icon class="heart" :icon="heart" />
       <p class="text_big">

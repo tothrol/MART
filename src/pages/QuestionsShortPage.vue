@@ -1239,6 +1239,8 @@
 
   .sheets {
     height: 100%;
+    background-color: var(--light_light_grey);
+    padding-top: 45px;
   }
 
   .sheet {
@@ -1254,7 +1256,7 @@
   }
 
   .ios .sheet {
-    /* min-height: calc(100vh - 45px); */
+    min-height: calc(100vh - 45px);
   }
   .buttons {
     display: flex;
