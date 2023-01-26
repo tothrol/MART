@@ -1254,7 +1254,7 @@
   }
 
   .ios .sheet {
-    min-height: calc(100vh - 45px);
+    /* min-height: calc(100vh - 45px); */
   }
   .buttons {
     display: flex;

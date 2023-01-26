@@ -60,6 +60,10 @@
     backdrop-filter: blur(5px);
   }
 
+  .ios .menu_wrapper {
+    margin-top: 45px;
+  }
+
   .menu {
     display: flex;
     flex-direction: column;

@@ -9,7 +9,7 @@
       </menu-component>
     </transition>
     <header-component
-      v-if="props.fullscreen != true"
+      v-show="props.fullscreen != true"
       @toggleMenu="showMenu = !showMenu"
     ></header-component>
 
@@ -17,6 +17,7 @@
       :color="backgroundColor"
       ref="myContent"
       :scrollTop="scrollTop"
+      :fullscreen="props.fullscreen"
     >
       <div id="main">
         <slot></slot>
@@ -624,8 +625,8 @@
 
   .ios #main-content {
     /* height: calc(100% - 20px); */
-    padding-top: 45px;
-    padding-bottom: 0px;
+    /* padding-top: 45px;
+    padding-bottom: 0px; */
   }
 
   /* MENU */
