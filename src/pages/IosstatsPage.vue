@@ -3,16 +3,17 @@
     ><div class="box">
       <p class="">
         Bitte öffnen Sie nun die Einstellungen Ihres iPhones. Tippen Sie dort
-        auf den Menüpunkt „Bildschirmzeit“
-        <span @click="showExample(1)">Beispiel</span> und darin auf „Alle
-        Aktivitäten anzeigen“
-        <span @click="showExample(2)">Beispiel</span>.<br /><br />
-        Bitte merken Sie sich den Tagesdurchschnitt, der unter „Bildschirmzeit“
-        <span @click="showExample(3)">Beispiel</span> angezeigt wird. Scrollen
-        Sie dann herunter und merken Sie sich auch Ihren Tagesdurchschnitt, der
-        unter „Aktivierungen“
-        <span @click="showExample(4)">Beispiel</span> angezeigt wird. Tragen Sie
-        dann beide Informationen hier ein:<br /><br />
+        auf den Menüpunkt <b>„Bildschirmzeit“</b>
+        <span @click="showExample(1)"> (->Beispiel)</span> und darin auf
+        <b>„Alle Aktivitäten anzeigen“</b>
+        <span @click="showExample(2)"> (->Beispiel)</span>.<br /><br />
+        Bitte merken Sie sich den Tagesdurchschnitt, der unter
+        <b>„Bildschirmzeit“</b>
+        <span @click="showExample(3)"> (->Beispiel)</span> angezeigt wird.
+        Scrollen Sie dann herunter und merken Sie sich auch Ihren
+        Tagesdurchschnitt, der unter <b>„Aktivierungen“</b>
+        <span @click="showExample(4)"> (->Beispiel)</span> angezeigt wird.
+        Tragen Sie dann beide Informationen hier ein:<br /><br />
       </p>
       <div class="flex column wrap m-b-1">
         <div class="m-b-2">Bildschirmzeit:</div>
@@ -168,12 +169,16 @@
     font-size: 45px;
   }
 
+  b {
+    font-weight: 500;
+  }
+
   .modal img {
     height: 100%;
   }
   p span {
     color: var(--ion-color-secondary);
-    font-weight: 500;
+    font-weight: 400;
     cursor: pointer;
   }
   .box {
@@ -194,6 +199,7 @@
 
   .m-b-2 {
     margin-bottom: 10px;
+    font-weight: 500;
   }
   .flex div {
     margin-right: 15px;

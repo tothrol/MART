@@ -616,7 +616,10 @@
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    height: 100%;
+    /* height: 100%;
+    height: -moz-available; 
+    height: -webkit-fill-available;
+    height: fill-available; */
   }
 
   .ios #main-content {

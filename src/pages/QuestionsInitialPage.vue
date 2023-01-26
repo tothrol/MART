@@ -1292,8 +1292,13 @@
     background-color: var(--light_light_grey);
     display: flex;
     flex-direction: column;
+    height: 100%;
     min-height: 100vh;
     position: relative;
+  }
+
+  .ios .sheet {
+    min-height: calc(100vh - 30px);
   }
 
   .item_text {

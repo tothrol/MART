@@ -1,5 +1,7 @@
 <template>
-  <base-layout backgroundColor="primary"
+  <base-layout
+    backgroundColor="primary"
+    :fullscreen="userStore.briefingShortChecked === false ? true : false"
     ><div class="box">
       <div v-if="userStore.briefingShortChecked === false">
         <h1>{{ infoStore.briefingShort.title }}</h1>

@@ -44,4 +44,7 @@
     height: 50px; */
     font-size: 40px;
   }
+  .box {
+    margin-top: 10vh;
+  }
 </style>

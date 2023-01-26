@@ -76,6 +76,7 @@
     background: white;
     max-width: 600px;
     padding: 5px;
+    background-color: var(--ion-color-secondary);
   }
 
   .text {
