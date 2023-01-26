@@ -1235,10 +1235,14 @@
     max-width: 100%;
     width: 100%;
     /* bottom: 0; */
-    padding-bottom: 10px;
+    /* padding-bottom: 10px; */
     /* left: 0; */
     /* margin-top: auto; */
   }
+
+  /* .ios .buttons_wrapper{
+    padding
+  } */
 
   .buttons .next,
   .buttons .previous {
@@ -1285,21 +1289,6 @@
     height: 76vh;
     overflow: scroll;
   } */
-
-  .sheet {
-    padding: 25px 15px 0px 15px;
-    /* border-radius: 15px; */
-    background-color: var(--light_light_grey);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 100vh;
-    position: relative;
-  }
-
-  .ios .sheet {
-    min-height: calc(100vh - 30px);
-  }
 
   .item_text {
     min-height: 122px;

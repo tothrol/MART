@@ -1241,11 +1241,8 @@
     height: 100%;
   }
 
-  .buttons {
-    /* margin-top: auto; */
-  }
   .sheet {
-    padding: 25px 15px;
+    padding: 25px 15px 25px 15px;
     /* border-radius: 15px; */
     background-color: var(--light_light_grey);
 
@@ -1257,7 +1254,22 @@
   }
 
   .ios .sheet {
-    min-height: calc(100vh - 30px);
+    min-height: calc(100vh - 45px);
+  }
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 116px;
+    /* padding-bottom: 10px; */
+
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .ios .buttons {
+    /* margin-top: auto; */
+    padding-bottom: 10px;
   }
   .radios {
     display: flex;
@@ -1381,15 +1393,6 @@
 
   .freeFieldToAnswers {
     width: 300px;
-  }
-
-  .buttons {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-
-    margin-right: auto;
-    margin-left: auto;
   }
 
   .item_text,
@@ -1627,10 +1630,6 @@
     left: 0;
     display: flex;
     z-index: 99;
-  }
-
-  .buttons {
-    min-height: 116px;
   }
 
   option {
