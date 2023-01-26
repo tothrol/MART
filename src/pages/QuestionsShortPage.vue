@@ -1240,6 +1240,9 @@
   .sheets {
     height: 100%;
     background-color: var(--light_light_grey);
+  }
+
+  .ios .sheets {
     padding-top: 45px;
   }
 
