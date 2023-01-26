@@ -126,6 +126,10 @@ ion-button.auto_width {
   margin-bottom: auto;
 }
 
+.ios .box {
+  margin-top: 45px;
+}
+
 .box.green {
   background-color: var(--ion-color-primary);
 }

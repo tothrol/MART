@@ -4,16 +4,16 @@
       <p class="">
         Bitte öffnen Sie nun die Einstellungen Ihres iPhones. Tippen Sie dort
         auf den Menüpunkt <b>„Bildschirmzeit“</b>
-        <span @click="showExample(1)"> (->Beispiel)</span> und darin auf
+        <span @click="showExample(1)"> (Beispiel)</span> und darin auf
         <b>„Alle Aktivitäten anzeigen“</b>
-        <span @click="showExample(2)"> (->Beispiel)</span>.<br /><br />
+        <span @click="showExample(2)"> (Beispiel)</span>.<br /><br />
         Bitte merken Sie sich den Tagesdurchschnitt, der unter
         <b>„Bildschirmzeit“</b>
-        <span @click="showExample(3)"> (->Beispiel)</span> angezeigt wird.
+        <span @click="showExample(3)"> (Beispiel)</span> angezeigt wird.
         Scrollen Sie dann herunter und merken Sie sich auch Ihren
         Tagesdurchschnitt, der unter <b>„Aktivierungen“</b>
-        <span @click="showExample(4)"> (->Beispiel)</span> angezeigt wird.
-        Tragen Sie dann beide Informationen hier ein:<br /><br />
+        <span @click="showExample(4)"> (Beispiel)</span> angezeigt wird. Tragen
+        Sie dann beide Informationen hier ein:<br /><br />
       </p>
       <div class="flex column wrap m-b-1">
         <div class="m-b-2">Bildschirmzeit:</div>
