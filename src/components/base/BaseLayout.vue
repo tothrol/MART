@@ -624,7 +624,7 @@
 
   .ios #main-content {
     /* height: calc(100% - 20px); */
-    padding-top: 60px;
+    padding-top: 45px;
     padding-bottom: 0px;
   }
 
