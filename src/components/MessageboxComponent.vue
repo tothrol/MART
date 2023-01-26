@@ -1,7 +1,7 @@
 <template>
   <div class="messagebox">
     <slot></slot>
-    <div class="buttons">
+    <div class="">
       <div class="ok" @click="onOk()">OK</div>
       <div class="home display_none" @click="onHome()">Home</div>
     </div>

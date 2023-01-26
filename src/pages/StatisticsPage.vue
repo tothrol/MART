@@ -247,7 +247,8 @@
           );
           singleStatObject = JSON.parse(singleStatStringObject);
           // console.log('Statistics - single - singleStatObj', singleStatObject);
-          singleStatObject['iosStats'] = wpPost.acf.iosStats;
+          singleStatObject['iosscreentime'] = wpPost.acf.iosscreentime;
+          singleStatObject['iosactivations'] = wpPost.acf.iosactivations;
           singleStatObject['userId'] = wpPost.acf.userIdStats;
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['uniqueUserId'] = wpPost.acf.uniqueUserIdStats;
@@ -333,11 +334,20 @@
         // console.log('Statistics - queryEventStats', queryEventStats);
       }
 
+      allDeviceInfos.sort(sortDeviceInfo);
+
       return allDeviceInfos;
     } else {
       return null;
     }
   });
+
+  function sortDeviceInfo(a, b) {
+    if (a.date < b.date) return 1;
+    if (a.date > b.date) return -1;
+
+    return 0;
+  }
 
   let deviceInfosElements = [
     'userId',
@@ -453,7 +463,8 @@
 
     'getLastTimeForegroundServiceUsed',
     'getLastTimeForegroundServiceUsedDate',
-    'iosStats',
+    'iosscreentime',
+    'iosactivations',
   ];
 
   function mapFunction(element, index, array) {
@@ -644,7 +655,7 @@
     let unique = [];
     unique = allEvents.filter(filterFunctionEvent);
 
-    let sorted = unique.sort(compareEvent);
+    let sorted = unique.sort(compare);
 
     // console.log('statistics - sorted: ', sorted);
     // console.log('statistics - unique: ', unique);
