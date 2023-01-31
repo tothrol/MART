@@ -152,6 +152,7 @@ export const useEvaluationStore = defineStore('evaluationStore', {
         let lastPage = false;
 
         let response;
+        let statistics = {};
         while (lastPage === false) {
           response = await axios.get(
             `https://fuberlin.nvii-dev.com/wp-json/wp/v2/nutzungsstatistik?per_page=${perPage}&page=${page}`
@@ -175,7 +176,7 @@ export const useEvaluationStore = defineStore('evaluationStore', {
               value,
               key
             );
-            this.statistics[key.id] = key;
+            statistics[key.id] = key;
           }
 
           if (totalPages === page || totalPages === 0) {
@@ -185,6 +186,7 @@ export const useEvaluationStore = defineStore('evaluationStore', {
             page++;
           }
         }
+        this.statistics = statistics;
         console.log(
           'evaluationStore - getStatistics -  response headers totalPosts',
           totalPosts
@@ -228,6 +230,7 @@ export const useEvaluationStore = defineStore('evaluationStore', {
         let lastPage = false;
 
         let response;
+        let deviceInfos = {};
         while (lastPage === false) {
           response = await axios.get(
             `https://fuberlin.nvii-dev.com/wp-json/wp/v2/device-infos?per_page=${perPage}&page=${page}`
@@ -251,7 +254,7 @@ export const useEvaluationStore = defineStore('evaluationStore', {
               value,
               key
             );
-            this.deviceInfos[key.id] = key;
+            deviceInfos[key.id] = key;
           }
 
           if (totalPages === page || totalPages === 0) {
@@ -261,6 +264,8 @@ export const useEvaluationStore = defineStore('evaluationStore', {
             page++;
           }
         }
+
+        this.deviceInfos = deviceInfos;
         console.log(
           'evaluationStore - deviceInfos -  response headers totalPosts',
           totalPosts

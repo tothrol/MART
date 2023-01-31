@@ -210,7 +210,11 @@
             date: wpPost.acf.date_k,
             dateLong: wpPost.acf.dateLong_k,
             time: wpPost.acf.time_k,
+            timestampStart: wpPost.acf.timestampStart_k,
             timestamp: wpPost.acf.timestamp_k,
+            timestampDifferenceSec: Math.round(
+              (wpPost.acf.timestamp_k - wpPost.acf.timestampStart_k) / 1000
+            ),
             userId: wpPost.acf.userId_k,
             userName: wpPost.acf.userName_k,
             uniqueUserId: wpPost.acf.uniqueUserId_k,
@@ -254,6 +258,8 @@
     'dateLong',
     'time',
     'timestamp',
+    'timestampStart',
+    'timestampDifferenceSec',
   ];
   let answersIndexInitial = computed(() => {
     return Object.keys(props.questions);
@@ -337,6 +343,8 @@
   .row .dateLong,
   .row .time,
   .row .timestamp,
+  .row .timestampStart,
+  .row .timestampDifferenceSec,
   .row .deviceUuid {
     width: 150px !important;
     min-width: 150px !important;

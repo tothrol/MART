@@ -50,7 +50,10 @@
         {{ infoStore.dailyTimeMessage }}
       </div>
 
-      <div class="buttons" v-if="userStore.showAdminButtonsHome">
+      <div
+        class="buttons"
+        v-if="userStore.showAdminButtonsHome || platform === 'web'"
+      >
         <ion-button @click="onStartQuestionsInitial()"
           >Initialen Fragebogen starten</ion-button
         >
@@ -72,6 +75,9 @@
           <router-link class="link_button" to="/statistics">
             <ion-button color="medium">Nutzungsstatistiken</ion-button>
           </router-link>
+          <router-link class="link_button" to="/device-stats">
+            <ion-button color="medium">Device Stats</ion-button>
+          </router-link>
         </div>
       </div>
       <Infoboxhome-Component></Infoboxhome-Component>
@@ -90,6 +96,7 @@
   import { useInfoStore } from '@/stores/infoStore';
   import { useQuestionsStore } from '@/stores/questionsStore';
   import InfoboxhomeComponent from '@/components/InfoboxhomeComponent.vue';
+  import { Capacitor } from '@capacitor/core';
 
   import dayjs from 'dayjs';
 
@@ -99,6 +106,7 @@
   const statsStore = useStatsStore();
   const questionsStore = useQuestionsStore();
   const infoStore = useInfoStore();
+  let platform = Capacitor.getPlatform();
 
   const showButtons = ref(false);
 

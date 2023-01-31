@@ -74,10 +74,9 @@
   import { App } from '@capacitor/app';
 
   import { Capacitor } from '@capacitor/core';
+  let platform = Capacitor.getPlatform();
 
   let contentColor = 'primary';
-
-  let platform = Capacitor.getPlatform();
 
   const questionsStore = useQuestionsStore();
   const userStore = useUserStore();
@@ -162,7 +161,7 @@
       //   infoStore.secToNext
       // );
 
-      if (conditionsQuestionsShort) {
+      if (conditionsQuestionsShort && platform != 'web') {
         if (userStore.briefingShortChecked === false) {
           console.log(
             'BaseLayout - onStartQuestionsShort - push - briefing-short'
@@ -172,6 +171,7 @@
           console.log(
             'BaseLayout - onStartQuestionsShort - push - questionsShort'
           );
+
           router.replace({ path: '/questionsshort' });
         }
       } else {
@@ -528,7 +528,11 @@
     infoStore.secToNext;
 
     if (questionsStore.initialAnswerExist === false) {
-      if (userStore.complianceAccepted === true) {
+      if (
+        userStore.complianceAccepted === true &&
+        userStore.userData.token != '' &&
+        platform != 'web'
+      ) {
         // console.log(
         //   'BaseLayout - watchEffect - conditionsQuestionsInitial - true'
         // );
@@ -550,13 +554,16 @@
       questionsStore.initialAnswerExist === true &&
       questionsStore.todayShortAnswers < 6 &&
       timeframe.value &&
-      dailyTime.value
+      dailyTime.value &&
+      userStore.userData.username != '' &&
+      platform != 'web'
     ) {
       console.log(
         'BaseLayout - watchEffect - its the first time shortQuestions starts'
       );
       conditionsQuestionsShort = true;
       infoStore.conditionsQuestionsShort = true;
+
       onStartQuestionsShort();
       // END before first questionsShort
 
@@ -567,7 +574,9 @@
       questionsStore.todayShortAnswers < 6 &&
       timeframe.value &&
       dailyTime.value &&
-      infoStore.secToNext <= 1
+      infoStore.secToNext <= 1 &&
+      userStore.userData.username != '' &&
+      platform != 'web'
     ) {
       conditionsQuestionsShort = true;
       infoStore.conditionsQuestionsShort = true;

@@ -31,6 +31,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
       lastShortAnswer: '',
       lastShortAnswerMs: 0,
       nextShortAnswerMs: 0,
+      timestampQuestionsShortStarted: 0,
 
       todayShortAnswers: 0,
       shortAnswersArray: [],
@@ -165,9 +166,9 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
         const statsStore = useStatsStore();
 
-        await statsStore.getStats(today, time, dateLong);
+        await statsStore.getStats(today, time, dateLong, timestamp);
 
-        await statsStore.sendDeviceInfos(today, time, dateLong);
+        await statsStore.sendDeviceInfos(today, time, dateLong, timestamp);
 
         // await this.sendStatistics(today, time, dateLong);
 
@@ -326,7 +327,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
         });
       }
     },
-    async sendShortAnswers(answers) {
+    async sendShortAnswers(answers, todayShortAnswers) {
       try {
         const deviceUuid = await Device.getId();
         this.showSpinner = true;
@@ -359,6 +360,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
             uniqueUserId_k: userStore.uniqueUserId,
             timestamp_k: timestamp,
             deviceUuid_k: deviceUuid.uuid,
+            timestampStart_k: this.timestampQuestionsShortStarted,
           },
           slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
           title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
@@ -416,7 +418,10 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
         const statsStore = useStatsStore();
 
-        await statsStore.getStats(today, time, dateLong);
+        if (todayShortAnswers === 0) {
+          // only send stats if its the first questionsShort of the day
+          await statsStore.getStats(today, time, dateLong, timestamp);
+        }
 
         // await this.sendStatistics(today, time, dateLong);
 

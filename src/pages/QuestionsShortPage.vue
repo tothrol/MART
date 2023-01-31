@@ -540,6 +540,7 @@
   import { useInfoStore } from '@/stores/infoStore';
   import PermissionComponent from '@/components/PermissionComponent.vue';
   import { Capacitor } from '@capacitor/core';
+  import dayjs from 'dayjs';
 
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
@@ -556,6 +557,8 @@
     console.log('QuestionsShort Mounted');
     let platform = Capacitor.getPlatform();
     console.log('QuestionsShort Platform: ', platform);
+
+    questionsStore.timestampQuestionsShortStarted = dayjs().valueOf();
 
     if (platform === 'web' || platform === 'android') {
       // web has no effect here as further down there is a check for 'NoPermission'
@@ -1096,35 +1099,37 @@
     showSpinner.value = true;
     let todayShortAnswers = toRaw(questionsStore.todayShortAnswers);
 
-    questionsStore.sendShortAnswers(answers.entries).then((response) => {
-      let platform = Capacitor.getPlatform();
-      showSpinner.value = false;
+    questionsStore
+      .sendShortAnswers(answers.entries, todayShortAnswers)
+      .then((response) => {
+        let platform = Capacitor.getPlatform();
+        showSpinner.value = false;
 
-      console.log('QuestionShortPage - sendShortAnswers', response);
+        console.log('QuestionShortPage - sendShortAnswers', response);
 
-      if (response.status != 200 && response.status != 201) {
-        userStore.appMessage =
-          'Es gab einen Fehler!<br> Bitte senden Sie den Fragebogen erneut und überprüfen Sie ob Sie online sind. <br><br> Code: ' +
-          response.code +
-          '<br>Message: ' +
-          response.message +
-          '';
+        if (response.status != 200 && response.status != 201) {
+          userStore.appMessage =
+            'Es gab einen Fehler!<br> Bitte senden Sie den Fragebogen erneut und überprüfen Sie ob Sie online sind. <br><br> Code: ' +
+            response.code +
+            '<br>Message: ' +
+            response.message +
+            '';
 
-        // router.replace('/login');
-        // showBackHomeButton.value = true;
-        return;
-      }
+          // router.replace('/login');
+          // showBackHomeButton.value = true;
+          return;
+        }
 
-      resetAllAnswers();
-      if (platform === 'ios' || platform === 'web') {
-        if (todayShortAnswers === 0) router.replace({ path: '/iosstats' });
-        else {
+        resetAllAnswers();
+        if (platform === 'ios' || platform === 'web') {
+          if (todayShortAnswers === 0) router.replace({ path: '/iosstats' });
+          else {
+            router.replace({ path: '/success' });
+          }
+        } else {
           router.replace({ path: '/success' });
         }
-      } else {
-        router.replace({ path: '/success' });
-      }
-    });
+      });
   }
   // const showBackHomeButton = ref(false);
 
@@ -1144,6 +1149,7 @@
     currentSheet.value = 0;
     jumpedFrom.value = undefined;
     jumpedTo.value = undefined;
+    questionsStore.timestampQuestionsShortStarted = 0;
   }
 
   function getRandomInt(max) {

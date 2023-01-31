@@ -11,6 +11,7 @@ import QuestionsInitial from '../pages/QuestionsInitialPage.vue';
 import QuestionsShort from '../pages/QuestionsShortPage.vue';
 import Answers from '../pages/AnswersPage.vue';
 import Statistics from '../pages/StatisticsPage.vue';
+import DeviceStats from '../pages/DeviceStatsPage.vue';
 import Success from '../pages/SuccessPage.vue';
 import Welcome from '../pages/WelcomePage.vue';
 import Compliance from '../pages/CompliancePage.vue';
@@ -57,6 +58,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/statistics',
     component: Statistics,
+  },
+  {
+    path: '/device-stats',
+    component: DeviceStats,
   },
   {
     path: '/user',

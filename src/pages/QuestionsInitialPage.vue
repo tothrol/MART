@@ -559,6 +559,8 @@
   import PermissionComponent from '@/components/PermissionComponent.vue';
   import { Capacitor } from '@capacitor/core';
 
+  let platform;
+
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
   const statsStore = useStatsStore();
@@ -566,7 +568,7 @@
   let showPermissionModal = ref(false);
 
   onMounted(async () => {
-    let platform = Capacitor.getPlatform();
+    platform = Capacitor.getPlatform();
     console.log('QuestionsInitial Platform: ', platform);
 
     if (platform === 'web' || platform === 'android') {
@@ -1147,7 +1149,11 @@
         return;
       }
       resetAllAnswers();
-      router.replace({ path: '/briefing-short' });
+      if (platform != 'web') {
+        router.replace({ path: '/briefing-short' });
+      } else {
+        router.replace({ path: '/home' });
+      }
     });
   }
 

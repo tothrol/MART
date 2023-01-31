@@ -2,13 +2,25 @@
   <base-layout :fullscreen="true">
     <div class="box">
       <div class="text_big">Willkommen<br /></div>
-      <input type="text" v-model="loginData.name" placeholder="Benutzername" />
+      <input
+        type="text"
+        v-model="loginData.name"
+        placeholder="Benutzername"
+        :default="
+          userStore.userData.username != '' ? userStore.userData.username : ''
+        "
+      />
       <input
         type="password"
         v-model="loginData.password"
         placeholder="Passwort"
       />
-      <input type="text" placeholder="ID" v-model="loginData.uniqueUserId" />
+      <input
+        type="text"
+        placeholder="ID"
+        v-model="loginData.uniqueUserId"
+        :default="userStore.userData.id != 0 ? userStore.userData.id : ''"
+      />
       <ion-button @click="login()" :disabled="checkLogin()"
         >Anmelden</ion-button
       >
@@ -56,12 +68,16 @@
 
     console.log('LoginPage - login - response', response);
     if (response.status == 200) {
-      if (questionsStore.initialAnswerExist === true) {
+      if (questionsStore.initialAnswerExist === true || platform === 'web') {
         console.log('LoginPage - initialAnswerExist === true');
         // console.log('LoginPage - Before Route -', userStore.userData.token);
 
         router.replace({ path: '/home' });
       } else {
+        console.log(
+          'LoginPage - router.replace - welcome - platform: ',
+          platform
+        );
         router.replace({ path: '/welcome' });
       }
     } else if (response.status != 200) {
@@ -108,7 +124,7 @@
         // END to simulate Mobile: comment out
       }
 
-      if (userStore.complianceAccepted === false) {
+      if (userStore.complianceAccepted === false && platform != 'web') {
         router.replace({ path: '/welcome' });
       } else {
         router.replace({ path: '/home' });

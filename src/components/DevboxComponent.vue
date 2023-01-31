@@ -61,6 +61,13 @@
           {{ questionsStore.todayShortAnswers }}<br /><br />
           infoStore.conditionsQuestionsShort:
           {{ infoStore.conditionsQuestionsShort }}<br /><br />
+          <div>
+            userStore.userData.token: {{ userStore.userData.token.slice(0, 5) }}
+          </div>
+          <div>
+            userStore.userData.username: {{ userStore.userData.username }}
+          </div>
+
           infoStore.startDate:
           {{ infoStore.startDate }} <br /><br />
           infoStore.endDate:

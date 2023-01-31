@@ -25,6 +25,7 @@ export const useStatsStore = defineStore('statsStore', {
         today: '',
         time: '',
         dateLong: '',
+        timestamp: '',
         iosStats: '',
         iosStats2: '',
         deviceInfoString: '',
@@ -74,7 +75,7 @@ export const useStatsStore = defineStore('statsStore', {
       // let broadcast = await echo.MyBroadcastReceiver();
       // console.log('broadcast', broadcast);
     },
-    async getStats(today, time, dateLong) {
+    async getStats(today, time, dateLong, timestamp) {
       try {
         console.log('getStats');
 
@@ -123,6 +124,7 @@ export const useStatsStore = defineStore('statsStore', {
             today,
             time,
             dateLong,
+            timestamp,
             queryUsageStatsString,
             queryEventStatsString,
             deviceInfoString,
@@ -138,6 +140,7 @@ export const useStatsStore = defineStore('statsStore', {
             today: today,
             time: time,
             dateLong: dateLong,
+            timestamp: timestamp,
             iosStats: null,
             iosStats2: null,
             deviceInfoString: deviceInfoString,
@@ -168,7 +171,7 @@ export const useStatsStore = defineStore('statsStore', {
         });
       }
     },
-    async sendDeviceInfos(today, time, dateLong) {
+    async sendDeviceInfos(today, time, dateLong, timestamp) {
       try {
         console.log('statsStore - sendDeviceInfo');
 
@@ -204,6 +207,7 @@ export const useStatsStore = defineStore('statsStore', {
             dateStats: today,
             timeStats: time,
             dateLongStats: dateLong,
+            timestamp: timestamp,
             uniqueUserIdStats: userStore.uniqueUserId,
           },
           slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
@@ -251,6 +255,7 @@ export const useStatsStore = defineStore('statsStore', {
           this.iosClipboard.today,
           this.iosClipboard.time,
           this.iosClipboard.dateLong,
+          this.iosClipboard.timestamp,
           '',
           '',
           this.iosClipboard.deviceInfoString,
@@ -263,6 +268,7 @@ export const useStatsStore = defineStore('statsStore', {
             today: '',
             time: '',
             dateLong: '',
+            timestamp: '',
             iosStats: '',
             iosStats2: '',
             deviceInfoString: '',
@@ -311,6 +317,7 @@ export const useStatsStore = defineStore('statsStore', {
       today,
       time,
       dateLong,
+      timestamp,
       queryUsageStatsString,
       queryEventStatsString,
       deviceInfoString,
@@ -324,6 +331,7 @@ export const useStatsStore = defineStore('statsStore', {
           today,
           time,
           dateLong,
+          timestamp,
           queryUsageStatsString,
           queryEventStatsString,
           deviceInfoString,
@@ -354,6 +362,7 @@ export const useStatsStore = defineStore('statsStore', {
             dateStats: today,
             timeStats: time,
             dateLongStats: dateLong,
+            timestamp: timestamp,
             uniqueUserIdStats: userStore.uniqueUserId,
             iosscreentime: iosScreenTime,
             iosactivations: iosActivations.toString(),

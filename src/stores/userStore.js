@@ -386,15 +386,22 @@ export const useUserStore = defineStore('userStore', {
       const token = await storage.get('token');
 
       if (token != null) {
-        let validateToken = await this.validateToken(token);
-        console.log('userStore - atAppStart - validateToken', validateToken);
-        if (validateToken.status === 200) {
-          this.userData.token = token;
-          return true;
-        } else {
-          return false;
-        }
-      } else return false;
+        this.userData.token = token;
+        return true;
+      } else {
+        return false;
+      }
+
+      // if (token != null) {
+      //   let validateToken = await this.validateToken(token);
+      //   console.log('userStore - atAppStart - validateToken', validateToken);
+      //   if (validateToken.status === 200) {
+      //     this.userData.token = token;
+      //     return true;
+      //   } else {
+      //     return false;
+      //   }
+      // } else return false;
     },
 
     async createRandomArray() {
