@@ -81,12 +81,14 @@
         router.replace({ path: '/welcome' });
       }
     } else if (response.status != 200) {
+      // userStore.appMessage =
+      //   'Fehler bei der Anmeldung. Bitte versuchen Sie es erneut! <br><br> Code: ' +
+      //   response.code +
+      //   '<br>Message: ' +
+      //   response.message +
+      //   '';
       userStore.appMessage =
-        'Fehler bei der Anmeldung. Bitte versuchen Sie es erneut! <br><br> Code: ' +
-        response.code +
-        '<br>Message: ' +
-        response.message +
-        '';
+        'Name oder Passwort falsch, bitte erneut versuchen.';
 
       router.replace({ path: '/login' });
       return;

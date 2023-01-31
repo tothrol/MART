@@ -30,6 +30,7 @@
       ></messagebox-component>
     </transition>
     <devbox-component></devbox-component>
+    <div class="ios_header"></div>
   </ion-page>
 </template>
 
@@ -123,6 +124,8 @@
           '<br>Message: ' +
           answer.message +
           '';
+        // let appMessage =
+        //   'Name oder Passwort falsch, bitte erneut versuchen';
         if (appMessage != lastAppMessage) {
           // preventing appMessage popup to often
           lastAppMessage = appMessage;
@@ -669,5 +672,16 @@
     opacity: 0;
   }
 
+  .ios_header {
+    display: none;
+  }
+
+  .ios .ios_header {
+    display: block;
+    width: 100%;
+    position: fixed;
+    height: 45px;
+    background-color: var(--ion-color-medium);
+  }
   /* END Menu */
 </style>
