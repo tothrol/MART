@@ -3,24 +3,18 @@
     <div class="box">
       <div class="text_big">Willkommen<br /></div>
       <input
+        v-if="adminSubstring"
         type="text"
         v-model="loginData.name"
         placeholder="Benutzername"
-        :default="
-          userStore.userData.username != '' ? userStore.userData.username : ''
-        "
       />
+      <input type="text" placeholder="ID" v-model="loginData.uniqueUserId" />
       <input
         type="password"
         v-model="loginData.password"
         placeholder="Passwort"
       />
-      <input
-        type="text"
-        placeholder="ID"
-        v-model="loginData.uniqueUserId"
-        :default="userStore.userData.id != 0 ? userStore.userData.id : ''"
-      />
+
       <ion-button @click="login()" :disabled="checkLogin()"
         >Anmelden</ion-button
       >
@@ -29,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-  import { reactive, watch } from 'vue';
+  import { reactive, watch, toRaw, computed } from 'vue';
   import { ref, onMounted } from 'vue';
   import { useUserStore } from '@/stores/userStore';
   import { useRouter, useRoute } from 'vue-router';
@@ -41,6 +35,17 @@
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
   const router = useRouter();
+
+  let adminSubstring = computed(() => {
+    let substring = loginData.value.uniqueUserId.substring(0, 4);
+    console.log('LoginPage - adminsubstring', substring);
+
+    if (substring === 'adm-') {
+      return true;
+    } else {
+      return false;
+    }
+  });
 
   function checkLogin() {
     // if (
@@ -100,14 +105,14 @@
   //   console.log('LoginPage - response', response);
   // }
 
-  let loginData = ref({ name: '', password: '', uniqueUserId: '' });
+  let loginData = ref({ name: 'user', password: '', uniqueUserId: '' });
 
-  loginData.value.uniqueUserId = userStore.uniqueUserId;
+  loginData.value.uniqueUserId = toRaw(userStore.uniqueUserId);
 
   watch(
     () => userStore.uniqueUserId,
     () => {
-      loginData.value.uniqueUserId = userStore.uniqueUserId;
+      loginData.value.uniqueUserId = toRaw(userStore.uniqueUserId);
     }
   );
 

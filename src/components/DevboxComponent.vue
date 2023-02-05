@@ -85,6 +85,20 @@
         <div>
           pendingNotificationsCount: {{ infoStore.pendingNotificationsCount }}
         </div>
+        <div>
+          userStore.startOfThisInterval: {{ userStore.startOfThisInterval }}
+        </div>
+        <div>
+          userStore.endOfThisInterval: {{ userStore.endOfThisInterval }}
+        </div>
+        <div>
+          userStore.startOfIntervalsRandomNotification:
+          {{ userStore.startOfIntervalsRandomNotification }}
+        </div>
+        <div>
+          userStore.conditionInterval
+          {{ userStore.conditionInterval }}
+        </div>
         <br />
         <router-link class="link_button" to="/iosstats">
           <ion-button color="medium">iosStats</ion-button>

@@ -15,6 +15,12 @@
       <ion-button v-if="showWeiter" class="ok_button" @click="close()"
         >Weiter</ion-button
       > -->
+      <p class="text" v-if="showWeiter">
+        Bitte tippen Sie nun auf Weiter, um fortzufahren.
+      </p>
+      <ion-button v-if="showWeiter" class="ok_button" @click="checkPermission()"
+        >Weiter</ion-button
+      >
     </div>
   </div>
 </template>
@@ -41,10 +47,24 @@
     setTimeout(function () {
       showWeiter.value = true;
       showOk.value = false;
-      close();
+      // close();
     }, 2000);
 
     // checkPermissions()
+  }
+
+  async function checkPermission() {
+    let result = await statsStore.checkAndroidPermissions();
+    console.log('PermissionComponent - check - result ', result);
+    if (
+      result.permission != undefined &&
+      result.permission === 'YesPermission'
+    ) {
+      close();
+    } else {
+      showWeiter.value = false;
+      showOk.value = true;
+    }
   }
 
   async function close() {

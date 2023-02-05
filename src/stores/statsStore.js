@@ -29,7 +29,6 @@ export const useStatsStore = defineStore('statsStore', {
         iosStats: '',
         iosStats2: '',
         deviceInfoString: '',
-        deviceUuid: '',
       },
     };
   },
@@ -58,7 +57,7 @@ export const useStatsStore = defineStore('statsStore', {
 
         return new Promise((resolve) => {
           // if (response.status == 200) {
-          resolve('resolved');
+          resolve(permission);
           // }
         });
       } catch (e) {
@@ -80,9 +79,6 @@ export const useStatsStore = defineStore('statsStore', {
         console.log('getStats');
 
         // const deviceInfo = await Device.getInfo();
-        const deviceUuid = await Device.getId();
-
-        console.log('statsStore - getDeviceInfo - deviceUuid: ', deviceUuid);
 
         let platform = Capacitor.getPlatform();
 
@@ -128,7 +124,7 @@ export const useStatsStore = defineStore('statsStore', {
             queryUsageStatsString,
             queryEventStatsString,
             deviceInfoString,
-            deviceUuid.uuid,
+
             '',
             ''
           );
@@ -144,7 +140,6 @@ export const useStatsStore = defineStore('statsStore', {
             iosStats: null,
             iosStats2: null,
             deviceInfoString: deviceInfoString,
-            deviceUuid: deviceUuid.uuid,
           };
 
           // await this.sendStatistics(
@@ -154,7 +149,7 @@ export const useStatsStore = defineStore('statsStore', {
           //   'ios',
           //   'ios',
           //   deviceInfoString,
-          //   deviceUuid.uuid
+
           // );
         }
 
@@ -176,9 +171,6 @@ export const useStatsStore = defineStore('statsStore', {
         console.log('statsStore - sendDeviceInfo');
 
         const deviceInfo = await Device.getInfo();
-        const deviceUuid = await Device.getId();
-
-        console.log('statsStore - sendDeviceInfo - deviceUuid: ', deviceUuid);
 
         console.log('statsStore - sendDeviceInfo - deviceInfo: ', deviceInfo);
 
@@ -202,7 +194,7 @@ export const useStatsStore = defineStore('statsStore', {
           acf: {
             userIdStats: userStore.userData.id,
             deviceInfoStats: deviceInfoString,
-            deviceUuidStats: deviceUuid.uuid,
+
             userNameStats: userStore.userData.username,
             dateStats: today,
             timeStats: time,
@@ -259,7 +251,7 @@ export const useStatsStore = defineStore('statsStore', {
           '',
           '',
           this.iosClipboard.deviceInfoString,
-          this.iosClipboard.deviceUuid,
+
           iosScreentimeString,
           activations
         );
@@ -272,7 +264,6 @@ export const useStatsStore = defineStore('statsStore', {
             iosStats: '',
             iosStats2: '',
             deviceInfoString: '',
-            deviceUuid: '',
           };
         }
 
@@ -321,7 +312,7 @@ export const useStatsStore = defineStore('statsStore', {
       queryUsageStatsString,
       queryEventStatsString,
       deviceInfoString,
-      deviceUuid,
+
       iosScreenTime,
       iosActivations
     ) {
@@ -335,7 +326,7 @@ export const useStatsStore = defineStore('statsStore', {
           queryUsageStatsString,
           queryEventStatsString,
           deviceInfoString,
-          deviceUuid,
+
           iosScreenTime,
           iosActivations
         );
@@ -357,7 +348,7 @@ export const useStatsStore = defineStore('statsStore', {
             queryUsageStats: queryUsageStatsString,
             queryEventStats: queryEventStatsString,
             deviceInfoStats: deviceInfoString,
-            deviceUuidStats: deviceUuid,
+
             userNameStats: userStore.userData.username,
             dateStats: today,
             timeStats: time,

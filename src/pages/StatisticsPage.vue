@@ -193,8 +193,6 @@
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['uniqueUserId'] = wpPost.acf.uniqueUserIdStats;
 
-          singleStatObject['deviceUuid'] = wpPost.acf.deviceUuidStats;
-
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['dateLong'] = wpPost.acf.dateLongStats;
           singleStatObject['postId'] = wpPost.id;
@@ -274,7 +272,6 @@
     'userId',
     'userName',
     'uniqueUserId',
-    'deviceUuid',
 
     'postId',
     'postTitle',
@@ -356,7 +353,6 @@
     'userId',
     'userName',
     'uniqueUserId',
-    'deviceUuid',
     'postId',
     'postTitle',
     'date',
@@ -412,8 +408,6 @@
           singleStatObject['userId'] = wpPost.acf.userIdStats;
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['uniqueUserId'] = wpPost.acf.uniqueUserIdStats;
-
-          singleStatObject['deviceUuid'] = wpPost.acf.deviceUuidStats;
 
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['dateLong'] = wpPost.acf.dateLongStats;

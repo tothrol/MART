@@ -43,14 +43,13 @@
 
   async function checkBriefing() {
     userStore.briefingShortChecked = true;
+    userStore.setNotifications();
     const storage = new Storage();
-
     await storage.create();
     await storage.set('briefingShortChecked', true);
-    // evaluation if briefing short will be launched (depending on time) will be made in Base - onQuestionShort
-    //  which will be triggered by changes to userStore.briefingShortChecked
+
     console.log('BriefingShortPage - checkBriefing');
-    // router.replace('/home');
+    router.replace({ path: '/home' });
   }
 </script>
 

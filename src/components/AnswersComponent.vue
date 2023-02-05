@@ -199,7 +199,7 @@
             userId: wpPost.acf.userId,
             userName: wpPost.acf.userName,
             uniqueUserId: wpPost.acf.uniqueUserId,
-            deviceUuid: wpPost.acf.deviceUuid,
+
             postId: wpPost.id,
             postTitle: wpPost.title.rendered,
             ...answers,
@@ -218,7 +218,7 @@
             userId: wpPost.acf.userId_k,
             userName: wpPost.acf.userName_k,
             uniqueUserId: wpPost.acf.uniqueUserId_k,
-            deviceUuid: wpPost.acf.deviceUuid_k,
+
             postId: wpPost.id,
             postTitle: wpPost.title.rendered,
             ...answers,
@@ -252,7 +252,7 @@
     'userId',
     'userName',
     'uniqueUserId',
-    'deviceUuid',
+
     'postId',
     'date',
     'dateLong',

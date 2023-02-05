@@ -41,6 +41,10 @@ export const useUserStore = defineStore('userStore', {
       notificationTimes: [],
       notificationTimesRandom: [],
       localNotificationTapped: false,
+      startOfThisInterval: 0,
+      endOfThisInterval: 0,
+      startOfIntervalsRandomNotification: 0,
+      conditionInterval: false,
     };
   },
   actions: {
@@ -88,6 +92,12 @@ export const useUserStore = defineStore('userStore', {
     },
 
     async login(username, password, uniqueUserId) {
+      console.log(
+        'userStore - login - credentials: ',
+        username,
+        password,
+        uniqueUserId
+      );
       try {
         const response = await axios.post(
           `https://fuberlin.nvii-dev.com/wp-json/jwt-auth/v1/token`,
@@ -145,7 +155,7 @@ export const useUserStore = defineStore('userStore', {
             await storage.remove('todayShortAnswersArray');
             await storage.remove('shortAnswersArray');
             await storage.remove('datesAndTimes');
-            this.createRandomArray();
+            await this.createRandomArray();
             this.complianceAccepted = false;
             console.log(
               'NewUniqueUserID - this.complianceAccepted',
@@ -161,7 +171,18 @@ export const useUserStore = defineStore('userStore', {
             questionsStore.todayShortAnswers = 0;
             questionsStore.totalShortAnswers = 0;
             questionsStore.initialAnswerExist = false;
-            infoStore.endDate = { string: '', jsDate: '', dayJs: '', ms: '' };
+            this.startOfThisInterval = 0;
+            this.endOfThisInterval = 0;
+            this.startOfIntervalsRandomNotification = 0;
+            this.conditionInterval = false;
+
+            infoStore.endDate = {
+              string: '',
+              jsDate: '',
+              dayJs: '',
+              ms: '',
+            };
+
             infoStore.startDate = { string: '', jsDate: '', dayJs: '', ms: '' };
             infoStore.dailyStartTime = {
               string: '',
@@ -195,12 +216,14 @@ export const useUserStore = defineStore('userStore', {
         }
         return new Promise((resolve) => {
           // if (response.status == 200) {
+          console.log('userStore - login - resolve');
           resolve(response);
           // }
         });
       } catch (e) {
         return new Promise((reject) => {
           // if (response.status == 200) {
+          console.log('userStore - login - reject', e);
 
           reject(e);
           // }
@@ -331,7 +354,7 @@ export const useUserStore = defineStore('userStore', {
       if (randomArray != null) {
         this.randomArray = randomArray;
       } else {
-        this.createRandomArray();
+        await this.createRandomArray();
       }
 
       let initialAnswerExist = await storage.get('initialAnswerExist');
@@ -406,27 +429,40 @@ export const useUserStore = defineStore('userStore', {
 
     async createRandomArray() {
       // Randomize Skala
+      try {
+        const storage = new Storage();
+        await storage.create();
+        const randomArray = [];
 
-      const storage = new Storage();
-      await storage.create();
-      const randomArray = [];
+        // console.log('randomArray rs', rs);
 
-      // console.log('randomArray rs', rs);
+        // console.log('NEW randomArray');
 
-      // console.log('NEW randomArray');
+        for (let i = 0; i <= 30; i++) {
+          const entry = Math.floor(Math.random() * 100);
+          // console.log('NEW randomArray - entry', entry);
 
-      for (let i = 0; i <= 30; i++) {
-        const entry = Math.floor(Math.random() * 100);
-        // console.log('NEW randomArray - entry', entry);
+          randomArray.push(entry);
+        }
+        const unique = [...new Set(randomArray)];
 
-        randomArray.push(entry);
+        await storage.set('randomArray', unique);
+        this.randomArray = unique;
+
+        console.log('randomArray:', randomArray);
+
+        return new Promise((resolve) => {
+          // if (response.status == 200) {
+          resolve('resolve');
+          // }
+        });
+      } catch (e) {
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          reject('reject', e);
+          // }
+        });
       }
-      const unique = [...new Set(randomArray)];
-
-      await storage.set('randomArray', unique);
-      this.randomArray = unique;
-
-      console.log('randomArray:', randomArray);
 
       // END Randomize Skala
     },
@@ -631,9 +667,9 @@ export const useUserStore = defineStore('userStore', {
         await storage.set('notificationTimesRandom', notificationTimesRandom);
 
         // setting nextShortAnswerMs to first array entry
-        questionsStore.nextShortAnswerMs = notificationTimes[0];
+        questionsStore.nextShortAnswerMs = notificationTimesRandom[0];
 
-        await storage.set('nextShortAnswerMs', notificationTimes[0]);
+        await storage.set('nextShortAnswerMs', notificationTimesRandom[0]);
 
         //END Calculating Notification Times
 

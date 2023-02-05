@@ -16,29 +16,34 @@
       </div>
       <div>
         <div class="countdown">
-          <div>Ende der Studie in</div>
-          <div class="countdown_times">
-            <span v-if="infoStore.countdownDays > 0"
-              >{{ infoStore.countdownDays }} Tag<span
-                v-if="infoStore.countdownDays > 1"
-                >en</span
-              ></span
-            >
-            {{ infoStore.countdownHours }} Stunde<span
-              v-if="
-                infoStore.countdownHours > 1 || infoStore.countdownHours == 0
-              "
-              >n</span
-            >
-            und
+          <div v-if="infoStore.countdownMinutes < 0">
+            Der Projektzeitraum endete am: {{ infoStore.endDate.string }}.
+          </div>
+          <div v-if="infoStore.countdownMinutes >= 0">
+            <div>Ende der Studie in</div>
+            <div class="countdown_times">
+              <span v-if="infoStore.countdownDays > 0"
+                >{{ infoStore.countdownDays }} Tag<span
+                  v-if="infoStore.countdownDays > 1"
+                  >en</span
+                ></span
+              >
+              {{ infoStore.countdownHours }} Stunde<span
+                v-if="
+                  infoStore.countdownHours > 1 || infoStore.countdownHours == 0
+                "
+                >n</span
+              >
+              und
 
-            {{ infoStore.countdownMinutes }} Minute<span
-              v-if="
-                infoStore.countdownMinutes > 1 ||
-                infoStore.countdownMinutes == 0
-              "
-              >n</span
-            >
+              {{ infoStore.countdownMinutes }} Minute<span
+                v-if="
+                  infoStore.countdownMinutes > 1 ||
+                  infoStore.countdownMinutes == 0
+                "
+                >n</span
+              >
+            </div>
           </div>
         </div>
       </div>

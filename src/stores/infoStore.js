@@ -142,26 +142,32 @@ export const useInfoStore = defineStore('infoStore', {
       console.log('infoStore - calcDates - datesAndTimes: ', datesAndTimes);
       // START startDate
       this.startDate.string = startDate;
-      this.startDate.jsDate = dayjs(startDate, 'DD.MM.YYYY', true).toDate();
-      this.startDate.dayJs = dayjs(startDate, 'DD.MM.YYYY', true);
-      this.startDate.ms = dayjs(startDate, 'DD.MM.YYYY', true).valueOf();
+      this.startDate.jsDate = dayjs(startDate, 'DD.MM.YYYY').toDate();
+      this.startDate.dayJs = dayjs(startDate, 'DD.MM.YYYY');
+      this.startDate.ms = dayjs(startDate, 'DD.MM.YYYY').valueOf();
 
       // END startDate
 
       // START endDate
       this.endDate.string = endDate;
-      let endDateDayJs = dayjs(endDate, 'DD.MM.YYYY', true);
-      this.endDate.dayJs = endDateDayJs;
-      this.endDate.jsDate = endDateDayJs.toDate();
-      this.endDate.ms = endDateDayJs.valueOf();
+      console.log('infoStore - calculateDatesAndTimes - endDate1', endDate);
+      this.endDate.jsDate = dayjs(endDate, 'DD.MM.YYYY').toDate();
       console.log(
-        'infoStore - calculateDatesAndTimes - this.endDate',
-        JSON.stringify(toRaw(this.endDate))
+        'infoStore - calculateDatesAndTimes - endDate2',
+        this.endDate.jsDate
       );
+      this.endDate.dayJs = dayjs(endDate, 'DD.MM.YYYY');
       console.log(
-        'infoStore - calculateDatesAndTimes - this.endDate.ms',
-        toRaw(this.endDate.ms)
+        'infoStore - calculateDatesAndTimes - endDate3',
+        this.endDate.dayJs
       );
+
+      this.endDate.ms = dayjs(endDate, 'DD.MM.YYYY').valueOf();
+      console.log(
+        'infoStore - calculateDatesAndTimes - endDate4',
+        this.endDate.ms
+      );
+
       // END endDate
 
       // START startTime

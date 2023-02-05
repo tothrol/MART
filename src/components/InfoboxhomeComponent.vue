@@ -21,11 +21,6 @@
         >showButtons</ion-button
       >
 
-      <ion-button
-        color="medium"
-        @click="questionsStore.nextShortAnswerMs = dayjs().add(5, 'second')"
-        >Skip Timer</ion-button
-      >
       <router-link class="link_button" to="/iosstats">
         <ion-button color="medium">iOS Stats</ion-button>
       </router-link>
@@ -37,27 +32,23 @@
         Next Intervals:
         <div
           class="notification_times"
-          v-for="notification of userStore.notificationTimes.slice(0, 5)"
+          v-for="notification of userStore.notificationTimes.slice(0, 10)"
           :key="notification"
         >
           {{ dayjs(notification).format('DD.MM.YY HH:mm') }}
         </div>
       </div>
       <div class="next_notifications">
-        Next Notifications Random:
+        Next Notifications:
         <div
           class="notification_times"
-          v-for="notification of userStore.notificationTimesRandom.slice(0, 5)"
+          v-for="notification of userStore.notificationTimesRandom.slice(0, 10)"
           :key="notification"
         >
           {{ dayjs(notification).format('DD.MM.YY HH:mm') }}
         </div>
       </div>
       <br />
-      <div class="timer_text">Time to next Interval:</div>
-      <div class="timer">
-        <div>{{ minutes }}:{{ seconds }}</div>
-      </div>
     </div>
   </div>
 </template>

@@ -50,7 +50,15 @@
         </div>
       </div>
 
-      <ion-button @click="onNext()" color="secondary">Weiter</ion-button>
+      <ion-button
+        @click="onNext()"
+        color="secondary"
+        :disabled="
+          (iosStats.hours === 0 && iosStats.minutes === 0) ||
+          iosStats.activations === 0
+        "
+        >Weiter</ion-button
+      >
     </div>
     <div class="modal" v-if="showModal">
       <div class="closeModal" @click="closeModal">
@@ -84,7 +92,7 @@
   // let aktivierungen = ref('');
 
   async function onNext() {
-    if (platform === 'ios' || platform === 'web') {
+    if (platform === 'ios') {
       let response = await statsStore.sendIosStats(iosStats);
       if (response.status != 200 && response.status != 201) {
         userStore.appMessage =

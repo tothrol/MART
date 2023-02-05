@@ -397,11 +397,61 @@
       //
       let dateNow = dayjs();
       let dateNext = dayjs(questionsStore.nextShortAnswerMs);
-      let lastShortAnswer = questionsStore.lastShortAnswer;
+      // let lastShortAnswer = questionsStore.lastShortAnswer;
       // initial lastShortAnswer = ""
-
       infoStore.secToNext = dateNext.diff(dateNow, 's');
-      secT = window.setTimeout(secTimer, 1000); /* replicate wait 1 second */
+
+      // START Conditions Timeframe
+
+      let now = dayjs().valueOf();
+      // console.log('now', now);
+      // console.log('startOfInterval New', now);
+      userStore.notificationTimes.some(function (startOfInterval, index) {
+        // console.log('startOfInterval: ', startOfInterval);
+        // console.log(
+        //   'startOfInterval .index+1: ',
+        //   userStore.notificationTimes[index + 1]
+        // );
+
+        if (
+          now > startOfInterval &&
+          now < userStore.notificationTimes[index + 1]
+        ) {
+          // Current Interval
+          // console.log('startOfInterval - Current Interval: ', startOfInterval);
+          userStore.startOfThisInterval = startOfInterval;
+          userStore.endOfThisInterval = userStore.notificationTimes[index + 1];
+          userStore.startOfIntervalsRandomNotification =
+            userStore.notificationTimesRandom[index];
+
+          if (now > userStore.notificationTimesRandom[index]) {
+            // Condition true
+            // now is between notification and end of interval
+            // console.log('startOfInterval - Condition: ', startOfInterval);
+            userStore.conditionInterval = true;
+          } else {
+            userStore.conditionInterval = false;
+          }
+          // return true is only here to exit the loop
+          return true;
+        } else if (now < startOfInterval) {
+          // next Interval has not started
+          // secToNext must be more than 0
+          // console.log(
+          //   'startOfInterval now < startOfInterval: ',
+          //   userStore.notificationTimes[index + 1]
+          // );
+          userStore.conditionInterval = false;
+          userStore.endOfThisInterval = userStore.notificationTimes[index + 1];
+          userStore.startOfThisInterval = 0;
+          userStore.startOfIntervalsRandomNotification = 0;
+          return true;
+        }
+        // return true is only here to exit the loop
+        // return true;
+      });
+
+      // END Conditions Timeframe
 
       // START check for next day to reset infoStore.dailyStart/EndTime.todayStartTimeMs
       // todayStartTimeMs is either today or yesterday
@@ -417,11 +467,15 @@
       if (nowString != todayStartTimeMs) {
         console.log('secTimer - its a new day', todayStartTimeMs, nowString);
         if (Object.keys(infoStore.datesAndTimes).length != 0) {
+          console.log(
+            'BaseLayout - secTimer - infoStore.calculateDatesAndTimes '
+          );
           infoStore.calculateDatesAndTimes(toRaw(infoStore.datesAndTimes));
         }
         // console.log('secTimer - its a new day 2', todayStartTimeMs, nowString);
       }
       // END check for next day to reset infoStore.dailyStart/EndTime.todayStartTimeMs
+      secT = window.setTimeout(secTimer, 1000); /* replicate wait 1 second */
     }
   }
 
@@ -498,10 +552,11 @@
     // END get pending Notifications
 
     if (
-      (pendingNotifications.notifications.length === 0 &&
-        questionsStore.shortAnswersArray.length >= 1) ||
-      (questionsStore.shortAnswersArray.length === 0 &&
-        userStore.briefingShortChecked === true)
+      pendingNotifications.notifications.length === 0 &&
+      questionsStore.shortAnswersArray.length >= 1
+      // ||
+      // (questionsStore.shortAnswersArray.length === 0 &&
+      //   userStore.briefingShortChecked === true)
     ) {
       console.log('BaseLayout - checkIfNotificationsLeft - No Notifications');
       console.log(
@@ -564,10 +619,19 @@
       console.log(
         'BaseLayout - watchEffect - its the first time shortQuestions starts'
       );
-      conditionsQuestionsShort = true;
-      infoStore.conditionsQuestionsShort = true;
 
-      onStartQuestionsShort();
+      if (userStore.briefingShortChecked === false) {
+        router.replace({ path: '/briefing-short' });
+      } else if (userStore.conditionInterval === true) {
+        // first start of questionsShort
+        conditionsQuestionsShort = true;
+        infoStore.conditionsQuestionsShort = true;
+        onStartQuestionsShort();
+      } else if (userStore.conditionInterval === false) {
+        conditionsQuestionsShort = false;
+      }
+
+      // router.replace({ path: '/home' });
       // END before first questionsShort
 
       // START conditions questionsShort
@@ -579,6 +643,7 @@
       dailyTime.value &&
       infoStore.secToNext <= 1 &&
       userStore.userData.username != '' &&
+      userStore.conditionInterval === true &&
       platform != 'web'
     ) {
       conditionsQuestionsShort = true;

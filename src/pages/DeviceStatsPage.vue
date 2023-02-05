@@ -144,7 +144,6 @@
         singleStatObject['userName'] = wpPost.acf.userNameStats;
         singleStatObject['uniqueUserId'] = wpPost.acf.uniqueUserIdStats;
 
-        singleStatObject['deviceUuid'] = wpPost.acf.deviceUuidStats;
         singleStatObject['deviceModel'] = deviceInfo.model;
         singleStatObject['deviceOs'] = deviceInfo.operatingSystem;
         singleStatObject['deviceOsVersion'] = deviceInfo.osVersion;
@@ -184,7 +183,7 @@
     'userId',
     'userName',
     'uniqueUserId',
-    'deviceUuid',
+
     'deviceModel',
     'deviceOs',
     'deviceOsVersion',

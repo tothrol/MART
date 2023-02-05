@@ -93,7 +93,6 @@ export const useQuestionsStore = defineStore('questionsStore', {
     },
     async sendInitialAnswers(answers) {
       try {
-        const deviceUuid = await Device.getId();
         this.showSpinner = true;
         // console.log('questionsStore - sendInitialAnswers - answers', answers);
 
@@ -127,7 +126,6 @@ export const useQuestionsStore = defineStore('questionsStore', {
             answers: answersString,
             dateLong: dateLong,
             uniqueUserId: userStore.uniqueUserId,
-            deviceUuid: deviceUuid.uuid,
           },
           slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
           title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
@@ -329,7 +327,6 @@ export const useQuestionsStore = defineStore('questionsStore', {
     },
     async sendShortAnswers(answers, todayShortAnswers) {
       try {
-        const deviceUuid = await Device.getId();
         this.showSpinner = true;
         console.log('questionsStore - sendShortAnswers - answers', answers);
         const userStore = useUserStore();
@@ -359,7 +356,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
             dateLong_k: dateLong,
             uniqueUserId_k: userStore.uniqueUserId,
             timestamp_k: timestamp,
-            deviceUuid_k: deviceUuid.uuid,
+
             timestampStart_k: this.timestampQuestionsShortStarted,
           },
           slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
