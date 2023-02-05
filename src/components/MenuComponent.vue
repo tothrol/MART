@@ -61,7 +61,7 @@
   }
 
   .ios .menu_wrapper {
-    margin-top: 45px;
+    margin-top: var(--ion-safe-area-top, 0) !important;
   }
 
   .menu {

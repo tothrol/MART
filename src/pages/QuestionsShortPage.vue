@@ -1249,7 +1249,7 @@
   }
 
   .ios .sheets {
-    padding-top: 45px;
+    padding-top: var(--ion-safe-area-top, 0) !important;
   }
 
   .sheet {
