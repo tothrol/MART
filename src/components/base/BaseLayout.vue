@@ -745,6 +745,7 @@
     display: block;
     width: 100%;
     position: fixed;
+    height: var(--ion-safe-area-top, 0) !important;
     height: 48px;
     background-color: var(--ion-color-medium);
     z-index: 99999;
