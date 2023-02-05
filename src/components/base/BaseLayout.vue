@@ -745,8 +745,9 @@
     display: block;
     width: 100%;
     position: fixed;
-    height: 45px;
+    height: 48px;
     background-color: var(--ion-color-medium);
+    z-index: 99999;
   }
   /* END Menu */
 </style>
