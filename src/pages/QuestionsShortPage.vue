@@ -1643,6 +1643,10 @@
     z-index: 99;
   }
 
+  .ios .admin_buttons {
+    top: var(--ion-safe-area-top, 0) !important;
+  }
+
   option {
     color: black;
   }

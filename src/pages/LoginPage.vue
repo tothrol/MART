@@ -3,7 +3,8 @@
     <div class="box">
       <div class="text_big">Willkommen<br /></div>
       <input
-        v-if="adminSubstring"
+        :class="{ show: adminSubstring }"
+        class="username"
         type="text"
         v-model="loginData.name"
         placeholder="Benutzername"
@@ -173,5 +174,13 @@
 
   .box.blue {
     min-height: 99vh;
+  }
+
+  .username {
+    visibility: hidden;
+  }
+
+  .username.show {
+    visibility: visible;
   }
 </style>
