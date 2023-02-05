@@ -169,6 +169,11 @@ ion-button.auto_width {
   scrollbar-width: none;
 }
 
+.ios .devbox {
+  top: 108px;
+  height: calc(100vh - 180px);
+}
+
 .devbox::-webkit-scrollbar {
   display: none;
 }
