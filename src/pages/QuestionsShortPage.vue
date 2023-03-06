@@ -443,6 +443,12 @@
       v-if="showPermissionModal === true"
       :closeModal="closePermissionModal"
     ></permission-component>
+
+    <notification-permission-component
+      v-if="showNotificationPermissionModal === true"
+      :closeNotificationPermissionModal="closeNotificationPermissionModal"
+    ></notification-permission-component>
+
     <!-- START Devbox -->
     <div v-if="userStore.userData.username == 'nviiadmin'">
       <div class="admin_buttons">
@@ -539,8 +545,10 @@
   import { useStatsStore } from '@/stores/statsStore';
   import { useInfoStore } from '@/stores/infoStore';
   import PermissionComponent from '@/components/PermissionComponent.vue';
+  import NotificationPermissionComponent from '@/components/NotificationPermissionComponent.vue';
   import { Capacitor } from '@capacitor/core';
   import dayjs from 'dayjs';
+  import { LocalNotifications } from '@capacitor/local-notifications';
 
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
@@ -550,6 +558,7 @@
   const infoStore = useInfoStore();
 
   let showPermissionModal = ref(false);
+  let showNotificationPermissionModal = ref(false);
 
   console.log('QuestionsShort NoMounted');
 
@@ -576,10 +585,28 @@
         showPermissionModal.value = true;
       }
     }
+
+    // START check notification permission
+
+    await LocalNotifications.checkPermissions().then(function (result) {
+      console.log(
+        'QuestionsInitial - checkNotificationPermissions - result',
+        result
+      );
+
+      if (result.display != undefined && result.display != 'granted') {
+        showNotificationPermissionModal.value = true;
+      }
+    });
+
+    // END check notification permission
   });
 
   function closePermissionModal() {
     showPermissionModal.value = false;
+  }
+  function closeNotificationPermissionModal() {
+    showNotificationPermissionModal.value = false;
   }
 
   let answers = reactive({ entries: {}, unchangeable: {} });

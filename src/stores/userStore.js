@@ -673,16 +673,16 @@ export const useUserStore = defineStore('userStore', {
 
         //END Calculating Notification Times
 
-        //START channel
+        // START channel
         const channel = {
-          id: '1',
-          name: 'channel1',
+          id: '0',
+          name: 'Allgemein',
           importance: 5,
           sound: 'none.mp3',
         };
 
         LocalNotifications.createChannel(channel);
-        //END channel
+        // END channel
 
         console.log('setNotifiations');
 
@@ -698,7 +698,7 @@ export const useUserStore = defineStore('userStore', {
           // // There is a limit on the Id (32bit int), so we start the id at 2022
           let notificationEntry = {
             id: i,
-            channelId: 1,
+            channelId: `0`,
             title: `MART`,
             body: `Bitte Kurzfragebogen ausfüllen!`,
             schedule: {

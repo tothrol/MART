@@ -72,6 +72,52 @@
             ></span>
           </div>
 
+          <!-- START Scale as Text  (for randomized scale) -->
+
+          <div
+            v-if="
+              activeSheetOptions &&
+              activeSheet.options.randomizedUserbased === true
+            "
+            class="item_text_scale"
+          >
+            <!-- <span
+              style="white-space: pre-line"
+              v-html="activeSheet.item"
+            ></span> -->
+
+            <!-- Normal radios -->
+            <div class="radios">
+              <fieldset class="radio_fieldset">
+                <div
+                  v-for="(input, key) in scales[activeSheet.options.showScale]
+                    .scaleRepeater"
+                  :key="key"
+                  :style="inlineStyle(input.value)"
+                >
+                  <!-- <input
+                    :id="`${activeSheet.itemId}_${input.value}`"
+                    type="radio"
+                    :value="Number(input.value)"
+                    v-model="answers.entries[activeSheet.itemId]"
+                    :disabled="disableInput"
+                  /> -->
+
+                  <label :for="`${activeSheet.itemId}_${input.value}`">{{
+                    input.key
+                  }}</label>
+                </div>
+                <div class="display_none">
+                  answers.entries[activeSheet.itemId] :
+                  {{ answers.entries[activeSheet.itemId] }}
+                </div>
+              </fieldset>
+            </div>
+            <!--END normal radios -->
+          </div>
+
+          <!-- END Scale as Text  (for randomized scale) -->
+
           <!-- number with dropdown -->
           <div
             class="number"
@@ -138,6 +184,7 @@
                 v-for="(input, key) in scales[activeSheet.scaleId]
                   .scaleRepeater"
                 :key="key"
+                :style="inlineStyle(input.value)"
               >
                 <input
                   :id="`${activeSheet.itemId}_${input.value}`"
@@ -542,6 +589,11 @@
       v-if="showPermissionModal === true"
       :closeModal="closePermissionModal"
     ></permission-component>
+
+    <notification-permission-component
+      v-if="showNotificationPermissionModal === true"
+      :closeNotificationPermissionModal="closeNotificationPermissionModal"
+    ></notification-permission-component>
   </base-layout>
 </template>
 
@@ -557,7 +609,9 @@
   import { useRouter, useRoute } from 'vue-router';
   import { Storage } from '@ionic/storage';
   import PermissionComponent from '@/components/PermissionComponent.vue';
+  import NotificationPermissionComponent from '@/components/NotificationPermissionComponent.vue';
   import { Capacitor } from '@capacitor/core';
+  import { LocalNotifications } from '@capacitor/local-notifications';
 
   let platform;
 
@@ -566,6 +620,7 @@
   const statsStore = useStatsStore();
   const router = useRouter();
   let showPermissionModal = ref(false);
+  let showNotificationPermissionModal = ref(false);
 
   onMounted(async () => {
     platform = Capacitor.getPlatform();
@@ -586,9 +641,65 @@
         showPermissionModal.value = true;
       }
     }
+
+    // START check notification permission
+
+    await LocalNotifications.checkPermissions().then(function (result) {
+      console.log(
+        'QuestionsInitial - checkNotificationPermissions - result',
+        result
+      );
+
+      if (result.display != undefined && result.display != 'granted') {
+        showNotificationPermissionModal.value = true;
+      }
+    });
+
+    // END check notification permission
   });
+
+  // let computedStyle = computed(() => {
+  //   if (
+  //     activeSheet.value != undefined &&
+  //     activeSheet.value.scaleId != undefined &&
+  //     activeSheet.value.scaleId != '' &&
+  //     activeSheet.value.scale != undefined &&
+  //     activeSheet.value.scale.options != undefined &&
+  //     activeSheet.value.scale.options.randomizedUserbased === true
+  //   ) {
+  //     let order = userStore.randomArray[]
+  //     let style = { order: 1 };
+  //     return style;
+  //   }
+
+  //   return {};
+  // });
+
+  function inlineStyle(value) {
+    if (
+      (activeSheet.value != undefined &&
+        activeSheet.value.scaleId != undefined &&
+        activeSheet.value.scaleId != '' &&
+        activeSheet.value.scale != undefined &&
+        activeSheet.value.scale.options != undefined &&
+        activeSheet.value.scale.options.randomizedUserbased === true) ||
+      (activeSheetOptions &&
+        activeSheet.value.options.randomizedUserbased === true)
+    ) {
+      let order = userStore.randomArray[value];
+      let style = { order: order };
+      return style;
+    } else {
+      return {};
+    }
+  }
+
   function closePermissionModal() {
     showPermissionModal.value = false;
+  }
+
+  function closeNotificationPermissionModal() {
+    showNotificationPermissionModal.value = false;
   }
 
   // let answers = reactive({ entries: { 6: [], 53: [] }, unchangeable: {} });
@@ -1298,6 +1409,13 @@
 
   .item_text {
     min-height: 122px;
+  }
+
+  .item_text_scale {
+    font-size: 22px;
+    color: var(--ion-color-primary);
+    font-family: 'Roboto-Slab';
+    margin-bottom: 50px;
   }
 
   .height_zero {

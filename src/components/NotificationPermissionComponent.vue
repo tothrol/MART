@@ -2,9 +2,10 @@
   <div class="permission_modal">
     <div class="box blue">
       <p class="text" v-if="showOk">
-        Bitte tippen Sie im folgenden Fenster auf <b>MART</b> und erteilen Sie
-        die Berechtigung zum Zugriff auf Nutzungsdaten. Sie können nur
-        fortfahren, wenn Sie den Zugriff auf Ihre Nutzungsdaten erlauben.
+        Bitte erlauben Sie <b>MART</b> das Anzeigen von Benachrichtigungen.<br /><br />
+        Navigieren Sie hierzu nach Einstellungen -> Apps -> MART ->
+        Benachrichtigungen.<br /><br />
+        Sie können nur fortfahren, wenn Sie Benachrichtigungen erlauben.
       </p>
 
       <ion-button v-if="showOk" class="ok_button" @click="setPermissions()"
@@ -29,8 +30,9 @@
 <script setup>
   import { useStatsStore } from '@/stores/statsStore';
   import { ref, onMounted, defineProps } from 'vue';
+  import { LocalNotifications } from '@capacitor/local-notifications';
 
-  const props = defineProps(['closeModal']);
+  const props = defineProps(['closeNotificationPermissionModal']);
 
   //   const userStore = useUserStore();
   //   const questionsStore = useQuestionsStore();
@@ -42,30 +44,33 @@
   const showOk = ref(true);
 
   async function setPermissions() {
-    let result = await statsStore.checkAndSetAndroidPermissions();
-    console.log('PermissionComponent -result ', result);
+    await LocalNotifications.requestPermissions().then(function (result) {
+      console.log(
+        'NotificationPermissionComponent - requestPermissions - result',
+        result
+      );
+    });
 
-    setTimeout(function () {
-      showWeiter.value = true;
-      showOk.value = false;
-      // close();
-    }, 2000);
+    showWeiter.value = true;
+    showOk.value = false;
 
     // checkPermissions()
   }
 
   async function checkPermission() {
-    let result = await statsStore.checkAndroidPermissions();
-    console.log('PermissionComponent - check - result ', result);
-    if (
-      result.permission != undefined &&
-      result.permission === 'YesPermission'
-    ) {
-      close();
-    } else {
-      showWeiter.value = false;
-      showOk.value = true;
-    }
+    await LocalNotifications.checkPermissions().then(function (result) {
+      console.log(
+        'NotificationPermissionComponent - checkPermissions - result',
+        result
+      );
+
+      if (result.display != undefined && result.display === 'granted') {
+        close();
+      } else {
+        showWeiter.value = false;
+        showOk.value = true;
+      }
+    });
   }
 
   async function close() {
@@ -78,7 +83,7 @@
     showWeiter.value = false;
     showOk.value = true;
 
-    props.closeModal();
+    props.closeNotificationPermissionModal();
   }
 </script>
 
