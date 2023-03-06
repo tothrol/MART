@@ -207,7 +207,7 @@
           >
             <fieldset>
               <div
-                :class="`radio ${activeSheet.scaleId} ${input.value}`"
+                :class="`radio ${activeSheet.scaleId} ${input.value}  `"
                 v-for="input in scales[activeSheet.scaleId].scaleRepeater"
                 :key="input.key"
               >
@@ -355,7 +355,12 @@
                 (activeSheet.itemId != '' &&
                   activeSheet.scale.options != undefined &&
                   activeSheet.scale.options.fieldType === 'multi' &&
-                  answers.entries[activeSheet.itemId].length === 0)
+                  answers.entries[activeSheet.itemId].length === 0 &&
+                  activeSheet.scale.options.acceptEmpty === false)
+                // (activeSheet.itemId != '' &&
+                //   activeSheet.scale.options != undefined &&
+                //   activeSheet.scale.options.fieldType === 'multi' &&
+                //   activeSheet.scale.options.acceptEmpty != 'true')
                 // ||
                 // (activeSheet.itemId != '' &&
                 //   activeSheet.scale.options != undefined &&
@@ -1649,6 +1654,9 @@
     flex-direction: column;
   }
 
+  .keineAngabe {
+    display: none;
+  }
   .timer3 {
     margin-top: 150px;
   }

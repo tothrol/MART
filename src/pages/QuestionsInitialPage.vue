@@ -416,7 +416,8 @@
                   (activeSheet.itemId != '' &&
                     activeSheet.scale.options != undefined &&
                     activeSheet.scale.options.fieldType === 'multi' &&
-                    answers.entries[activeSheet.itemId].length === 0) ||
+                    answers.entries[activeSheet.itemId].length === 0 &&
+                    activeSheet.scale.options.acceptEmpty === false) ||
                   (activeSheet.itemId != '' &&
                     activeSheet.scale.options != undefined &&
                     activeSheet.scale.options.fieldType === 'radioAndFree' &&
@@ -650,7 +651,11 @@
         result
       );
 
-      if (result.display != undefined && result.display != 'granted') {
+      if (
+        result.display != undefined &&
+        result.display != 'granted' &&
+        platform != 'ios'
+      ) {
         showNotificationPermissionModal.value = true;
       }
     });
