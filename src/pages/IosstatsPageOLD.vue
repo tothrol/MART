@@ -20,71 +20,50 @@
         <span @click="showExample(4)"> (Beispiel)</span> angezeigt wird. Tragen
         Sie dann beide Informationen hier ein:<br /><br />
       </p>
-      <div class="flex column wrap m-b-1 w100">
+      <div class="flex column wrap m-b-1">
         <div class="m-b-2">Bildschirmzeit:</div>
-        <div class="flex row wrap w100">
-          <div class="flex row center-horizontal">
-            <ion-item>
-              <ion-input
-                min="0"
-                max="999"
-                type="number"
-                :value="iosStats.hours"
-                @ionInput="validateNrInput($event, 'hours')"
-              ></ion-input>
-            </ion-item>
-
-            <!-- <input
+        <div class="flex row wrap">
+          <div>
+            <input
               min="0"
               max="999"
               @input="validateNrInput($event.target, 'hours')"
               type="number"
-            /> -->
-            <div class="label">Stunden</div>
+            />
+            Stunden
           </div>
-          <div class="flex row center-horizontal">
-            <ion-item>
-              <ion-input
-                min="0"
-                max="59"
-                type="number"
-                :value="iosStats.minutes"
-                @ionInput="validateNrInput($event, 'minutes')"
-              ></ion-input>
-            </ion-item>
-
-            <div class="label">Minuten</div>
+          <div>
+            <input
+              min="0"
+              max="59"
+              @input="validateNrInput($event.target, 'minutes')"
+              type="number"
+            />
+            Minuten
           </div>
         </div>
       </div>
-      <div class="flex column wrap m-b-1 aktivierungen">
+      <div class="flex column wrap m-b-1">
         <div class="m-b-2">Aktivierungen:</div>
         <div>
-          <ion-item>
-            <ion-input
-              min="0"
-              max="9999"
-              type="number"
-              :value="iosStats.activations"
-              @ionInput="validateNrInput($event, 'activations')"
-            ></ion-input>
-          </ion-item>
+          <input
+            min="0"
+            max="9999"
+            @input="validateNrInput($event.target, 'activations')"
+            type="number"
+          />
         </div>
       </div>
 
-      <div class="display_none">{{ iosStats }}</div>
-      <div class="weiter">
-        <ion-button
-          @click="onNext()"
-          color="secondary"
-          :disabled="
-            ((iosStats.hours === 0 || iosStats.hours === '') &&
-              (iosStats.minutes === 0 || iosStats.hours === '')) ||
-            iosStats.activations === 0
-          "
-          >Weiter</ion-button
-        >
-      </div>
+      <ion-button
+        @click="onNext()"
+        color="secondary"
+        :disabled="
+          (iosStats.hours === 0 && iosStats.minutes === 0) ||
+          iosStats.activations === 0
+        "
+        >Weiter</ion-button
+      >
     </div>
     <div class="modal" v-if="showModal">
       <div class="closeModal" @click="closeModal">
@@ -107,7 +86,6 @@
 
   import { Capacitor } from '@capacitor/core';
   import { closeCircleOutline } from 'ionicons/icons';
-  import { IonInput, IonItem, IonList } from '@ionic/vue';
 
   const router = useRouter();
 
@@ -116,52 +94,7 @@
   let platform = Capacitor.getPlatform();
 
   let iosStats = reactive({ hours: 0, minutes: 0, activations: 0 });
-  const ionInputEl = ref();
   // let aktivierungen = ref('');
-
-  async function validateNrInput(ev: any, item: any) {
-    const value = Number(ev.target.value);
-    // console.log('target', target);
-    console.log('target value', value);
-    // console.log('target value.length', value.length);
-    // console.log('target.maxlength', target.getAttribute('maxlength'));
-    console.log('target', ev.target);
-    console.log('target.max', ev.target.getAttribute('max'));
-    console.log('ev.target.max', Number(ev.target.max));
-    // console.log('target itemId', itemId);
-
-    if (value <= Number(ev.target.max) && value >= Number(ev.target.min)) {
-      // input OK
-      console.log('target value <=', value);
-      iosStats[item] = value;
-
-      //
-      const inputCmp = ionInputEl.value;
-      console.log('inputCmp', inputCmp);
-      if (inputCmp !== undefined) {
-        inputCmp.$el.value = value;
-      }
-      //
-    } else {
-      // input NOT OK
-      console.log('target value bigger', value);
-
-      console.log('ev.target: ', ev.target);
-      console.log('ev.target.value: ', ev.target.value);
-      console.log('iosStats[item] 1 : ', iosStats[item]);
-      ev.target.value = iosStats[item];
-      console.log('iosStats[item] 2 : ', iosStats[item]);
-
-      //
-      const inputCmp = ionInputEl.value;
-      console.log('inputCmp', inputCmp);
-      if (inputCmp !== undefined) {
-        inputCmp.value = Number(value);
-      }
-      //
-    }
-    console.log('target iosStats', iosStats);
-  }
 
   async function onNext() {
     if (platform === 'ios') {
@@ -198,30 +131,35 @@
   function closeModal() {
     showModal.value = false;
   }
+
+  async function validateNrInput(target: any, item: any) {
+    const value = Number(target.value);
+    // console.log('target', target);
+    console.log('target value', value);
+    // console.log('target value.length', value.length);
+    // console.log('target.maxlength', target.getAttribute('maxlength'));
+    console.log('target.max', target.getAttribute('max'));
+    // console.log('target itemId', itemId);
+
+    if (
+      value <= Number(target.getAttribute('max')) &&
+      value >= Number(target.getAttribute('min'))
+    ) {
+      console.log('target value <=', value);
+      iosStats[item] = Number(value);
+    } else {
+      target.value = iosStats[item];
+    }
+    console.log('target iosStats', iosStats);
+  }
 </script>
 
 <style scoped>
   #main {
     position: relative;
   }
-
-  .w100 {
-    width: 100%;
-  }
-
-  .center-horizontal {
-    align-items: center;
-  }
-
-  .aktivierungen {
-    margin-right: auto;
-  }
-
-  .label {
-    margin-left: 10px;
-  }
   .modal {
-    position: fixed;
+    position: absolute;
     top: 5vh;
     padding: 20px;
     background: var(--ion-color-secondary);
@@ -231,7 +169,6 @@
     max-width: 600px;
     width: 100%;
     border-radius: 20px;
-    z-index: 3;
   }
 
   .modal img {
@@ -243,12 +180,6 @@
     top: 6px;
     right: 2px;
     font-size: 45px;
-  }
-
-  .weiter {
-    padding-bottom: 20px;
-    width: 100%;
-    display: flex;
   }
 
   b {
@@ -271,6 +202,8 @@
   }
 
   .flex {
+    justify-items: center;
+    width: 100%;
   }
 
   .m-b-1 {
@@ -293,10 +226,9 @@
     color: white;
   }
 
-  input,
-  ion-item {
+  input {
     background: white;
-    width: 110px;
+    width: 80px;
     border: none;
     margin-bottom: 5px;
     margin-left: 0px;
