@@ -9,17 +9,24 @@
           Insgesamt ausgefüllte Kurzfragebögen:
           <span class="big">{{ questionsStore.totalShortAnswers }}</span>
         </div>
-        <div class="today_nr_answers">
+        <div class="today_nr_answers display_none">
           Heute ausgefüllte Kurzfragebögen:
-          <span class="big">{{ questionsStore.todayShortAnswers }}/6</span>
+          <span class="big">{{ questionsStore.todayShortAnswers }}/7</span>
         </div>
       </div>
       <div>
         <div class="countdown">
-          <div v-if="infoStore.countdownMinutes < 0">
-            Der Projektzeitraum endete am: {{ infoStore.endDate.string }}.
+          <div v-if="infoStore.countdownTotalMinutes < 0">
+            Vielen Dank für Ihre Teilnahme! Die Studie ist hiermit beendet und
+            Sie dürfen MART nun gern deinstallieren. Sie werden bald darüber
+            informiert, wie hoch die Entschädigung für Ihre Teilnahme ist.
           </div>
-          <div v-if="infoStore.countdownMinutes >= 0">
+          <div
+            v-if="
+              infoStore.countdownTotalMinutes >= 0 &&
+              questionsStore.initialAnswerExist
+            "
+          >
             <div>Ende der Studie in</div>
             <div class="countdown_times">
               <span v-if="infoStore.countdownDays > 0"

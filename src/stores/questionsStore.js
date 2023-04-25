@@ -26,12 +26,14 @@ export const useQuestionsStore = defineStore('questionsStore', {
       scalesShort: {},
 
       initialAnswerExist: false,
+      initialAnswerTimestamp: 0,
       timerShortQuestionsRuns: false,
 
       lastShortAnswer: '',
       lastShortAnswerMs: 0,
       nextShortAnswerMs: 0,
       timestampQuestionsShortStarted: 0,
+      timestampQuestionsInitialStarted: 0,
 
       todayShortAnswers: 0,
       shortAnswersArray: [],
@@ -126,6 +128,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
             answers: answersString,
             dateLong: dateLong,
             uniqueUserId: userStore.uniqueUserId,
+            timestampStart: this.timestampQuestionsInitialStarted,
           },
           slug: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
           title: `${userStore.userData.username}_${userStore.uniqueUserId}_${today}_${time}`,
@@ -157,6 +160,14 @@ export const useQuestionsStore = defineStore('questionsStore', {
           const storage = new Storage();
           await storage.create();
           await storage.set('initialAnswerExist', true);
+
+          this.initialAnswerTimestamp = timestamp;
+
+          await storage.set('initialAnswerTimestamp', timestamp);
+
+          const infoStore = useInfoStore();
+
+          infoStore.calculateDatesAndTimes(toRaw(infoStore.datesAndTimes));
         } else {
           // Error handling here
           // console.log('questionsStore - sendInitialAnswers - response = NOT 201');
@@ -186,12 +197,12 @@ export const useQuestionsStore = defineStore('questionsStore', {
         });
       }
     },
-    async checkIfInitalAnswerExists() {
+    async checkIfInitialAnswerExists() {
       const userStore = useUserStore();
       const storage = new Storage();
       await storage.create();
       // console.log(
-      //   'questionsStore - checkIfInitalAnswersExists - userID',
+      //   'questionsStore - checkIfInitialAnswersExists - userID',
       //   userStore.uniqueUserId
       // );
 
@@ -205,14 +216,22 @@ export const useQuestionsStore = defineStore('questionsStore', {
           );
 
           console.log(
-            'questionsStore - checkIfInitalAnswersExists - response',
+            'questionsStore - checkIfInitialAnswersExists - response',
             response
           );
           if (response.data.length >= 1) {
-            console.log('questionsStore - checkIfInitalAnswersExists - TRUE');
+            console.log(
+              'questionsStore - checkIfInitialAnswersExists - TRUE',
+              response
+            );
             this.initialAnswerExist = true;
+            this.initialAnswerTimestamp = response.data[0].acf.timestamp;
 
             await storage.set('initialAnswerExist', true);
+            await storage.set(
+              'initialAnswerTimestamp',
+              response.data[0].acf.timestamp
+            );
             // userStore.showQuestions = true;
 
             return new Promise((resolve) => {
@@ -223,6 +242,10 @@ export const useQuestionsStore = defineStore('questionsStore', {
           } else {
             this.initialAnswerExist = false;
             await storage.set('initialAnswerExist', false);
+
+            this.initialAnswerTimestamp = 0;
+
+            await storage.set('initialAnswerTimestamp', 0);
 
             return new Promise((resolve) => {
               // if (response.status == 200) {

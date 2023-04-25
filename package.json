@@ -28,6 +28,8 @@
     "capacitor-usage-stats-manager": "file:capacitor-usage-stats-manager",
     "core-js": "^3.6.5",
     "dayjs": "^1.11.4",
+    "dotenv": "^16.0.3",
+    "dotenv-flow": "^3.2.0",
     "echo": "file:echo",
     "pinia": "^2.0.17",
     "vue": "^3.2.21",

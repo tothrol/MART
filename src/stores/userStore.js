@@ -37,6 +37,7 @@ export const useUserStore = defineStore('userStore', {
       complianceAccepted: false,
       briefingShortChecked: false,
       appMessage: '',
+      showAppMessage: false,
       dailyLoop: null,
       notificationTimes: [],
       notificationTimesRandom: [],
@@ -151,6 +152,7 @@ export const useUserStore = defineStore('userStore', {
             await storage.remove('todayShortAnswers');
             await storage.remove('totalShortAnswers');
             await storage.remove('initialAnswerExist');
+            await storage.remove('initialAnswerTimestamp');
 
             await storage.remove('todayShortAnswersArray');
             await storage.remove('shortAnswersArray');
@@ -171,10 +173,13 @@ export const useUserStore = defineStore('userStore', {
             questionsStore.todayShortAnswers = 0;
             questionsStore.totalShortAnswers = 0;
             questionsStore.initialAnswerExist = false;
+            questionsStore.initialAnswerTimestamp = 0;
             this.startOfThisInterval = 0;
             this.endOfThisInterval = 0;
             this.startOfIntervalsRandomNotification = 0;
             this.conditionInterval = false;
+
+            infoStore.datesAndTimes = {};
 
             infoStore.endDate = {
               string: '',
@@ -211,7 +216,8 @@ export const useUserStore = defineStore('userStore', {
             await questionsStore.getLastShortAnswer();
             await questionsStore.countShortAnswers();
             await infoStore.getOptions();
-            await questionsStore.checkIfInitalAnswerExists();
+            await questionsStore.checkIfInitialAnswerExists();
+            infoStore.calculateDatesAndTimes(infoStore.datesAndTimes);
           }
         }
         return new Promise((resolve) => {
@@ -363,7 +369,19 @@ export const useUserStore = defineStore('userStore', {
         questionsStore.initialAnswerExist = initialAnswerExist;
       } else {
         // when checking here for InitialAnswer than it might get a negative response, as the answer cant be found in WP due to delay, so better not check.
-        // questionsStore.checkIfInitalAnswerExists();
+        // questionsStore.checkIfInitialAnswerExists();
+      }
+
+      let initialAnswerTimestamp = await storage.get('initialAnswerTimestamp');
+      console.log(
+        'userStore - Auth - initialAnswerTimestamp',
+        initialAnswerTimestamp
+      );
+      if (initialAnswerTimestamp != null) {
+        questionsStore.initialAnswerTimestamp = initialAnswerTimestamp;
+      } else {
+        // when checking here for InitialAnswer than it might get a negative response, as the answer cant be found in WP due to delay, so better not check.
+        // questionsStore.checkIfInitialAnswerExists();
       }
 
       let notificationTimes = await storage.get('notificationTimes');
@@ -627,8 +645,8 @@ export const useUserStore = defineStore('userStore', {
             } else {
               entryToPush = newEntryRandom;
             }
-            // START check if todayShortAnswers === 6
-            if (questionsStore.todayShortAnswers === 6) {
+            // START check if todayShortAnswers === 7
+            if (questionsStore.todayShortAnswers === 7) {
               // daily limit reached
               let todayDate = dayjs().format('DD.MM.YYYY');
               let entryToPushDate = dayjs(entryToPush).format('DD.MM.YYYY');
@@ -640,7 +658,7 @@ export const useUserStore = defineStore('userStore', {
             } else {
               notificationTimesRandom.push(entryToPush);
             }
-            // END check if todayShortAnswers === 6
+            // END check if todayShortAnswers === 7
 
             i++;
           }

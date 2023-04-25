@@ -14,6 +14,7 @@ import Statistics from '../pages/StatisticsPage.vue';
 import DeviceStats from '../pages/DeviceStatsPage.vue';
 import Success from '../pages/SuccessPage.vue';
 import Welcome from '../pages/WelcomePage.vue';
+import Contact from '../pages/ContactPage.vue';
 import Compliance from '../pages/CompliancePage.vue';
 import BriefingShort from '../pages/BriefingShortPage.vue';
 import Iosstats from '../pages/IosstatsPage.vue';
@@ -70,6 +71,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/welcome',
     component: Welcome,
+  },
+  {
+    path: '/contact',
+    component: Contact,
   },
   {
     path: '/compliance',

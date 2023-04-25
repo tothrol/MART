@@ -16,11 +16,11 @@
   const userStore = useUserStore();
 
   function onOk() {
-    userStore.appMessage = '';
+    userStore.showAppMessage = false;
   }
 
   function onHome() {
-    userStore.appMessage = '';
+    userStore.showAppMessage = false;
     router.replace({ path: '/home' });
   }
 </script>

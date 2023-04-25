@@ -25,7 +25,9 @@
     </ion-content>
     <footer-component v-if="props.fullscreen != true"></footer-component>
     <transition>
-      <messagebox-component name="fade" v-if="userStore.appMessage != ''"
+      <messagebox-component
+        name="fade"
+        v-if="userStore.appMessage != '' && userStore.showAppMessage"
         ><p v-html="userStore.appMessage" style="white-space: pre-line"></p
       ></messagebox-component>
     </transition>
@@ -75,6 +77,11 @@
   import { App } from '@capacitor/app';
 
   import { Capacitor } from '@capacitor/core';
+
+  import { envtest } from '@/composables/envtest';
+
+  // import 'dotenv/config';
+
   let platform = Capacitor.getPlatform();
 
   let contentColor = 'primary';
@@ -130,6 +137,7 @@
           // preventing appMessage popup to often
           lastAppMessage = appMessage;
           userStore.appMessage = appMessage;
+          userStore.showAppMessage = true;
         }
 
         console.log('BaseLayout - onStartQuestionsShort - push - login');
@@ -299,12 +307,19 @@
       let message =
         'Der Projektzeitraum startet am: ' + infoStore.startDate.string + '.';
       userStore.appMessage = message;
+      userStore.showAppMessage = true;
       infoStore.timeframeMessage = message;
     }
     if (value === 'over') {
       let message =
-        'Der Projektzeitraum endete am: ' + infoStore.endDate.string + '.';
-      userStore.appMessage = message;
+        'Vielen Dank für Ihre Teilnahme! Die Studie ist hiermit beendet und Sie dürfen MART nun gern deinstallieren. Sie werden bald darüber informiert, wie hoch die Entschädigung für Ihre Teilnahme ist.';
+
+      let appMsg = 'Studie abgeschlossen!';
+
+      if (userStore.appMessage != appMsg) {
+        userStore.appMessage = appMsg;
+        userStore.showAppMessage = true;
+      }
       infoStore.timeframeMessage = message;
     }
   }
@@ -519,8 +534,8 @@
       JSON.stringify(toRaw(infoStore.dailyEndTime))
     );
     if (infoStore.dailyEndTime.hours != '' && endDate != null) {
-      endDate = endDate.add(Number(infoStore.dailyEndTime.hours), 'hour');
-      endDate = endDate.add(Number(infoStore.dailyEndTime.minutes), 'minute');
+      // endDate = endDate.add(Number(infoStore.dailyEndTime.hours), 'hour');
+      // endDate = endDate.add(Number(infoStore.dailyEndTime.minutes), 'minute');
 
       console.log('BaseLayout - countdownTimer - now', now);
       console.log('BaseLayout - countdownTimer - endDate', toRaw(endDate));
@@ -532,6 +547,7 @@
       // something like 26 hours will become 2 hours
 
       let countdownTotalMinutes = endDate.diff(now, 'minute');
+      infoStore.countdownTotalMinutes = countdownTotalMinutes;
       infoStore.countdownMinutes = formatTo1digit(countdownTotalMinutes % 60);
     }
   }
@@ -569,7 +585,10 @@
 
   onMounted(async () => {
     console.log('BaseLayout - onMounted');
-    // questionsStore.checkIfInitalAnswerExists();
+    // console.log('dotenv', process.env.NODE_ENV_SOMEKEY);
+    // console.log('dotenv Node', process.env);
+    envtest();
+    // questionsStore.checkIfInitialAnswerExists();
     // initDate();
     secTimer();
     oneMinuteTimer();
@@ -610,7 +629,8 @@
       questionsStore.shortAnswersArray.length === 0 &&
       userStore.complianceAccepted === true &&
       questionsStore.initialAnswerExist === true &&
-      questionsStore.todayShortAnswers < 6 &&
+      questionsStore.todayShortAnswers < 7 &&
+      questionsStore.shortAnswersArray.length < 49 &&
       timeframe.value &&
       dailyTime.value &&
       userStore.userData.username != '' &&
@@ -638,7 +658,8 @@
     } else if (
       userStore.complianceAccepted === true &&
       questionsStore.initialAnswerExist === true &&
-      questionsStore.todayShortAnswers < 6 &&
+      questionsStore.todayShortAnswers < 7 &&
+      questionsStore.shortAnswersArray.length < 49 &&
       timeframe.value &&
       dailyTime.value &&
       infoStore.secToNext <= 1 &&

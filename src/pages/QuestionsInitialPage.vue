@@ -613,6 +613,7 @@
   import NotificationPermissionComponent from '@/components/NotificationPermissionComponent.vue';
   import { Capacitor } from '@capacitor/core';
   import { LocalNotifications } from '@capacitor/local-notifications';
+  import dayjs from 'dayjs';
 
   let platform;
 
@@ -626,6 +627,8 @@
   onMounted(async () => {
     platform = Capacitor.getPlatform();
     console.log('QuestionsInitial Platform: ', platform);
+
+    questionsStore.timestampQuestionsInitialStarted = dayjs().valueOf();
 
     if (platform === 'web' || platform === 'android') {
       var result = await statsStore.checkAndroidPermissions();
@@ -1288,6 +1291,7 @@
     answers.entries = {};
     answers.unchangeable = {};
     currentSheet.value = 0;
+    questionsStore.timestampQuestionsInitialStarted = 0;
   }
 
   function getRandomInt(max) {

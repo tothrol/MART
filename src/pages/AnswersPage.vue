@@ -35,8 +35,8 @@
 
       <ion-button
         color="medium"
-        @click="questionsStore.checkIfInitalAnswerExists"
-        >checkIfInitalAnswersExists</ion-button
+        @click="questionsStore.checkIfInitialAnswerExists"
+        >checkIfInitialAnswersExists</ion-button
       >{{ questionsStore.initialAnswerExist }}
     </div>
   </base-layout>

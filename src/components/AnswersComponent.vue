@@ -195,7 +195,11 @@
             date: wpPost.acf.date,
             dateLong: wpPost.acf.dateLong,
             time: wpPost.acf.time,
+            timestampStart: wpPost.acf.timestampStart,
             timestamp: wpPost.acf.timestamp,
+            timestampDifferenceSec: Math.round(
+              (wpPost.acf.timestamp - wpPost.acf.timestampStart) / 1000
+            ),
             userId: wpPost.acf.userId,
             userName: wpPost.acf.userName,
             uniqueUserId: wpPost.acf.uniqueUserId,

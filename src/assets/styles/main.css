@@ -2,6 +2,10 @@
   /* display: none !important; */
 }
 
+a {
+  color: var(--ion-color-secondary) !important;
+}
+
 .box.blue {
   color: white;
 }

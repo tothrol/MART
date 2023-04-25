@@ -7,12 +7,13 @@ import { toRaw } from 'vue';
 import { Storage } from '@ionic/storage';
 // import { Storage } from '@ionic/storage';
 
-// import { useQuestionsStore } from '@/stores/questionsStore';
+import { useQuestionsStore } from '@/stores/questionsStore';
 
 export const useInfoStore = defineStore('infoStore', {
   state: () => {
     return {
       welcomeText: { text: '', title: '' },
+      contactText: { text: '', title: '' },
       briefingShort: { text: '', title: '' },
       briefingShortMenu: { text: '', title: '' },
       compliance: { text: '', title: '' },
@@ -54,6 +55,7 @@ export const useInfoStore = defineStore('infoStore', {
       countdownDays: null,
       countdownHours: null,
       countdownMinutes: null,
+      countdownTotalMinutes: null,
 
       secToNext: 0,
       minutesCounter: 0,
@@ -128,7 +130,7 @@ export const useInfoStore = defineStore('infoStore', {
     },
 
     calculateDatesAndTimes(datesAndTimes) {
-      const {
+      let {
         startDate,
         endDate,
         dailyStartTime,
@@ -149,20 +151,82 @@ export const useInfoStore = defineStore('infoStore', {
       // END startDate
 
       // START endDate
-      this.endDate.string = endDate;
+      let questionsStore = useQuestionsStore();
+
+      let initialAnswerTimestamp = Number(
+        questionsStore.initialAnswerTimestamp
+      );
+
+      console.log(
+        'infoStore - calculateDatesAndTimes - dayjs initialAnswerTimestamp',
+        dayjs(initialAnswerTimestamp)
+      );
+
+      console.log(
+        'infoStore - calculateDatesAndTimes - initialAnswerTimestamp',
+        toRaw(initialAnswerTimestamp)
+      );
+
+      if (initialAnswerTimestamp != 0) {
+        endDate = dayjs(initialAnswerTimestamp).add(168, 'hour');
+
+        console.log(
+          'infoStore - calculateDatesAndTimes - endDate DATE',
+          endDate
+        );
+
+        // START Setting the end Hour
+        let endHour;
+        let initialAnswerTimestampHour = dayjs(initialAnswerTimestamp).format(
+          'H'
+        );
+
+        initialAnswerTimestampHour;
+
+        if (initialAnswerTimestampHour < 10) {
+          endHour = 10;
+        } else if (initialAnswerTimestampHour < 12) {
+          endHour = 12;
+        } else if (initialAnswerTimestampHour < 14) {
+          endHour = 14;
+        } else if (initialAnswerTimestampHour < 16) {
+          endHour = 16;
+        } else if (initialAnswerTimestampHour < 18) {
+          endHour = 18;
+        } else if (initialAnswerTimestampHour < 20) {
+          endHour = 20;
+        } else if (initialAnswerTimestampHour >= 20) {
+          endHour = 22;
+        }
+
+        endDate = endDate.hour(endHour).minute(0).second(0).millisecond(0);
+
+        console.log(
+          'infoStore - calculateDatesAndTimes - endDate WITH HOUR',
+          endDate
+        );
+
+        this.endDate.string = endDate.format('DD.MM.YYYY HH:mm');
+
+        // END Setting the end Hour
+      } else {
+        endDate = dayjs(endDate, 'DD.MM.YYYY');
+        this.endDate.string = dayjs(endDate, 'DD.MM.YYYY');
+      }
+
       console.log('infoStore - calculateDatesAndTimes - endDate1', endDate);
-      this.endDate.jsDate = dayjs(endDate, 'DD.MM.YYYY').toDate();
+      this.endDate.jsDate = endDate.toDate();
       console.log(
         'infoStore - calculateDatesAndTimes - endDate2',
         this.endDate.jsDate
       );
-      this.endDate.dayJs = dayjs(endDate, 'DD.MM.YYYY');
+      this.endDate.dayJs = endDate;
       console.log(
         'infoStore - calculateDatesAndTimes - endDate3',
         this.endDate.dayJs
       );
 
-      this.endDate.ms = dayjs(endDate, 'DD.MM.YYYY').valueOf();
+      this.endDate.ms = endDate.valueOf();
       console.log(
         'infoStore - calculateDatesAndTimes - endDate4',
         this.endDate.ms
@@ -239,6 +303,36 @@ export const useInfoStore = defineStore('infoStore', {
           return new Promise((resolve) => {
             console.log('infoStore - welcome - resolve', response);
             resolve('infoStore - welcome - resolve');
+            // }
+          });
+        }
+      } catch (e) {
+        console.log('infoStore - welcome - error', e);
+        return new Promise((reject) => {
+          // if (response.status == 200) {
+          reject(e);
+          // }
+        });
+      }
+    },
+    async getContactText() {
+      try {
+        const response = await axios.get(
+          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/pages?slug=kontakt`
+        );
+
+        if (response.status == 200) {
+          this.contactText.text = response.data[0].content.rendered;
+          this.contactText.title = response.data[0].title.rendered;
+          // const storage = new Storage();
+          // await storage.create();
+          // await storage.set(
+          //   'lastShortQuestion',
+          //   response.data[0].acf.dateLong_k
+          // );
+          return new Promise((resolve) => {
+            console.log('infoStore - contact - resolve', response);
+            resolve('infoStore - contact - resolve');
             // }
           });
         }

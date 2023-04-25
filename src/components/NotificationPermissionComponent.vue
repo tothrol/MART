@@ -3,7 +3,8 @@
     <div class="box blue">
       <p class="text" v-if="showOk">
         Bitte erlauben Sie <b>MART</b> das Anzeigen von Benachrichtigungen.<br /><br />
-        Navigieren Sie hierzu nach Einstellungen -> Apps -> MART ->
+        Navigieren Sie hierzu nach Einstellungen
+        <span v-if="platform != 'ios'">-> Apps</span> -> MART ->
         Benachrichtigungen.<br /><br />
         Sie können nur fortfahren, wenn Sie Benachrichtigungen erlauben.
       </p>
@@ -31,6 +32,8 @@
   import { useStatsStore } from '@/stores/statsStore';
   import { ref, onMounted, defineProps } from 'vue';
   import { LocalNotifications } from '@capacitor/local-notifications';
+  import { Capacitor } from '@capacitor/core';
+  let platform = Capacitor.getPlatform();
 
   const props = defineProps(['closeNotificationPermissionModal']);
 

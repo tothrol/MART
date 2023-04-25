@@ -20,7 +20,7 @@
 
   let menuEntries = [
     {
-      name: 'Home',
+      name: 'Startseite',
       route: '/home',
     },
     {
@@ -30,6 +30,7 @@
 
     { name: 'Briefing Kurzfragebogen', route: '/briefing-short' },
     { name: 'Datenschutz', route: '/compliance' },
+    { name: 'Kontakt', route: '/contact' },
     { name: 'User', route: '/user' },
   ];
 
