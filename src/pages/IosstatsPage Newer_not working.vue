@@ -24,16 +24,15 @@
         <div class="m-b-2">Bildschirmzeit:</div>
         <div class="flex row wrap w100">
           <div class="flex row center-horizontal">
-            <input
-              id="hours"
-              name="hours"
-              :value="iosStats.hours"
-              @input="validateNrInput2($event.target, 'hours', $event)"
-              min="0"
-              max="999"
-              maxlength="3"
-              type="number"
-            />
+            <ion-item>
+              <ion-input
+                min="0"
+                max="999"
+                type="number"
+                :value="iosStats.hours"
+                @ionInput="validateNrInput($event, 'hours')"
+              ></ion-input>
+            </ion-item>
 
             <!-- <input
               min="0"
@@ -44,16 +43,15 @@
             <div class="label">Stunden</div>
           </div>
           <div class="flex row center-horizontal">
-            <input
-              id="minutes"
-              name="minutes"
-              :value="iosStats.minutes"
-              @input="validateNrInput2($event.target, 'minutes', $event)"
-              min="0"
-              max="59"
-              maxlength="2"
-              type="number"
-            />
+            <ion-item>
+              <ion-input
+                min="0"
+                max="59"
+                type="number"
+                :value="iosStats.minutes"
+                @ionInput="validateNrInput($event, 'minutes')"
+              ></ion-input>
+            </ion-item>
 
             <div class="label">Minuten</div>
           </div>
@@ -62,20 +60,19 @@
       <div class="flex column wrap m-b-1 aktivierungen">
         <div class="m-b-2">Aktivierungen:</div>
         <div>
-          <input
-            id="activations"
-            name="activations"
-            :value="iosStats.activations"
-            @input="validateNrInput2($event.target, 'activations', $event)"
-            min="0"
-            max="9999"
-            maxlength="4"
-            type="number"
-          />
+          <ion-item>
+            <ion-input
+              min="0"
+              max="9999"
+              type="number"
+              :value="iosStats.activations"
+              @ionInput="validateNrInput($event, 'activations')"
+            ></ion-input>
+          </ion-item>
         </div>
       </div>
 
-      <div class="display_non">{{ iosStats }}</div>
+      <div class="display_none">{{ iosStats }}</div>
       <div class="weiter">
         <ion-button
           @click="onNext()"
@@ -121,28 +118,6 @@
   let iosStats = reactive({ hours: 0, minutes: 0, activations: 0 });
   const ionInputEl = ref();
   // let aktivierungen = ref('');
-
-  async function validateNrInput2(target: any, item: any, event: any) {
-    const value = target.value;
-    console.log('validateNrInput - target', target);
-    console.log('validateNrInput - event', event);
-    console.log(
-      'validateNrInput - target.maxlength',
-      target.getAttribute('maxlength')
-    );
-    console.log('validateNrInput - item', item);
-
-    if (value.length <= target.getAttribute('maxlength')) {
-      console.log('value <=', value);
-      if (event.data >= 0 && event.data <= 9) {
-        iosStats[item] = Number(value);
-      } else {
-        target.value = iosStats[item];
-      }
-    } else {
-      target.value = iosStats[item];
-    }
-  }
 
   async function validateNrInput(ev: any, item: any) {
     const value = Number(ev.target.value);
