@@ -75,7 +75,7 @@
         </div>
       </div>
 
-      <div class="display_non">{{ iosStats }}</div>
+      <div class="display_none">{{ iosStats }}</div>
       <div class="weiter">
         <ion-button
           @click="onNext()"
