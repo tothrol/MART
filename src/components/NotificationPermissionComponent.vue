@@ -1,10 +1,15 @@
 <template>
   <div class="permission_modal">
     <div class="box blue">
-      <p class="text" v-if="showOk">
+      <p class="text" v-if="showOk && platform != 'ios'">
         Bitte erlauben Sie <b>MART</b> das Anzeigen von Benachrichtigungen.<br /><br />
-        Navigieren Sie hierzu nach Einstellungen
-        <span v-if="platform != 'ios'">-> Apps</span> -> MART ->
+        Navigieren Sie hierzu nach Einstellungen -> Apps -> MART ->
+        Benachrichtigungen.<br /><br />
+        Sie können nur fortfahren, wenn Sie Benachrichtigungen erlauben.
+      </p>
+      <p class="text" v-if="showOk && platform === 'ios'">
+        Bitte erlauben Sie <b>MART</b> das Anzeigen von Benachrichtigungen.<br /><br />
+        Öffnen Sie hierzu auf Ihrem iPhone Einstellungen -> Mart ->
         Benachrichtigungen.<br /><br />
         Sie können nur fortfahren, wenn Sie Benachrichtigungen erlauben.
       </p>

@@ -586,6 +586,9 @@
     <spinner-component v-if="showSpinner"
       >Daten werden gesendet.</spinner-component
     >
+    <spinner-component v-if="showSpinnerLoading"
+      >Fragebogen wird geladen.</spinner-component
+    >
     <permission-component
       v-if="showPermissionModal === true"
       :closeModal="closePermissionModal"
@@ -716,11 +719,12 @@
   let errors = ref({});
 
   let showSpinner = ref(false);
+  let showSpinnerLoading = ref(false);
 
   let currentSheet = ref(0);
 
   async function getQuestionsInitial() {
-    showSpinner.value = true;
+    showSpinnerLoading.value = true;
 
     let request = await questionsStore.getInitialQuestions();
     console.log('getIQ - result: ', request);
@@ -735,7 +739,7 @@
       router.replace({ path: '/login' });
       return;
     }
-    showSpinner.value = false;
+    showSpinnerLoading.value = false;
   }
   getQuestionsInitial();
 

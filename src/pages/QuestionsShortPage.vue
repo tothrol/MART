@@ -443,6 +443,9 @@
     <spinner-component v-if="showSpinner"
       >Daten werden gesendet.</spinner-component
     >
+    <spinner-component v-if="showSpinnerLoading"
+      >Kurzfragebogen wird geladen.</spinner-component
+    >
 
     <permission-component
       v-if="showPermissionModal === true"
@@ -619,11 +622,12 @@
   let errors = ref({});
 
   let showSpinner = ref(false);
+  let showSpinnerLoading = ref(false);
 
   let currentSheet = ref(0);
 
   async function getQuestionsShort() {
-    showSpinner.value = true;
+    showSpinnerLoading.value = true;
     let request = await questionsStore.getShortQuestions();
     if (request.status != 200 && request.status != 201) {
       userStore.appMessage =
@@ -636,7 +640,7 @@
       router.replace({ path: '/login' });
       return;
     }
-    showSpinner.value = false;
+    showSpinnerLoading.value = false;
   }
   getQuestionsShort();
 

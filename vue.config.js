@@ -5,5 +5,5 @@ const path = require('path');
 
 module.exports = defineConfig({
   // options...
-  // publicPath: process.env.NODE_ENV === 'production' ? '/ergebnisse/' : '/',
+  publicPath: process.env.NODE_ENV === 'production' ? '/ergebnisse/' : '/',
 });
