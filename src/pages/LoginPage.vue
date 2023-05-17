@@ -86,6 +86,21 @@
         );
         router.replace({ path: '/welcome' });
       }
+    } else if (response.code === 'ERR_NETWORK') {
+      // userStore.appMessage =
+      //   'Bitte stellen Sie sicher das eine Internetverbindung besteht! <br><br> Code: ' +
+      //   answer.code +
+      //   '<br>Message: ' +
+      //   answer.message +
+      //   '';
+      let appMsg2 =
+        'Bitte stellen Sie sicher das eine Internetverbindung besteht!';
+
+      userStore.appMessageNetError = appMsg2;
+      userStore.showAppMessageNetError = true;
+
+      console.log('BaseLayout - onStartQuestionsShort - NOpush -Err_Network');
+      return;
     } else if (response.status != 200) {
       // userStore.appMessage =
       //   'Fehler bei der Anmeldung. Bitte versuchen Sie es erneut! <br><br> Code: ' +
@@ -95,6 +110,7 @@
       //   '';
       userStore.appMessage =
         'Name oder Passwort falsch, bitte erneut versuchen.';
+      userStore.showAppMessage = true;
 
       router.replace({ path: '/login' });
       return;

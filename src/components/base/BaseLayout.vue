@@ -26,12 +26,38 @@
     <footer-component v-if="props.fullscreen != true"></footer-component>
     <transition>
       <messagebox-component
+        type="normal"
         name="fade"
         v-if="userStore.appMessage != '' && userStore.showAppMessage"
         ><p v-html="userStore.appMessage" style="white-space: pre-line"></p
       ></messagebox-component>
+      <messagebox-component
+        type="netError"
+        name="fade"
+        v-if="
+          userStore.appMessageNetError != '' && userStore.showAppMessageNetError
+        "
+        ><p
+          v-html="userStore.appMessageNetError"
+          style="white-space: pre-line"
+        ></p
+      ></messagebox-component>
+      <messagebox-component
+        type="timeframe"
+        name="fade"
+        v-if="
+          userStore.appMessageTimeframe != '' &&
+          userStore.showAppMessageTimeframe
+        "
+        ><p
+          v-html="userStore.appMessageTimeframe"
+          style="white-space: pre-line"
+        ></p
+      ></messagebox-component>
     </transition>
-    <devbox-component></devbox-component>
+    <devbox-component
+      @triggerShortQ="onStartQuestionsShort()"
+    ></devbox-component>
     <div class="ios_header"></div>
   </ion-page>
 </template>
@@ -122,6 +148,13 @@
         //   '<br>Message: ' +
         //   answer.message +
         //   '';
+        let appMsg2 =
+          'Bitte stellen Sie sicher, das eine Internetverbindung besteht!';
+
+        if (userStore.appMessageNetError != appMsg2) {
+          userStore.appMessageNetError = appMsg2;
+          userStore.showAppMessageNetError = true;
+        }
         console.log('BaseLayout - onStartQuestionsShort - NOpush -Err_Network');
         return;
       } else if (answer.status != 200 && answer.status != 201) {
@@ -144,6 +177,10 @@
         router.replace({ path: '/login' });
         return;
       }
+      //
+      userStore.appMessageNetError = '';
+      userStore.showAppMessageNetError = false;
+      //
 
       // end check for validToken
 
@@ -193,7 +230,7 @@
   }
 
   let timeframe = computed(() => {
-    // Question: When is timeframe computed
+    // Question: When is timeframe computed: 1 Minute
     let nowMs = dayjs().valueOf();
     let startDateMs = infoStore.startDate.ms;
     let endDateMs = toRaw(infoStore.endDate.ms);
@@ -217,7 +254,6 @@
       infoStore.dailyEndTime.hours * 60 * 60 * 1000 +
       infoStore.dailyEndTime.minutes * 60 * 1000;
 
-    console.log;
     if (infoStore.startDate.ms != '' && infoStore.endDate.ms != '') {
       if (nowMs < startDateMs) {
         // project timeframe has not started
@@ -229,6 +265,7 @@
         // Project timeframe is over
         checkTimeframe('over');
         console.log('BaseLayout - timeframe - false2', endDateMs);
+        userStore.resetNotifications();
 
         return false;
       } else {
@@ -306,8 +343,8 @@
     if (value === 'notStarted') {
       let message =
         'Der Projektzeitraum startet am: ' + infoStore.startDate.string + '.';
-      userStore.appMessage = message;
-      userStore.showAppMessage = true;
+      userStore.appMessageTimeframe = message;
+      userStore.showAppMessageTimeframe = true;
       infoStore.timeframeMessage = message;
     }
     if (value === 'over') {
@@ -316,9 +353,9 @@
 
       let appMsg = 'Studie abgeschlossen!';
 
-      if (userStore.appMessage != appMsg) {
-        userStore.appMessage = appMsg;
-        userStore.showAppMessage = true;
+      if (userStore.appMessageTimeframe != appMsg) {
+        userStore.appMessageTimeframe = appMsg;
+        userStore.showAppMessageTimeframe = true;
       }
       infoStore.timeframeMessage = message;
     }

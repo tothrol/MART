@@ -173,6 +173,7 @@
           '<br>Message: ' +
           response.message +
           '';
+        userStore.showAppMessage = true;
       } else {
         router.replace({ path: '/success' });
       }

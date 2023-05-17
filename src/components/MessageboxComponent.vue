@@ -12,11 +12,20 @@
   import {} from '@ionic/vue';
   import { useUserStore } from '@/stores/userStore';
   import router from '@/router';
+  import defineProps from '@ionic/vue';
+
+  const props = defineProps(['type']);
 
   const userStore = useUserStore();
 
   function onOk() {
-    userStore.showAppMessage = false;
+    if (props.type == 'timeframe') {
+      userStore.showAppMessageTimeframe = false;
+    } else if (props.type == 'netError') {
+      userStore.showAppMessageNetError = false;
+    } else {
+      userStore.showAppMessage = false;
+    }
   }
 
   function onHome() {

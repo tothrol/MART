@@ -735,6 +735,7 @@
         '<br>Message: ' +
         request.message +
         '';
+      userStore.showAppMessage = true;
 
       router.replace({ path: '/login' });
       return;
@@ -1266,6 +1267,7 @@
           '<br>Message: ' +
           response.message +
           '';
+        userStore.showAppMessage = true;
 
         // router.replace('/login');
         showBackHomeButton.value = true;

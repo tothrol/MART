@@ -11,20 +11,25 @@
         Next Intervals:
         <div
           class="notification_times"
-          v-for="notification of userStore.notificationTimes.slice(0, 5)"
+          v-for="(notification, index) of userStore.notificationTimes.slice(
+            0,
+            100
+          )"
           :key="notification"
         >
-          {{ dayjs(notification).format('DD.MM.YY HH:mm') }}
+          {{ index }}: {{ dayjs(notification).format('DD.MM.YY HH:mm') }}
         </div>
       </div>
       <div class="next_notifications">
         Next Notifications Random:
         <div
           class="notification_times"
-          v-for="notification of userStore.notificationTimesRandom.slice(0, 5)"
+          v-for="(
+            notification, index
+          ) of userStore.notificationTimesRandom.slice(0, 100)"
           :key="notification"
         >
-          {{ dayjs(notification).format('DD.MM.YY HH:mm') }}
+          {{ index }}: {{ dayjs(notification).format('DD.MM.YY HH:mm') }}
         </div>
       </div>
       <br />
@@ -140,6 +145,9 @@
           >infoStore.dailyTime Toggle</ion-button
         ><ion-button @click="userStore.validateToken(userStore.userData.token)"
           >userStore.validateToken</ion-button
+        >
+        <ion-button @click="$emit('triggerShortQ')"
+          >onStartQuestionsShort()</ion-button
         >
       </div>
     </div>

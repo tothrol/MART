@@ -636,6 +636,7 @@
         '<br>Message: ' +
         request.message +
         '';
+      userStore.showAppMessage = true;
       console.log('BaseLayout - onStartQuestionsShort - push - login');
       router.replace({ path: '/login' });
       return;
@@ -1150,6 +1151,7 @@
             '<br>Message: ' +
             response.message +
             '';
+          userStore.showAppMessage = true;
 
           // router.replace('/login');
           // showBackHomeButton.value = true;

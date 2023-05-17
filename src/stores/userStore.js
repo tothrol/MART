@@ -38,6 +38,10 @@ export const useUserStore = defineStore('userStore', {
       briefingShortChecked: false,
       appMessage: '',
       showAppMessage: false,
+      appMessageNetError: '',
+      showAppMessageNetError: false,
+      appMessageTimeframe: '',
+      showAppMessageTimeframe: false,
       dailyLoop: null,
       notificationTimes: [],
       notificationTimesRandom: [],
@@ -622,17 +626,28 @@ export const useUserStore = defineStore('userStore', {
             newEntryRandom = newEntry + randomMs;
           }
 
+          if (newEntry > infoStore.endDate.ms) {
+            console.log('setNotifications - newEntry: ', newEntry);
+            console.log(
+              'setNotifications - infoStore.endDate.ms: ',
+              infoStore.endDate.ms
+            );
+            break;
+          }
+
           let newEntryHour = dayjs(newEntry).hour();
 
           if (
             newEntryHour >= dailyStartTimeHour &&
             newEntryHour < dailyEndTimeHour &&
-            newEntry > nowMs
+            newEntry > nowMs &&
+            newEntry < infoStore.endDate.ms
           ) {
             console.log('RandomMinute: ', randomMinute);
             if (newEntry < lastShortAnswerPlusBreakMs) {
               // if regular calculated Entry (every 2 Hours) is before the 30min Timer is over, than make the new Entry at the same time the 30min timer is over
               let newEntryPlus = lastShortAnswerPlusBreakMs;
+
               notificationTimes.push(newEntryPlus);
             } else {
               notificationTimes.push(newEntry);
@@ -662,9 +677,10 @@ export const useUserStore = defineStore('userStore', {
 
             i++;
           }
+
           secureCounter++;
           if (secureCounter > 1000) {
-            return;
+            break;
           }
         }
         console.log(
@@ -815,9 +831,11 @@ export const useUserStore = defineStore('userStore', {
         //here a for each loop of all result notifications
         if (
           result.notifications != undefined &&
-          result.notifications.length() > 0
+          result.notifications.length > 0
         ) {
+          console.log('userStore - resetNotifications - -if', idsArray);
           for (let [count] of Object.entries(result.notifications)) {
+            console.log('userStore - resetNotifications - -for', idsArray);
             let notification = result.notifications[count];
 
             idsArray.push(notification.id);
@@ -826,7 +844,7 @@ export const useUserStore = defineStore('userStore', {
 
         // id = result.notifications[0].id.toString();
 
-        console.log('userStore - resetNotifications - -id', idsArray);
+        console.log('userStore - resetNotifications  - -id', idsArray);
 
         if (idsArray.length != 0) {
           for (var [noteCount] of Object.entries(idsArray)) {
@@ -855,6 +873,7 @@ export const useUserStore = defineStore('userStore', {
         });
       } catch (e) {
         return new Promise((reject) => {
+          console.log('userStore - resetNotifications - reject: ', e);
           // if (response.status == 200) {
           reject('reject setNotification', e);
           // }
