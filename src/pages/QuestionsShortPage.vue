@@ -91,7 +91,7 @@
                   scales[activeSheet.scaleId].options.min,
                   scales[activeSheet.scaleId].options.max
                 )"
-                :key="n"
+                :key="`${activeSheet.itemId}_${n}`"
               >
                 {{ Number(n) }}
               </option>
@@ -118,7 +118,7 @@
                 :style="{ 'margin-top': ` ${calcMarginTop(key)}px` }"
                 v-for="(input, key) in scales[activeSheet.scaleId]
                   .scaleRepeater"
-                :key="key"
+                :key="`${activeSheet.itemId}_${input.value}`"
               >
                 <input
                   :id="`${activeSheet.itemId}_${input.value}`"
@@ -173,9 +173,8 @@
             <fieldset class="radio_fieldset">
               <div
                 :class="`radio ${activeSheet.scaleId} ${input.value}`"
-                v-for="(input, key) in scales[activeSheet.scaleId]
-                  .scaleRepeater"
-                :key="key"
+                v-for="input in scales[activeSheet.scaleId].scaleRepeater"
+                :key="`${activeSheet.itemId}_${input.value}`"
               >
                 <input
                   :id="`${activeSheet.itemId}_${input.value}`"
@@ -209,7 +208,7 @@
               <div
                 :class="`radio ${activeSheet.scaleId} ${input.value}  `"
                 v-for="input in scales[activeSheet.scaleId].scaleRepeater"
-                :key="input.key"
+                :key="`${activeSheet.itemId}_${input.value}`"
               >
                 <input
                   :id="input.key"
@@ -949,7 +948,8 @@
     if (
       jumpedTo.value != undefined &&
       jumpedTo.value === currentSheet.value &&
-      answers.entries[currentSheet.value - 1] === undefined
+      answers.entries[activeSheet.value.itemId - 1] === undefined
+      // answers.entries[currentSheet.value - 1] === undefined
     ) {
       console.log('previousSheet - jumpTo');
       currentSheet.value = jumpedFrom.value;
@@ -971,8 +971,27 @@
       // START Reset all values from jumpedFrom to jumpedTo
       let start = jumpedFrom.value + 2;
       let end = jumpedTo.value;
+      console.log('next delete start:', start);
+      console.log('next delete end:', end);
       for (let i = start; i < end; i++) {
-        delete answers.entries[i];
+        // delete answers.entries[i];
+        console.log('next delete sheets[i].itemId:', sheets.value[i].itemId);
+        console.log(
+          'next delete  answers.entries[sheets[i]?.itemId]:',
+          answers.entries[sheets.value[i]?.itemId]
+        );
+        if (
+          sheets.value[i] != undefined &&
+          sheets.value[i].itemId != undefined &&
+          sheets.value[i].itemId != '' &&
+          answers.entries[sheets.value[i]?.itemId] != undefined
+        ) {
+          console.log(
+            'next delete answers.entries[sheets[i].itemId]:',
+            answers.entries[sheets.value[i].itemId]
+          );
+          delete answers.entries[`${sheets.value[i].itemId}`];
+        }
       }
 
       // END Reset all values from jumpedFrom to jumpedTo

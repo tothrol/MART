@@ -90,9 +90,9 @@
             <div class="radios">
               <fieldset class="radio_fieldset">
                 <div
-                  v-for="(input, key) in scales[activeSheet.options.showScale]
+                  v-for="input in scales[activeSheet.options.showScale]
                     .scaleRepeater"
-                  :key="key"
+                  :key="`${activeSheet.itemId}_${input.value}`"
                   :style="inlineStyle(input.value)"
                 >
                   <!-- <input
@@ -152,7 +152,7 @@
                   scales[activeSheet.scaleId].options.min,
                   scales[activeSheet.scaleId].options.max
                 )"
-                :key="Number(n)"
+                :key="`${activeSheet.itemId}_${Number(n)}`"
               >
                 {{ Number(n) }}
               </option>
@@ -181,9 +181,8 @@
             <fieldset class="radio_fieldset">
               <div
                 :class="`radio ${activeSheet.scaleId} ${input.value}`"
-                v-for="(input, key) in scales[activeSheet.scaleId]
-                  .scaleRepeater"
-                :key="key"
+                v-for="input in scales[activeSheet.scaleId].scaleRepeater"
+                :key="`${activeSheet.itemId}_${input.value}`"
                 :style="inlineStyle(input.value)"
               >
                 <input
@@ -245,9 +244,8 @@
             >
               <div
                 :class="`radio ${activeSheet.scaleId} ${input.value}`"
-                v-for="(input, key) in scales[activeSheet.scaleId]
-                  .scaleRepeater"
-                :key="key"
+                v-for="input in scales[activeSheet.scaleId].scaleRepeater"
+                :key="`${activeSheet.itemId}_${input.value}`"
               >
                 <input
                   :id="`${activeSheet.itemId}_${input.value}`"
@@ -278,7 +276,7 @@
               <div
                 :class="`radio ${activeSheet.scaleId} ${input.value}`"
                 v-for="input in scales[activeSheet.scaleId].scaleRepeater"
-                :key="input.key"
+                :key="`${activeSheet.itemId}_${input.value}`"
               >
                 <input
                   :id="input.key"

@@ -29,8 +29,12 @@
         type="normal"
         name="fade"
         v-if="userStore.appMessage != '' && userStore.showAppMessage"
-        ><p v-html="userStore.appMessage" style="white-space: pre-line"></p
-      ></messagebox-component>
+        ><p
+          v-html="userStore.appMessage"
+          style="white-space: pre-line"
+        ></p></messagebox-component
+    ></transition>
+    <transition>
       <messagebox-component
         type="netError"
         name="fade"
@@ -40,8 +44,9 @@
         ><p
           v-html="userStore.appMessageNetError"
           style="white-space: pre-line"
-        ></p
-      ></messagebox-component>
+        ></p></messagebox-component
+    ></transition>
+    <transition>
       <messagebox-component
         type="timeframe"
         name="fade"
