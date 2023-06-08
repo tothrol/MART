@@ -1,5 +1,5 @@
 {
-  "appId": "com.nviimedia.mart",
+  "appId": "io.ionic.starter",
   "appName": "MART",
   "webDir": "dist",
   "bundledWebRuntime": false,
