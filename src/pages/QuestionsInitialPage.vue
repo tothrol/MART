@@ -36,7 +36,10 @@
             <div class="progress_bar">
               <div
                 class="progress_bar_inner"
-                :style="{ width: 20 * time + '%' }"
+                :style="{
+                  width:
+                    (time / activeSheet.scale.options.timerSec) * 100 + '%',
+                }"
               ></div>
             </div>
           </div>
@@ -429,7 +432,7 @@
                 "
                 v-if="
                   (time == 0 && time3 == 0) ||
-                  (time == 5 &&
+                  (timerRuns === false &&
                     time3 === 3 &&
                     activeSheetOptions &&
                     activeSheet.options.startTimer3 != true)
@@ -461,7 +464,9 @@
                 :disabled="false"
                 v-if="
                   (activeSheet.sheetId != 1 && time == 0 && time3 == 0) ||
-                  (activeSheet.sheetId != 1 && time == 5 && time3 === 3)
+                  (activeSheet.sheetId != 1 &&
+                    timerRuns === false &&
+                    time3 === 3)
                 "
               >
                 zurück
@@ -957,7 +962,18 @@
     }
     // randomInt for putting the random page somewhere
     // let randomInt = getRandomInt(sheetsArray.length - 1);
-    let randomInt = 20;
+    let randomInt;
+    let validRandom = false;
+    while (validRandom === false) {
+      randomInt = getRandomInt(sheetsArray.length - 1);
+      console.log('randomInt: ', randomInt);
+      if (sheetsArray[randomInt]?.options?.excludeAttention != true) {
+        console.log('randomInt - sheet:', sheetsArray[randomInt]);
+        validRandom = true;
+      } else {
+        console.log('randomInt - excludeFromRandom:', randomInt);
+      }
+    }
 
     console.log('randomInt:', randomInt);
     // putting the random page somewhere
@@ -1081,11 +1097,12 @@
       activeSheet.value.scale != undefined &&
       activeSheet.value.scale.options != undefined &&
       activeSheet.value.scale.options.showTimer === true &&
+      activeSheet.value.scale.options.timerSec != undefined &&
       activeSheet.value.options.inputDisabled != true &&
       answers.unchangeable[activeSheet.value.itemId] === undefined
       // last condidion makes sure that the example sheet before the timer questions does not start the timer
     ) {
-      time.value = 5;
+      time.value = activeSheet.value.scale.options.timerSec;
       timer();
     }
   }
@@ -1156,7 +1173,7 @@
     currentSheet.value = sheets.value.length;
   }
 
-  let time = ref(5.0);
+  let time = ref();
   let time3 = ref(3.0);
   let showTimer3 = ref(false);
 
@@ -1197,7 +1214,10 @@
     }
   });
 
+  let timerRuns = ref(false);
+
   function timer() {
+    timerRuns.value = true;
     // 5sec - Timer
     console.log('QuestionInitialPage - timer - time', time.value);
     // if (timerStopped.value === true) {
@@ -1211,6 +1231,7 @@
       setTimeout(timer, 100); /* replicate wait 1 second */
     } else {
       time.value = 0;
+      timerRuns.value = false;
       nextSheet();
     }
   }
