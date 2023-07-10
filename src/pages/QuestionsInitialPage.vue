@@ -233,7 +233,7 @@
                 freeFieldToAnswers($event.target, activeSheet.itemId, $event)
               "
               :disabled="disableInput"
-              v-model="freeFieldToAnswersValue"
+              v-model="freeFieldToAnswersText[activeSheet.itemId]"
               :placeholder="activeSheet.options.placeholder"
             />
             <fieldset
@@ -1323,13 +1323,15 @@
     return Math.floor(Math.random() * max);
   }
 
+  let freeFieldToAnswersText = ref({});
+
   function freeFieldToAnswers(target, itemId, event) {
     let value = target.value;
     console.log('freeFieldToAnswers - value', value);
     console.log('freeFieldToAnswers - event', event);
     if (/^[a-zA-Z ]+$/.test(event.data)) {
       answers.entries[itemId][1] = value;
-      freeFieldToAnswersValue.value = value;
+      freeFieldToAnswersText.value[itemId] = value;
     } else {
       target.value = answers.entries[itemId][1];
     }
@@ -1338,21 +1340,19 @@
     }
   }
 
-  let freeFieldToAnswersValue = ref('');
+  // function freeFieldToAnswersNumber(target, itemId, event) {
+  //   let value = Number(target.value);
+  //   console.log('freeFieldToAnswers - value', value);
+  //   console.log('freeFieldToAnswers - event', event);
+  //   if (/^[a-zA-Z ]+$/.test(event.data)) {
+  //     answers.entries[itemId][1] = value;
+  //     freeFieldToAnswersObj.value[itemId].number = value;
+  //   } else {
+  //     target.value = answers.entries[itemId][1];
+  //   }
+  // }
 
-  function freeFieldToAnswersNumber(target, itemId, event) {
-    let value = Number(target.value);
-    console.log('freeFieldToAnswers - value', value);
-    console.log('freeFieldToAnswers - event', event);
-    if (/^[a-zA-Z ]+$/.test(event.data)) {
-      answers.entries[itemId][1] = value;
-      freeFieldToAnswersValueNumber.value = value;
-    } else {
-      target.value = answers.entries[itemId][1];
-    }
-  }
-
-  let freeFieldToAnswersValueNumber = ref();
+  // let freeFieldToAnswersValueNumber = ref();
 
   // function setQuestion2input() {
   //   console.log('setQuestion2input');
