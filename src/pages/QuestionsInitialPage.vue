@@ -1332,7 +1332,7 @@
     console.log('freeFieldToAnswers - 2 - eventNew', eventNew);
     if (/^[a-zA-Z ]+$/.test(eventNew.data)) {
       // answers.entries[itemId][1] = value;
-      // freeFieldToAnswersText.value[itemId] = value;
+      freeFieldToAnswersText.value[itemId] = value;
       console.log(
         'freeFieldToAnswers - 3 - freeFieldToAnswersText.value',
         freeFieldToAnswersText.value
