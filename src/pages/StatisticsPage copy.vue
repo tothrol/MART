@@ -368,7 +368,7 @@
       deviceInfosElements,
       ...allDeviceInfos.value.map(mapFunction),
     ]
-      .map((e) => e.join(','))
+      .map((e) => e.join(';'))
       .join('\n');
 
     let csvContent = 'data:text/csv;charset=utf-8,' + csvString;
@@ -504,7 +504,7 @@
       usageStatsElements,
       ...allUsageStatsUnique.value.map(mapFunction),
     ]
-      .map((e) => e.join(','))
+      .map((e) => e.join(';'))
       .join('\n');
 
     let csvContent = 'data:text/csv;charset=utf-8,' + csvString;
@@ -680,7 +680,7 @@
       eventStatsElements,
       ...allEventStatsUnique.value.map(mapFunctionEvent),
     ]
-      .map((e) => e.join(','))
+      .map((e) => e.join(';'))
       .join('\n');
 
     let csvContent = 'data:text/csv;charset=utf-8,' + csvString;

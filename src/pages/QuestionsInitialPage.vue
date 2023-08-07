@@ -229,7 +229,7 @@
               :id="`${activeSheet.itemId}_freifeld`"
               class="freeFieldToAnswers"
               type="text"
-              @input="
+              @input.prevent="
                 freeFieldToAnswers($event.target, activeSheet.itemId, $event)
               "
               :disabled="disableInput"
@@ -1327,9 +1327,10 @@
 
   function freeFieldToAnswers(target, itemId, event) {
     let value = target.value;
+    let eventNew = event;
     console.log('freeFieldToAnswers - value', value);
-    console.log('freeFieldToAnswers - event', event);
-    if (/^[a-zA-Z ]+$/.test(event.data)) {
+    console.log('freeFieldToAnswers - eventNew', eventNew);
+    if (/^[a-zA-Z ]+$/.test(eventNew.data)) {
       answers.entries[itemId][1] = value;
       freeFieldToAnswersText.value[itemId] = value;
     } else {

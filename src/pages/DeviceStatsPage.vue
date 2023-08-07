@@ -204,7 +204,7 @@
       deviceInfosElements,
       ...allDeviceInfos.value.map(mapFunction),
     ]
-      .map((e) => e.join(','))
+      .map((e) => e.join(';'))
       .join('\n');
     console.log('csv device:', csvString);
 
