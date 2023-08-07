@@ -1328,21 +1328,19 @@
   function freeFieldToAnswers(target, itemId, event) {
     let value = target.value;
     let eventNew = event;
-    console.log('freeFieldToAnswers - 1 - value', value);
-    console.log('freeFieldToAnswers - 2 - eventNew', eventNew);
+    console.log('freeFieldToAnswers - value', value);
+    console.log('freeFieldToAnswers - eventNew', eventNew);
     if (/^[a-zA-Z ]+$/.test(eventNew.data)) {
       answers.entries[itemId][1] = value;
       freeFieldToAnswersText.value[itemId] = value;
       console.log(
-        'freeFieldToAnswers - 3 - freeFieldToAnswersText.value',
+        'freeFieldToAnswers - freeFieldToAnswersText.value',
         freeFieldToAnswersText.value
       );
     } else {
-      console.log('freeFieldToAnswers - 4 - else');
       target.value = answers.entries[itemId][1];
     }
     if (answers.entries[itemId][1] === '') {
-      console.log('freeFieldToAnswers - 5 - if');
       answers.entries[itemId] = [];
     }
   }
