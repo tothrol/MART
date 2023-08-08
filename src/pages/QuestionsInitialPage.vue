@@ -630,6 +630,54 @@
   let showPermissionModal = ref(false);
   let showNotificationPermissionModal = ref(false);
 
+  onMounted(async () => {
+    await getQuestionsInitial();
+    initScales();
+    initBatteries();
+    initSheetsNoRandom();
+    initSheets();
+
+    platform = Capacitor.getPlatform();
+    console.log('QuestionsInitial Platform: ', platform);
+
+    questionsStore.timestampQuestionsInitialStarted = dayjs().valueOf();
+
+    if (platform === 'web' || platform === 'android') {
+      var result = await statsStore.checkAndroidPermissions();
+      console.log('QuestionsInitial - result', result);
+
+      if (
+        result.permission != undefined &&
+        result.permission === 'NoPermission'
+      ) {
+        console.log(
+          'QuestionsInitial - permission - NoPermission',
+          result.permission
+        );
+        showPermissionModal.value = true;
+      }
+    }
+
+    // START check notification permission
+
+    await LocalNotifications.checkPermissions().then(function (result) {
+      console.log(
+        'QuestionsInitial - checkNotificationPermissions - result',
+        result
+      );
+
+      if (
+        result.display != undefined &&
+        result.display != 'granted' &&
+        platform != 'ios'
+      ) {
+        showNotificationPermissionModal.value = true;
+      }
+    });
+
+    // END check notification permission
+  });
+
   function closePermissionModal() {
     showPermissionModal.value = false;
   }
@@ -683,54 +731,6 @@
   let sheetsInitial = ref();
   let scalesInitial = ref();
   let batteriesInitial = ref();
-
-  onMounted(async () => {
-    await getQuestionsInitial();
-    initScales();
-    initBatteries();
-    initSheetsNoRandom();
-    initSheets();
-
-    platform = Capacitor.getPlatform();
-    console.log('QuestionsInitial Platform: ', platform);
-
-    questionsStore.timestampQuestionsInitialStarted = dayjs().valueOf();
-
-    if (platform === 'web' || platform === 'android') {
-      var result = await statsStore.checkAndroidPermissions();
-      console.log('QuestionsInitial - result', result);
-
-      if (
-        result.permission != undefined &&
-        result.permission === 'NoPermission'
-      ) {
-        console.log(
-          'QuestionsInitial - permission - NoPermission',
-          result.permission
-        );
-        showPermissionModal.value = true;
-      }
-    }
-
-    // START check notification permission
-
-    await LocalNotifications.checkPermissions().then(function (result) {
-      console.log(
-        'QuestionsInitial - checkNotificationPermissions - result',
-        result
-      );
-
-      if (
-        result.display != undefined &&
-        result.display != 'granted' &&
-        platform != 'ios'
-      ) {
-        showNotificationPermissionModal.value = true;
-      }
-    });
-
-    // END check notification permission
-  });
 
   //  START Scales
   let scales = ref({});

@@ -1,6 +1,6 @@
 <template>
   <base-layout ref="baseComp" :fullscreen="true">
-    <div class="wrapper_h100" v-if="dataLoaded">
+    <div class="wrapper_h100">
       <div class="sheets">
         <li
           class="sheet"
@@ -423,7 +423,7 @@
             <ion-button
               color="primary"
               @click="sendShortAnswers()"
-              :disabled="Object.keys(answers.entries).length <= 2"
+              :disabled="Object.keys(answers.entries).length <= 4"
               >Kurzfragebogen absenden</ion-button
             ><ion-button class="" @click="previousSheet()" color="tertiary"
               >zurück</ion-button
@@ -531,7 +531,7 @@
   </base-layout>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { reactive } from 'vue';
   import {
     ref,
@@ -569,17 +569,8 @@
 
   console.log('QuestionsShort NoMounted');
 
-  let dataLoaded = ref(false);
-
   onMounted(async () => {
     console.log('QuestionsShort Mounted');
-    await getQuestionsShort();
-    initScales();
-    initBatteries();
-    initSheetsNoRandom();
-    initSheets();
-
-    console.log('QuestionsShort Mounted2');
     let platform = Capacitor.getPlatform();
     console.log('QuestionsShort Platform: ', platform);
 
@@ -601,7 +592,6 @@
         showPermissionModal.value = true;
       }
     }
-    dataLoaded.value = true;
 
     // START check notification permission
 
@@ -635,30 +625,37 @@
 
   let currentSheet = ref(0);
 
-  let sheetsShort = ref();
-  let batteriesShort = ref();
-  let scalesShort = ref();
-
   async function getQuestionsShort() {
     showSpinnerLoading.value = true;
-    let response = await questionsStore.getShortQuestions();
-    if (response.status != 200 && response.status != 201) {
+    let request = await questionsStore.getShortQuestions();
+    if (request.status != 200 && request.status != 201) {
       userStore.appMessage =
         'Es gab einen Fehler: ' +
-        response.code +
+        request.code +
         '<br>Message: ' +
-        response.message +
+        request.message +
         '';
       userStore.showAppMessage = true;
       console.log('BaseLayout - onStartQuestionsShort - push - login');
       router.replace({ path: '/login' });
       return;
     }
-    sheetsShort.value = response.sheetsShort;
-    batteriesShort.value = response.batteriesShort;
-    scalesShort.value = response.scalesShort;
     showSpinnerLoading.value = false;
   }
+  getQuestionsShort();
+
+  let activeSheet = computed(() => {
+    if (currentSheet.value < sheets.value.length) {
+      // change the active sheet according to currentSheet
+      console.log('NOT LAST ENTRY', currentSheet.value);
+      console.log('NOT LAST ENTRY', sheets.value[currentSheet.value]);
+      return sheets.value[currentSheet.value];
+    } else {
+      // but if current sheet is heigher than sheets.length, than return last sheet. Necessary to not run into an non existing sheet when counting currentSheet. Current sheet gets countet to a heiger value than sheets.length for displaying the 'Bereit zum Absenden' page.
+      console.log('LAST ENTRY', currentSheet.value);
+      return sheets.value[sheets.value.length];
+    }
+  });
 
   // insert scroll from Base Component
   const baseComp = ref(null);
@@ -666,14 +663,24 @@
     baseComp.value.scrollTop();
   }
 
-  let scales = ref();
-  function initScales() {
+  let activeSheetOptions = computed(() => {
+    if (
+      activeSheet.value != undefined &&
+      activeSheet.value.options != undefined
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+
+  let scales = computed(() => {
     let scalesObject = {};
-    let allScales = scalesShort.value;
+    let allScales = questionsStore.scalesShort;
 
     for (const [key, scale] of Object.entries(allScales)) {
       let newSheet = scale;
-      // console.log('options - scale', scale);
+      console.log('options - scale', scale);
 
       // Adding the options string as an Object
       if (
@@ -689,13 +696,24 @@
 
       scalesObject[key] = newSheet;
     }
-    scales.value = scalesObject;
-  }
+    return scalesObject;
+  });
 
-  let batteries = ref();
-  function initBatteries() {
+  let activeSheetScaleOptions = computed(() => {
+    if (
+      activeSheet.value != undefined &&
+      activeSheet.value.scale != undefined &&
+      activeSheet.value.scale.options != undefined
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+
+  let batteries = computed(() => {
     let batteriesObject = {};
-    let allBatteries = batteriesShort.value;
+    let allBatteries = questionsStore.batteriesShort;
 
     for (const [index, battery] of Object.entries(allBatteries)) {
       let newBattery = battery;
@@ -714,11 +732,10 @@
 
       batteriesObject[newBattery.batteryId] = newBattery;
     }
-    batteries.value = batteriesObject;
-  }
+    return batteriesObject;
+  });
 
-  let sheetsNoRandom = ref();
-  function initSheetsNoRandom() {
+  let sheetsNoRandom = computed(() => {
     let sheetsArray = [];
     let allSheets = {};
     allSheets = questionsStore.sheetsShort;
@@ -752,11 +769,10 @@
       sheetsArray.push(newSheet);
     }
     // console.log('sheetsArray NoRandom', sheetsArray);
-    sheetsNoRandom.value = sheetsArray;
-  }
+    return sheetsArray;
+  });
 
-  let sheets = ref();
-  function initSheets() {
+  let sheets = computed(() => {
     // console.log('QShort - sheets 1');
     let sheetsArray = [];
     let allSheets = sheetsNoRandom.value;
@@ -773,7 +789,7 @@
     console.log('attentionPageIndex:', attentionPageIndex);
 
     for (const [key, sheet] of Object.entries(allSheets)) {
-      // console.log('QShort - sheets 2 - key:', key, sheet);
+      console.log('QShort - sheets 2 - key:', key, sheet);
       let battery = batteries.value[sheet.batteryId];
 
       // getting the Index of the attentioncheck Page
@@ -845,7 +861,7 @@
       console.log('sheetsArray:', sheetsArray);
       for (const [index, sheet] of Object.entries(sheetsArray)) {
         // Adding a sheetId to every sheet
-        // console.log('sheet:', index, sheet);
+        console.log('sheet:', index, sheet);
         sheet['sheetId'] = Number(index) + 1;
         if (sheet.itemId != '') {
           // Adding a itemOrderNr only to questions/items
@@ -855,46 +871,40 @@
       }
     }
 
-    sheets.value = sheetsArray;
-  }
-
-  let activeSheet = computed(() => {
-    if (!sheets.value) {
-      return undefined;
-    }
-    if (currentSheet.value < sheets.value.length) {
-      // change the active sheet according to currentSheet
-      console.log('NOT LAST ENTRY', currentSheet.value);
-      console.log('NOT LAST ENTRY', sheets.value[currentSheet.value]);
-      return sheets.value[currentSheet.value];
-    } else {
-      // but if current sheet is heigher than sheets.length, than return last sheet. Necessary to not run into an non existing sheet when counting currentSheet. Current sheet gets countet to a heiger value than sheets.length for displaying the 'Bereit zum Absenden' page.
-      console.log('LAST ENTRY', currentSheet.value);
-      return sheets.value[sheets.value.length];
-    }
+    return sheetsArray;
   });
 
-  let activeSheetOptions = computed(() => {
+  watch(activeSheet, (newValue) => {
     if (
-      activeSheet.value != undefined &&
-      activeSheet.value.options != undefined
+      newValue != undefined &&
+      newValue.options != undefined &&
+      newValue.options.defaultValue != undefined &&
+      answers.entries[newValue.itemId] === undefined
     ) {
-      return true;
-    } else {
-      return false;
-    }
-  });
+      // sets a default value if the item has the option defaultValue, for example a slider to 50 or multi Questions to [] or radio+free field to []
 
-  let activeSheetScaleOptions = computed(() => {
-    if (
-      activeSheet.value != undefined &&
-      activeSheet.value.scale != undefined &&
-      activeSheet.value.scale.options != undefined
-    ) {
-      return true;
-    } else {
-      return false;
+      console.log('DefaultVAlue 1: ', newValue);
+      console.log('DefaultVAlue 2: ', newValue.options);
+      console.log('DefaultVAlue 3: ', newValue.options.defaultValue);
+      console.log('DefaultVAlue 4: ', answers.entries[newValue.itemId]);
+      console.log('DefaultVAlue 5: ', newValue.itemId);
+      answers.entries[newValue.itemId] = newValue.options.defaultValue;
+      console.log('DefaultVAlue 6: ', answers.entries);
     }
+
+    // start timer 3
+    if (
+      newValue != undefined &&
+      newValue.options != undefined &&
+      newValue.options.timer === 3 &&
+      time3.value != 0
+    ) {
+      console.log('timer3 trigger');
+      timer3();
+    }
+    // end start timer 3
+
+    // sets default value
   });
 
   let numberOfItems = computed(() => {
@@ -1017,7 +1027,7 @@
     return arr;
   }
 
-  async function validateNrInput(target, itemId) {
+  async function validateNrInput(target: any, itemId: any) {
     const value = target.value;
     console.log('target', target);
     console.log('target.maxlength', target.getAttribute('maxlength'));
@@ -1053,9 +1063,6 @@
   let showTimer3 = ref(false);
 
   let disableInput = computed(() => {
-    if (!activeSheet.value) {
-      return true;
-    }
     if (
       activeSheet.value.options != '' &&
       activeSheet.value.options.inputDisabled === true
@@ -1243,7 +1250,7 @@
     } else return '';
   }
 
-  async function changeInputToNr(target, itemId, event) {
+  async function changeInputToNr(target: any, itemId: any, event: any) {
     const value = target.value;
     console.log('changeInputToNr - target', target);
     console.log('changeInputToNr - event', event);
@@ -1260,60 +1267,27 @@
 
   let route = useRoute();
 
-  // watchEffect(() => {
-  //   console.log(
-  //     'QuestionsShort - watchEffect - infoStore.timeframe',
-  //     infoStore.timeframe
-  //   );
-  //   const timeframe = infoStore.timeframe;
-  //   const dailyTime = infoStore.dailyTime;
+  watchEffect(() => {
+    console.log(
+      'QuestionsShort - watchEffect - infoStore.timeframe',
+      infoStore.timeframe
+    );
+    const timeframe = infoStore.timeframe;
+    const dailyTime = infoStore.dailyTime;
 
-  //   let path = route.path;
-  //   console.log('questionsShortPage - watchEffect - route', path);
-  //   console.log('questionsShortPage - watchEffect - route', route);
-  //   if (path === '/questionsshort') {
-  //     if (timeframe === false || dailyTime == false) {
-  //       console.log(
-  //         'questionsShortPage - watchEffect - checkRouteAndDailyTime - false'
-  //       );
-  //       // 2check: routing to home does not work, route changes, but doesnt get away from questionsshort
-  //       // evtl routing from Page questionsShort instead of here
-  //       router.replace({ path: '/home' });
-  //     }
-  //   }
-  // });
-
-  watch(activeSheet, (newValue) => {
-    if (
-      newValue != undefined &&
-      newValue.options != undefined &&
-      newValue.options.defaultValue != undefined &&
-      answers.entries[newValue.itemId] === undefined
-    ) {
-      // sets a default value if the item has the option defaultValue, for example a slider to 50 or multi Questions to [] or radio+free field to []
-
-      console.log('DefaultVAlue 1: ', newValue);
-      console.log('DefaultVAlue 2: ', newValue.options);
-      console.log('DefaultVAlue 3: ', newValue.options.defaultValue);
-      console.log('DefaultVAlue 4: ', answers.entries[newValue.itemId]);
-      console.log('DefaultVAlue 5: ', newValue.itemId);
-      answers.entries[newValue.itemId] = newValue.options.defaultValue;
-      console.log('DefaultVAlue 6: ', answers.entries);
+    let path = route.path;
+    console.log('questionsShortPage - watchEffect - route', path);
+    console.log('questionsShortPage - watchEffect - route', route);
+    if (path === '/questionsshort') {
+      if (timeframe === false || dailyTime == false) {
+        console.log(
+          'questionsShortPage - watchEffect - checkRouteAndDailyTime - false'
+        );
+        // 2check: routing to home does not work, route changes, but doesnt get away from questionsshort
+        // evtl routing from Page questionsShort instead of here
+        router.replace({ path: '/home' });
+      }
     }
-
-    // start timer 3
-    if (
-      newValue != undefined &&
-      newValue.options != undefined &&
-      newValue.options.timer === 3 &&
-      time3.value != 0
-    ) {
-      console.log('timer3 trigger');
-      timer3();
-    }
-    // end start timer 3
-
-    // sets default value
   });
 </script>
 

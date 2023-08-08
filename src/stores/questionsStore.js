@@ -341,7 +341,12 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
         return new Promise((resolve) => {
           console.log('questionsStore - getShortQuestions - resolve', response);
-          resolve(response);
+          resolve({
+            sheetsShort: this.sheetsShort,
+            scalesShort: this.scalesShort,
+            batteriesShort: this.batteriesShort,
+            status: response.status,
+          });
           // }
         });
       } catch (e) {
