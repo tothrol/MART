@@ -81,7 +81,12 @@ export const useQuestionsStore = defineStore('questionsStore', {
           console.log(
             'questionsStore - getInitialQuestions - resolvw - getIQ response: '
           );
-          resolve(response);
+          resolve({
+            sheetsInitial: this.sheetsInitial,
+            scalesInitial: this.scalesInitial,
+            batteriesInitial: this.batteriesInitial,
+            status: response.status,
+          });
         });
       } catch (e) {
         return new Promise((reject) => {

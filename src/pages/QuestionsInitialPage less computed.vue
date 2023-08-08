@@ -1,5 +1,5 @@
 <template>
-  <base-layout ref="baseComp" :fullscreen="true">
+  <base-layout ref="baseComp" :fullscreen="true" v-if="sheetsas">
     <div class="wrapper_h100">
       <div class="sheets">
         <li
@@ -604,7 +604,7 @@
   </base-layout>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { reactive } from 'vue';
   import { ref, onMounted, computed, watch, nextTick, watchEffect } from 'vue';
   import { useUserStore } from '@/stores/userStore';
@@ -630,67 +630,7 @@
   let showPermissionModal = ref(false);
   let showNotificationPermissionModal = ref(false);
 
-  function closePermissionModal() {
-    showPermissionModal.value = false;
-  }
-
-  function closeNotificationPermissionModal() {
-    showNotificationPermissionModal.value = false;
-  }
-
-  // insert scroll from Base Component
-  const baseComp = ref(null);
-  function scroll() {
-    baseComp.value.scrollTop();
-  }
-
-  let answers = reactive({ entries: {}, unchangeable: {} });
-
-  let errors = ref({});
-
-  let showSpinner = ref(false);
-  let showSpinnerLoading = ref(false);
-
-  let currentSheet = ref(0);
-
-  async function getQuestionsInitial() {
-    showSpinnerLoading.value = true;
-    let response = await questionsStore.getInitialQuestions();
-    console.log('getIQ - result: ', response);
-    if (response.status != 200 && response.status != 201) {
-      console.log(
-        'QuestionsInitial - getQuestionsInitial - status: ',
-        response.status
-      );
-      userStore.appMessage =
-        'Es gab einen Fehler: ' +
-        response.code +
-        '<br>Message: ' +
-        response.message +
-        '';
-      userStore.showAppMessage = true;
-
-      router.replace({ path: '/login' });
-      return;
-    }
-    showSpinnerLoading.value = false;
-
-    sheetsInitial.value = response.sheetsInitial;
-    scalesInitial.value = response.scalesInitial;
-    batteriesInitial.value = response.batteriesInitial;
-  }
-
-  let sheetsInitial = ref();
-  let scalesInitial = ref();
-  let batteriesInitial = ref();
-
   onMounted(async () => {
-    await getQuestionsInitial();
-    initScales();
-    initBatteries();
-    initSheetsNoRandom();
-    initSheets();
-
     platform = Capacitor.getPlatform();
     console.log('QuestionsInitial Platform: ', platform);
 
@@ -732,242 +672,80 @@
     // END check notification permission
   });
 
-  //  START Scales
-  let scales = ref({});
-  function initScales() {
-    let allScales = scalesInitial.value;
+  // let computedStyle = computed(() => {
+  //   if (
+  //     activeSheet.value != undefined &&
+  //     activeSheet.value.scaleId != undefined &&
+  //     activeSheet.value.scaleId != '' &&
+  //     activeSheet.value.scale != undefined &&
+  //     activeSheet.value.scale.options != undefined &&
+  //     activeSheet.value.scale.options.randomizedUserbased === true
+  //   ) {
+  //     let order = userStore.randomArray[]
+  //     let style = { order: 1 };
+  //     return style;
+  //   }
 
-    for (const [key, scale] of Object.entries(allScales)) {
-      let newSheet = scale;
-      console.log('options - scale', scale);
+  //   return {};
+  // });
 
-      // Adding the options string as an Object
-      if (
-        scale != undefined &&
-        scale.options != undefined &&
-        scale.options != '' &&
-        typeof scale.options != 'object'
-      ) {
-        console.log('options - scale.options', scale.options);
-        newSheet['options'] = JSON.parse(scale.options);
-      }
-
-      scales.value[key] = newSheet;
+  function inlineStyle(value) {
+    if (
+      (activeSheet.value != undefined &&
+        activeSheet.value.scaleId != undefined &&
+        activeSheet.value.scaleId != '' &&
+        activeSheet.value.scale != undefined &&
+        activeSheet.value.scale.options != undefined &&
+        activeSheet.value.scale.options.randomizedUserbased === true) ||
+      (activeSheetOptions &&
+        activeSheet.value.options.randomizedUserbased === true)
+    ) {
+      let order = userStore.randomArray[value];
+      let style = { order: order };
+      return style;
+    } else {
+      return {};
     }
   }
 
-  //  END Scales
-
-  // START Batteries
-  let batteries = ref({});
-  function initBatteries() {
-    let batteriesObject = {};
-    let allBatteries = batteriesInitial.value;
-
-    for (const [index, battery] of Object.entries(allBatteries)) {
-      let newBattery = battery;
-
-      // Adding the options string as an Object
-      if (
-        battery != undefined &&
-        battery.options != undefined &&
-        battery.options != '' &&
-        typeof battery.options != 'object'
-      ) {
-        // console.log('options - battery.options', battery.options);
-        newBattery['options'] = JSON.parse(battery.options);
-      }
-
-      batteriesObject[newBattery.batteryId] = newBattery;
-    }
-
-    batteries.value = batteriesObject;
-    console.log('options - batteries.value', batteries.value);
+  function closePermissionModal() {
+    showPermissionModal.value = false;
   }
 
-  // END Batteries
-
-  // START sheetsNoRandom
-  let sheetsNoRandom = ref({});
-  function initSheetsNoRandom() {
-    let sheetsArrayN = [];
-    let allSheetsN = sheetsInitial.value;
-
-    for (const [key, sheet] of Object.entries(allSheetsN)) {
-      let newSheet = sheet;
-
-      // Adding the options string as an Object
-      if (
-        sheet != undefined &&
-        sheet.options != undefined &&
-        sheet.options != '' &&
-        typeof sheet.options != 'object'
-      ) {
-        newSheet['options'] = JSON.parse(sheet.options);
-      }
-
-      // Adding scales to each sheet
-      if (
-        scales.value != undefined &&
-        sheet.scaleId != undefined &&
-        sheet.scaleId != ''
-      ) {
-        sheet['scale'] = scales.value[sheet.scaleId];
-      }
-
-      sheetsArrayN.push(newSheet);
-    }
-
-    sheetsNoRandom.value = sheetsArrayN;
-    console.log('options - sheetsNoRandom.value', sheetsNoRandom.value);
+  function closeNotificationPermissionModal() {
+    showNotificationPermissionModal.value = false;
   }
 
-  // END sheetsNoRandom
+  // let answers = reactive({ entries: { 6: [], 53: [] }, unchangeable: {} });
+  let answers = reactive({ entries: {}, unchangeable: {} });
 
-  //START sheets
-  let sheets = ref({});
-  function initSheets() {
-    console.log('QInitial - sheets 1');
-    let sheetsArray = [];
-    let allSheets = sheetsNoRandom.value;
+  let errors = ref({});
 
-    let lastBatteryId = 0;
+  let showSpinner = ref(false);
+  let showSpinnerLoading = ref(false);
 
-    // temporary object for storing sheets of an battery which will be randomized
-    let batteryArray = [];
+  let currentSheet = ref(0);
 
-    let allSheetLength = Object.keys(allSheets).length;
-    let i = 1;
-    let attentionPageIndex;
+  async function getQuestionsInitial() {
+    showSpinnerLoading.value = true;
 
-    for (const [key, sheet] of Object.entries(allSheets)) {
-      // console.log('QInitial - sheets 2 - key:', key, sheet);
-      let battery = batteries.value[sheet.batteryId];
+    let request = await questionsStore.getInitialQuestions();
+    console.log('getIQ - result: ', request);
+    if (request.status != 200 && request.status != 201) {
+      userStore.appMessage =
+        'Es gab einen Fehler: ' +
+        request.code +
+        '<br>Message: ' +
+        request.message +
+        '';
+      userStore.showAppMessage = true;
 
-      // getting the Index of the attentioncheck Page
-      if (sheet.options != undefined && sheet.options.attentionCheck === true) {
-        console.log('attentionPageOriginalIndex:', key);
-        attentionPageIndex = key;
-      }
-      //END getting the Index of the attentioncheck Page
-
-      if (lastBatteryId != sheet.batteryId || i == allSheetLength) {
-        // a new Battery starts or its last battery
-        // if its last item, add last item to batteryArray
-
-        // function batteryArrayToSheetsArray(){
-        if (Object.keys(batteryArray).length != 0) {
-          // putting entries from batteryArray to sheetsArray
-          if (
-            batteries.value[lastBatteryId] != undefined &&
-            batteries.value[lastBatteryId].options != undefined &&
-            batteries.value[lastBatteryId].options.randomizeItems !=
-              undefined &&
-            batteries.value[lastBatteryId].options.randomizeItems === true
-          ) {
-            // randomization
-            batteryArray = shuffle(batteryArray);
-          }
-
-          for (battery of batteryArray) {
-            sheetsArray.push(battery);
-          }
-          batteryArray = [];
-        }
-        // }
-        if (i === allSheetLength) {
-          // last item gets put in batteryArray
-          batteryArray.push(sheet);
-
-          if (Object.keys(batteryArray).length != 0) {
-            // putting entries from batteryArray to sheetsArray
-            if (
-              batteries.value[lastBatteryId] != undefined &&
-              batteries.value[lastBatteryId].options != undefined &&
-              batteries.value[lastBatteryId].options.randomizeItems !=
-                undefined &&
-              batteries.value[lastBatteryId].options.randomizeItems === true
-            ) {
-              // randomization
-              batteryArray = shuffle(batteryArray);
-            }
-
-            for (battery of batteryArray) {
-              sheetsArray.push(battery);
-            }
-            batteryArray = [];
-          }
-        }
-      }
-
-      // batteryArray.push(sheet);
-
-      // if (i == allSheetLength) {
-      //   // its the last sheet
-      //   for (battery of batteryArray) {
-      //     sheetsArray.push(battery);
-      //   }
-      // }
-
-      if (i != allSheetLength) {
-        // If not Last item, Item gets put in batteryArray. If it was last Item it was put in batteryArray further up
-        batteryArray.push(sheet);
-      }
-
-      lastBatteryId = sheet.batteryId;
-      i++;
+      router.replace({ path: '/login' });
+      return;
     }
-    // randomInt for putting the random page somewhere
-    // let randomInt = getRandomInt(sheetsArray.length - 1);
-    let randomInt;
-    let validRandom = false;
-    while (validRandom === false) {
-      randomInt = getRandomInt(sheetsArray.length - 1);
-      console.log('randomInt: ', randomInt);
-      if (sheetsArray[randomInt]?.options?.excludeAttention != true) {
-        console.log('randomInt - sheet:', sheetsArray[randomInt]);
-        validRandom = true;
-      } else {
-        console.log('randomInt - excludeFromRandom:', randomInt);
-      }
-    }
-
-    console.log('randomInt:', randomInt);
-    // putting the random page somewhere
-
-    // splice(start,deleteCount, item1, item2 ...)
-    if (attentionPageIndex != undefined) {
-      console.log(
-        'SheetsArray ',
-        sheetsArray,
-        sheetsArray[Number(attentionPageIndex)],
-        sheetsArray[Number(attentionPageIndex) + 1],
-        sheetsArray[Number(attentionPageIndex) - 1],
-        attentionPageIndex
-      );
-      console.log('SheetsArray - allSheets: ', allSheets);
-      sheetsArray.splice(randomInt, 0, sheetsArray[Number(attentionPageIndex)]);
-      sheetsArray.splice(Number(attentionPageIndex) + 1, 1);
-    }
-
-    // End putting the random page somewhere
-
-    let j = 1;
-    for (const [index, sheet] of Object.entries(sheetsArray)) {
-      // Adding a sheetId to every sheet
-      sheet['sheetId'] = Number(index) + 1;
-      if (sheet.itemId != '') {
-        // Adding a itemOrderNr only to questions/items
-        sheet['orderId'] = j;
-        j++;
-      }
-    }
-
-    sheets.value = sheetsArray;
-    console.log('sheets.value: ', sheets.value);
+    showSpinnerLoading.value = false;
   }
-
-  //END sheets
+  await getQuestionsInitial();
 
   let activeSheet = computed(() => {
     console.log('computed - activeSheet');
@@ -988,6 +766,14 @@
       return sheets.value[sheets.value.length];
     }
   });
+
+  // let currentScaleId = ref(0)
+
+  // insert scroll from Base Component
+  const baseComp = ref(null);
+  function scroll() {
+    baseComp.value.scrollTop();
+  }
 
   let activeSheetOptions = computed(() => {
     if (
@@ -1012,30 +798,231 @@
     }
   });
 
-  function shuffle(array) {
-    var m = array.length,
-      t,
-      i;
+  //  START Scales
+  let scales = ref({});
+  let allScales = questionsStore.scalesInitial;
 
-    // While there remain elements to shuffle…
-    while (m) {
-      // Pick a remaining element…
-      i = Math.floor(Math.random() * m--);
+  for (const [key, scale] of Object.entries(allScales)) {
+    let newSheet = scale;
+    console.log('options - scale', scale);
 
-      // And swap it with the current element.
-      t = array[m];
-      array[m] = array[i];
-      array[i] = t;
+    // Adding the options string as an Object
+    if (
+      scale != undefined &&
+      scale.options != undefined &&
+      scale.options != '' &&
+      typeof scale.options != 'object'
+    ) {
+      console.log('options - scale.options', scale.options);
+      newSheet['options'] = JSON.parse(scale.options);
     }
 
-    return array;
+    scales.value[key] = newSheet;
   }
 
-  function getRandomInt(max) {
-    return Math.floor(Math.random() * max);
+  //  END Scales
+
+  // START Batteries
+  let batteries = ref({});
+  let batteriesObject = {};
+  let allBatteries = questionsStore.batteriesInitial;
+
+  for (const [index, battery] of Object.entries(allBatteries)) {
+    let newBattery = battery;
+
+    // Adding the options string as an Object
+    if (
+      battery != undefined &&
+      battery.options != undefined &&
+      battery.options != '' &&
+      typeof battery.options != 'object'
+    ) {
+      // console.log('options - battery.options', battery.options);
+      newBattery['options'] = JSON.parse(battery.options);
+    }
+
+    batteriesObject[newBattery.batteryId] = newBattery;
   }
 
-  //iii
+  batteries.value = batteriesObject;
+  console.log('options - batteries.value', batteries.value);
+
+  // END Batteries
+
+  // START sheetsNoRandom
+  let sheetsNoRandom = ref({});
+  let sheetsArrayN = [];
+  let allSheetsN = questionsStore.sheetsInitial;
+
+  for (const [key, sheet] of Object.entries(allSheetsN)) {
+    let newSheet = sheet;
+
+    // Adding the options string as an Object
+    if (
+      sheet != undefined &&
+      sheet.options != undefined &&
+      sheet.options != '' &&
+      typeof sheet.options != 'object'
+    ) {
+      newSheet['options'] = JSON.parse(sheet.options);
+    }
+
+    // Adding scales to each sheet
+    if (
+      scales.value != undefined &&
+      sheet.scaleId != undefined &&
+      sheet.scaleId != ''
+    ) {
+      sheet['scale'] = scales.value[sheet.scaleId];
+    }
+
+    sheetsArrayN.push(newSheet);
+  }
+
+  sheetsNoRandom.value = sheetsArrayN;
+  console.log('options - sheetsNoRandom.value', sheetsNoRandom.value);
+  // END sheetsNoRandom
+
+  //START sheets
+  let sheets = ref({});
+  console.log('QInitial - sheets 1');
+  let sheetsArray = [];
+  let allSheets = sheetsNoRandom.value;
+
+  let lastBatteryId = 0;
+
+  // temporary object for storing sheets of an battery which will be randomized
+  let batteryArray = [];
+
+  let allSheetLength = Object.keys(allSheets).length;
+  let i = 1;
+  let attentionPageIndex;
+
+  for (const [key, sheet] of Object.entries(allSheets)) {
+    // console.log('QInitial - sheets 2 - key:', key, sheet);
+    let battery = batteries.value[sheet.batteryId];
+
+    // getting the Index of the attentioncheck Page
+    if (sheet.options != undefined && sheet.options.attentionCheck === true) {
+      console.log('attentionPageOriginalIndex:', key);
+      attentionPageIndex = key;
+    }
+    //END getting the Index of the attentioncheck Page
+
+    if (lastBatteryId != sheet.batteryId || i == allSheetLength) {
+      // a new Battery starts or its last battery
+      // if its last item, add last item to batteryArray
+
+      // function batteryArrayToSheetsArray(){
+      if (Object.keys(batteryArray).length != 0) {
+        // putting entries from batteryArray to sheetsArray
+        if (
+          batteries.value[lastBatteryId] != undefined &&
+          batteries.value[lastBatteryId].options != undefined &&
+          batteries.value[lastBatteryId].options.randomizeItems != undefined &&
+          batteries.value[lastBatteryId].options.randomizeItems === true
+        ) {
+          // randomization
+          batteryArray = shuffle(batteryArray);
+        }
+
+        for (battery of batteryArray) {
+          sheetsArray.push(battery);
+        }
+        batteryArray = [];
+      }
+      // }
+      if (i === allSheetLength) {
+        // last item gets put in batteryArray
+        batteryArray.push(sheet);
+
+        if (Object.keys(batteryArray).length != 0) {
+          // putting entries from batteryArray to sheetsArray
+          if (
+            batteries.value[lastBatteryId] != undefined &&
+            batteries.value[lastBatteryId].options != undefined &&
+            batteries.value[lastBatteryId].options.randomizeItems !=
+              undefined &&
+            batteries.value[lastBatteryId].options.randomizeItems === true
+          ) {
+            // randomization
+            batteryArray = shuffle(batteryArray);
+          }
+
+          for (battery of batteryArray) {
+            sheetsArray.push(battery);
+          }
+          batteryArray = [];
+        }
+      }
+    }
+
+    // batteryArray.push(sheet);
+
+    // if (i == allSheetLength) {
+    //   // its the last sheet
+    //   for (battery of batteryArray) {
+    //     sheetsArray.push(battery);
+    //   }
+    // }
+
+    if (i != allSheetLength) {
+      // If not Last item, Item gets put in batteryArray. If it was last Item it was put in batteryArray further up
+      batteryArray.push(sheet);
+    }
+
+    lastBatteryId = sheet.batteryId;
+    i++;
+  }
+  // randomInt for putting the random page somewhere
+  // let randomInt = getRandomInt(sheetsArray.length - 1);
+  let randomInt;
+  let validRandom = false;
+  while (validRandom === false) {
+    randomInt = getRandomInt(sheetsArray.length - 1);
+    console.log('randomInt: ', randomInt);
+    if (sheetsArray[randomInt]?.options?.excludeAttention != true) {
+      console.log('randomInt - sheet:', sheetsArray[randomInt]);
+      validRandom = true;
+    } else {
+      console.log('randomInt - excludeFromRandom:', randomInt);
+    }
+  }
+
+  console.log('randomInt:', randomInt);
+  // putting the random page somewhere
+
+  // splice(start,deleteCount, item1, item2 ...)
+  if (attentionPageIndex != undefined) {
+    console.log(
+      'SheetsArray ',
+      sheetsArray,
+      sheetsArray[Number(attentionPageIndex)],
+      sheetsArray[Number(attentionPageIndex) + 1],
+      sheetsArray[Number(attentionPageIndex) - 1],
+      attentionPageIndex
+    );
+    console.log('SheetsArray - allSheets: ', allSheets);
+    sheetsArray.splice(randomInt, 0, sheetsArray[Number(attentionPageIndex)]);
+    sheetsArray.splice(Number(attentionPageIndex) + 1, 1);
+  }
+
+  // End putting the random page somewhere
+
+  let j = 1;
+  for (const [index, sheet] of Object.entries(sheetsArray)) {
+    // Adding a sheetId to every sheet
+    sheet['sheetId'] = Number(index) + 1;
+    if (sheet.itemId != '') {
+      // Adding a itemOrderNr only to questions/items
+      sheet['orderId'] = j;
+      j++;
+    }
+  }
+
+  sheets.value = sheetsArray;
+  console.log('sheets.value: ', sheets.value);
+  //END sheets
 
   watch(activeSheet, (newValue) => {
     if (
@@ -1075,6 +1062,40 @@
   }
   numberOfItems.value = counter;
 
+  //  watch(sheets, (newValue) => {
+
+  //   if (
+  //     newValue != undefined &&
+  //     newValue.options != undefined &&
+  //     newValue.options.defaultValue != undefined &&
+  //     answers.entries[newValue.itemId] === undefined
+  //   ) {
+  //     // sets a default value if the item has the option defaultValue, for example a slider to 50
+  //     answers.entries[newValue.itemId] = newValue.options.defaultValue;
+  //   }
+
+  //  })
+
+  // randomizer Function Fisher-Yates
+  function shuffle(array) {
+    var m = array.length,
+      t,
+      i;
+
+    // While there remain elements to shuffle…
+    while (m) {
+      // Pick a remaining element…
+      i = Math.floor(Math.random() * m--);
+
+      // And swap it with the current element.
+      t = array[m];
+      array[m] = array[i];
+      array[i] = t;
+    }
+
+    return array;
+  }
+
   function previousSheet() {
     currentSheet.value > 0 && currentSheet.value--;
   }
@@ -1107,7 +1128,7 @@
     return arr;
   }
 
-  async function validateNrInput(target, itemId, event) {
+  async function validateNrInput(target: any, itemId: any, event: any) {
     const value = target.value;
     console.log('validateNrInput - target', target);
     console.log('validateNrInput - event', event);
@@ -1129,7 +1150,7 @@
     }
   }
 
-  async function changeInputToNr(target, itemId, event, zeros) {
+  async function changeInputToNr(target: any, itemId: any, event: any, zeros) {
     const value = target.value;
     console.log('changeInputToNr - target', target);
     console.log('changeInputToNr - event', event);
@@ -1312,6 +1333,10 @@
     questionsStore.timestampQuestionsInitialStarted = 0;
   }
 
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+  }
+
   let freeFieldToAnswersText = ref({});
 
   function freeFieldToAnswers(target, itemId, event) {
@@ -1337,24 +1362,24 @@
     }
   }
 
-  function inlineStyle(value) {
-    if (
-      (activeSheet.value != undefined &&
-        activeSheet.value.scaleId != undefined &&
-        activeSheet.value.scaleId != '' &&
-        activeSheet.value.scale != undefined &&
-        activeSheet.value.scale.options != undefined &&
-        activeSheet.value.scale.options.randomizedUserbased === true) ||
-      (activeSheetOptions &&
-        activeSheet.value.options.randomizedUserbased === true)
-    ) {
-      let order = userStore.randomArray[value];
-      let style = { order: order };
-      return style;
-    } else {
-      return {};
-    }
-  }
+  // function freeFieldToAnswersNumber(target, itemId, event) {
+  //   let value = Number(target.value);
+  //   console.log('freeFieldToAnswers - value', value);
+  //   console.log('freeFieldToAnswers - event', event);
+  //   if (/^[a-zA-Z ]+$/.test(event.data)) {
+  //     answers.entries[itemId][1] = value;
+  //     freeFieldToAnswersObj.value[itemId].number = value;
+  //   } else {
+  //     target.value = answers.entries[itemId][1];
+  //   }
+  // }
+
+  // let freeFieldToAnswersValueNumber = ref();
+
+  // function setQuestion2input() {
+  //   console.log('setQuestion2input');
+  //   answers.entries[2] = freeFieldToAnswersValue.value;
+  // }
 </script>
 
 <style scoped>

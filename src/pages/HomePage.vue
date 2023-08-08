@@ -70,6 +70,10 @@
           >Initialen Fragebogen starten</ion-button
         >
 
+        <!-- <ion-button @click="onStartQuestionsTest()"
+          >Test Fragebogen starten</ion-button
+        > -->
+
         <ion-button @click="onStartQuestionsShort()"
           >Kurzfragebogen starten</ion-button
         >
@@ -151,6 +155,33 @@
     // end check for validTokenminutes
 
     router.replace({ path: '/questionsinitial' });
+  }
+
+  async function onStartQuestionsTest() {
+    // // check for validToken
+    // let answer = await userStore.validateToken(userStore.userData.token);
+    // console.log('Home await validateToken - answer', answer);
+    // if (answer.code === 'ERR_NETWORK') {
+    //   userStore.appMessage2 =
+    //     'Bitte stellen Sie sicher das eine Internetverbindung besteht!';
+    //   userStore.showAppMessage2 = true;
+    //   return;
+    // } else if (answer.status != 200 && answer.status != 201) {
+    //   userStore.appMessage2 =
+    //     'Bitte melden Sie sich erneut an! <br><br> Code: ' +
+    //     answer.code +
+    //     '<br>Message:' +
+    //     answer.message +
+    //     '';
+    //   userStore.showAppMessage2 = true;
+
+    //   router.replace({ path: '/login' });
+    //   return;
+    // }
+
+    // end check for validTokenminutes
+
+    router.replace({ path: '/questionstest' });
   }
 </script>
 

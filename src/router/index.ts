@@ -8,6 +8,7 @@ import Login from '../pages/LoginPage.vue';
 import User from '../pages/UserPage.vue';
 import DayJS from '../pages/examples/DayJSPage.vue';
 import QuestionsInitial from '../pages/QuestionsInitialPage.vue';
+import QuestionsTest from '../pages/QuestionsTest.vue';
 import QuestionsShort from '../pages/QuestionsShortPage.vue';
 import Answers from '../pages/AnswersPage.vue';
 import Statistics from '../pages/StatisticsPage.vue';
@@ -43,6 +44,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/questionsinitial',
     component: QuestionsInitial,
+  },
+  {
+    path: '/questionstest',
+    component: QuestionsTest,
   },
   {
     path: '/questionsshort',
