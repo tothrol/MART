@@ -358,12 +358,18 @@
     'date',
     'dateLong',
     'time',
+    'timeStampAndroid',
     'timestamp',
-
-    'cn',
-    'et',
-    'pn',
-    'ts',
+    'getEventType',
+    'getTotalTimeInSec',
+    'describeContents',
+    'getCount',
+    'getFirstTimeStamp',
+    'getFirstTimeStampDate',
+    'getLastTimeStamp',
+    'getLastTimeStampDate',
+    'getLastEventTime',
+    'getLastEventTimeDate',
   ];
 
   let allEventStats = computed(() => {
@@ -445,14 +451,12 @@
     array.forEach(function (element2, index2) {
       if (
         element.uniqueUserId === element2.uniqueUserId &&
-        element.cn === element2.cn &&
-        element.et === element2.et &&
-        element.pn === element2.pn &&
-        element.ts === element2.ts
+        element.getEventType === element2.getEventType &&
+        element.getFirstTimeStamp === element2.getFirstTimeStamp
       ) {
         // console.log('Statistics - filterFunction', element, element2);
         // element is for same user, package and date
-        if (element.timestamp < element2.timestamp) {
+        if (element.timeStampAndroid < element2.timeStampAndroid) {
           // only the newest enty will be kept
           // console.log(
           //   'Statistics - filterFunction - timeStampAndroid',
@@ -480,10 +484,6 @@
     });
     return newArray;
   }
-
-  // function filterFunctionEvent(value, index, array) {
-  //   return array.indexOf(value) === index;
-  // }
 
   let allEventStatsUnique = computed(() => {
     let arrayUnique = [];

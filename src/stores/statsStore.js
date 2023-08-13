@@ -6,6 +6,9 @@ import axios from 'axios';
 import { useUserStore } from '@/stores/userStore';
 import { Device } from '@capacitor/device';
 import { Capacitor } from '@capacitor/core';
+import { useQuestionsStore } from '@/stores/questionsStore';
+import { Storage } from '@ionic/storage';
+// import dayjs from 'dayjs';
 
 let platform = Capacitor.getPlatform();
 
@@ -77,13 +80,69 @@ export const useStatsStore = defineStore('statsStore', {
     async getStats(today, time, dateLong, timestamp) {
       try {
         console.log('getStats');
+        const questionsStore = useQuestionsStore();
+
+        const storage = new Storage();
+        await storage.create();
+        let lastStats = await storage.get('lastStats');
+        console.log('getStats - lastStats:', lastStats);
+
+        // Only for controlling in Devbox
+        questionsStore.lastStats = lastStats;
+
+        let lastAnswerMs;
+
+        if (!lastStats) {
+          lastAnswerMs = 0;
+        } else {
+          lastAnswerMs = lastStats;
+        }
+
+        // if (
+        //   questionsStore.shortAnswersArray.length === 0 &&
+        //   questionsStore.initialAnswerTimestamp === 0
+        // ) {
+        //   // No initial Answer, No shortAnswer
+        //   lastAnswerMs = 0;
+        // } else if (
+        //   questionsStore.shortAnswersArray.length === 0 &&
+        //   questionsStore.initialAnswerTimestamp != 0
+        // ) {
+        //   // initial Answer exists, short answers does not exist.
+        //   lastAnswerMs = questionsStore.initialAnswerTimestamp;
+        // } else if (questionsStore.shortAnswersArray.length != 0) {
+        //   // Short Answer does exist
+        //   lastAnswerMs = questionsStore.lastShortAnswerMs;
+        // }
 
         // const deviceInfo = await Device.getInfo();
 
         let platform = Capacitor.getPlatform();
 
         if (platform != 'ios' && platform != 'web') {
-          let queryUsageStats = await echo.getStats();
+          // let queryUsageStats = await echo.getStats();
+
+          // START calc hours back
+          // How many hours back should the Android stats last
+          let hours;
+          if (lastAnswerMs === 0) {
+            hours = 24 * 30;
+          } else {
+            hours = (timestamp - lastAnswerMs) / 1000 / 60 / 60;
+            console.log('getStats - hours: ', hours);
+            hours = Math.round(hours);
+            console.log('getStats - hours - rounded: ', hours);
+            hours = hours + 2;
+            console.log('getStats - hours - +2: ', hours);
+          }
+
+          hours = hours.toString();
+
+          // END calc hours back
+
+          let queryUsageStats = await echo.getStats({
+            hours: hours,
+          });
           // console.log('queryUsageStats - stats: ', queryUsageStats);
           let queryUsageStatsJSON = JSON.parse(
             queryUsageStats.androidUsageStats
@@ -96,22 +155,33 @@ export const useStatsStore = defineStore('statsStore', {
             1,
             queryUsageStatsStringify.length - 1
           );
-          console.log('queryUsageStats - string: ', queryUsageStatsString);
+          // console.log('queryUsageStats - string: ', queryUsageStatsString);
           // END queryUsageStats
 
           // queryEventStats
-          let queryEventStats = await echo.getEventStats();
-          // console.log('getEventStats - stats: ', queryEventStats);
+          // let queryEventStats = await echo.getEventStats();
+          let queryEventStats = await echo.getEventStatsDetail({
+            hours: hours,
+          });
+          // console.log('getEventStats - queryEventStats -: ', queryEventStats);
           let queryEventStatsJSON = JSON.parse(
             queryEventStats.androidEventStats
           );
+          // console.log(
+          //   'getEventStats - queryEventStatsJSON: ',
+          //   queryEventStatsJSON
+          // );
           let queryEventStatsStringify = JSON.stringify(queryEventStatsJSON);
+          // console.log(
+          //   'getEventStats - queryEventStatsStringify: ',
+          //   queryEventStatsStringify
+          // );
 
           let queryEventStatsString = queryEventStatsStringify.substring(
             1,
             queryEventStatsStringify.length - 1
           );
-          console.log('getEventStats - string: ', queryEventStatsString);
+          // console.log('getEventStats - string: ', queryEventStatsString);
           // End queryEventStats
 
           let deviceInfoString = '';
@@ -153,14 +223,19 @@ export const useStatsStore = defineStore('statsStore', {
           // );
         }
 
+        await storage.set('lastStats', timestamp);
+        console.log('getStats - lastStats:', timestamp);
+
         return new Promise((resolve) => {
           // if (response.status == 200) {
           resolve('Stats were send');
           // }
         });
       } catch (e) {
+        console.log('getEventStats - Error: ', e);
         return new Promise((reject) => {
           // if (response.status == 200) {
+
           reject(e);
           // }
         });

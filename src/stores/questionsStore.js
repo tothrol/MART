@@ -39,6 +39,8 @@ export const useQuestionsStore = defineStore('questionsStore', {
       shortAnswersArray: [],
       todayShortAnswersArray: [],
       totalShortAnswers: 0,
+
+      lastStats: 0,
     };
   },
   actions: {
@@ -152,6 +154,11 @@ export const useQuestionsStore = defineStore('questionsStore', {
         // JSON responses are automatically parsed.
 
         // console.log('questionsStore - sendInitialAnswers - response', response);
+        const statsStore = useStatsStore();
+
+        await statsStore.getStats(today, time, dateLong, timestamp);
+
+        await statsStore.sendDeviceInfos(today, time, dateLong, timestamp);
 
         if (response.status === 201) {
           // console.log('questionsStore - sendInitialAnswers - response = 201');
@@ -177,12 +184,6 @@ export const useQuestionsStore = defineStore('questionsStore', {
           // Error handling here
           // console.log('questionsStore - sendInitialAnswers - response = NOT 201');
         }
-
-        const statsStore = useStatsStore();
-
-        await statsStore.getStats(today, time, dateLong, timestamp);
-
-        await statsStore.sendDeviceInfos(today, time, dateLong, timestamp);
 
         // await this.sendStatistics(today, time, dateLong);
 
@@ -410,6 +411,14 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
         console.log('questionsStore - sendShortAnswers - response', response);
 
+        console.log('sendShortAnswers - todayShortAnswers:', todayShortAnswers);
+
+        if (todayShortAnswers === 0) {
+          const statsStore = useStatsStore();
+          // only send stats if its the first questionsShort of the day
+          await statsStore.getStats(today, time, dateLong, timestamp);
+        }
+
         if (response.status === 201) {
           console.log('sendShortAnswers - response = 201');
           let infoStore = useInfoStore();
@@ -445,13 +454,6 @@ export const useQuestionsStore = defineStore('questionsStore', {
           await userStore.setNotifications();
         }
         // await this.countShortAnswers();
-
-        const statsStore = useStatsStore();
-
-        if (todayShortAnswers === 0) {
-          // only send stats if its the first questionsShort of the day
-          await statsStore.getStats(today, time, dateLong, timestamp);
-        }
 
         // await this.sendStatistics(today, time, dateLong);
 

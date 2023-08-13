@@ -42,11 +42,30 @@
         secToNext: {{ infoStore.secToNext }}<br />
         minutesCounter:
         {{ infoStore.minutesCounter }}
+
         <div>
+          <div>
+            infoStore.countdownTotalMinutes:
+            {{ infoStore.countdownTotalMinutes }}
+          </div>
           <div>
             questionsStore.shortAnswersArray.length:
             {{ questionsStore.shortAnswersArray.length }}
           </div>
+          <div>
+            questionsStore.lastStats:
+            {{ questionsStore.lastStats }}
+          </div>
+
+          <div>
+            questionsStore.lastShortAnswerMs:
+            {{ questionsStore.lastShortAnswerMs }}
+          </div>
+          <div>
+            questionsStore.initialAnswerTimestamp:
+            {{ questionsStore.initialAnswerTimestamp }}
+          </div>
+
           <br />
           route.path: {{ route.path }} <br /><br />
           infoStore.appStateChangeCounter:
@@ -149,6 +168,16 @@
         <ion-button @click="$emit('triggerShortQ')"
           >onStartQuestionsShort()</ion-button
         >
+
+        <ion-button @click="getEventStatsDetail()"
+          >getEventStatsDetail()</ion-button
+        >
+
+        <ion-button @click="getEventStatsStore()"
+          >statsStore.getStats</ion-button
+        >
+
+        {{ eventStatsDetail }}
       </div>
     </div>
   </div>
@@ -159,7 +188,8 @@
   import { useUserStore } from '@/stores/userStore';
   import { useInfoStore } from '@/stores/infoStore';
   import { useStatsStore } from '@/stores/statsStore';
-  import { computed } from 'vue';
+  import { computed, ref } from 'vue';
+  import { echo } from 'echo';
 
   import { useQuestionsStore } from '@/stores/questionsStore';
   import { useRouter, useRoute } from 'vue-router';
@@ -170,6 +200,29 @@
   const statsStore = useStatsStore();
 
   const route = useRoute();
+
+  let eventStatsDetail = ref();
+
+  async function getEventStatsDetail() {
+    eventStatsDetail.value = await echo.getEventStatsDetail({ hours: '69' });
+  }
+
+  async function getEventStatsStore() {
+    const now = dayjs();
+    const today = now.format('DD.MM.YYYY');
+    const time = now.format('HH:mm');
+    const dateLong = now.format();
+    const timestamp = now.valueOf();
+
+    // console.log(
+    //   'Devbox - getEventStatsStore - statsStore.lastShortAnswerMs:',
+    //   statsStore.lastShortAnswerMs
+    // );
+
+    let result = await statsStore.getStats(today, time, dateLong, timestamp);
+
+    console.log('Devbox - getEventStatsStore - result:', result);
+  }
 
   // START devbox
 

@@ -113,6 +113,7 @@
   import { useQuestionsStore } from '@/stores/questionsStore';
   import InfoboxhomeComponent from '@/components/InfoboxhomeComponent.vue';
   import { Capacitor } from '@capacitor/core';
+  import { Storage } from '@ionic/storage';
 
   import dayjs from 'dayjs';
 
@@ -129,6 +130,38 @@
   function onStartQuestionsShort() {
     router.replace({ path: '/questionsshort' });
   }
+
+  async function sendFinalStats() {
+    console.log('Home - sendFinalStats');
+
+    // START TEST
+    // let test = true;
+    // END TEST
+    if (infoStore.countdownTotalMinutes < 0) {
+      const storage = new Storage();
+      await storage.create();
+      let storeageSendFinalStats = await storage.get('sendFinalStats');
+      console.log(
+        'Home - sendFinalStats - storeageSendFinalStats:',
+        storeageSendFinalStats
+      );
+      if (storeageSendFinalStats != true) {
+        console.log('Home - sendFinalStats - beforeSend:');
+        const now = dayjs();
+        const today = now.format('DD.MM.YYYY');
+        const time = now.format('HH:mm');
+        const dateLong = now.format();
+        const timestamp = now.valueOf();
+        await statsStore.getStats(today, time, dateLong, timestamp);
+
+        await storage.create();
+        await storage.set('sendFinalStats', true);
+
+        // console.log('Devbox - getEventStatsStore - result:', result);
+      }
+    }
+  }
+  sendFinalStats();
 
   async function onStartQuestionsInitial() {
     // check for validToken

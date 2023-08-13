@@ -161,6 +161,9 @@ export const useUserStore = defineStore('userStore', {
             await storage.remove('todayShortAnswersArray');
             await storage.remove('shortAnswersArray');
             await storage.remove('datesAndTimes');
+            await storage.remove('sendFinalStats');
+            await storage.remove('lastStats');
+
             await this.createRandomArray();
             this.complianceAccepted = false;
             console.log(
@@ -178,6 +181,7 @@ export const useUserStore = defineStore('userStore', {
             questionsStore.totalShortAnswers = 0;
             questionsStore.initialAnswerExist = false;
             questionsStore.initialAnswerTimestamp = 0;
+            questionsStore.lastStats = 0;
             this.startOfThisInterval = 0;
             this.endOfThisInterval = 0;
             this.startOfIntervalsRandomNotification = 0;
