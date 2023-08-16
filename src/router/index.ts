@@ -10,13 +10,14 @@ import DayJS from '../pages/examples/DayJSPage.vue';
 import QuestionsInitial from '../pages/QuestionsInitialPage.vue';
 import QuestionsTest from '../pages/QuestionsTest.vue';
 import QuestionsShort from '../pages/QuestionsShortPage.vue';
-import Answers from '../pages/AnswersPage.vue';
+import AnswersInitial from '../pages/AnswersPageInitial.vue';
+import AnswersShort from '../pages/AnswersPageShort.vue';
 import Statistics from '../pages/StatisticsPage.vue';
 import DeviceStats from '../pages/DeviceStatsPage.vue';
 import Success from '../pages/SuccessPage.vue';
 import Welcome from '../pages/WelcomePage.vue';
 import Contact from '../pages/ContactPage.vue';
-import Compliance from '../pages/CompliancePage.vue';
+// import Compliance from '../pages/CompliancePage.vue';
 import BriefingShort from '../pages/BriefingShortPage.vue';
 import Iosstats from '../pages/IosstatsPage.vue';
 
@@ -58,8 +59,12 @@ const routes: Array<RouteRecordRaw> = [
     component: Success,
   },
   {
-    path: '/answers',
-    component: Answers,
+    path: '/answersInitial',
+    component: AnswersInitial,
+  },
+  {
+    path: '/answersShort',
+    component: AnswersShort,
   },
   {
     path: '/statistics',
@@ -81,10 +86,10 @@ const routes: Array<RouteRecordRaw> = [
     path: '/contact',
     component: Contact,
   },
-  {
-    path: '/compliance',
-    component: Compliance,
-  },
+  // {
+  //   path: '/compliance',
+  //   component: Compliance,
+  // },
   {
     path: '/briefing-short',
     component: BriefingShort,

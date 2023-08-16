@@ -3,22 +3,34 @@
     <div class="box">
       <!-- Device Stats -->
 
-      <h2>DeviceStats</h2>
+      <h2 class="h2_stats">DeviceStats</h2>
+      <GetPostsComponent
+        @getPosts="getPosts"
+        @setFilenameValues="setFilenameValues"
+      ></GetPostsComponent>
+
       <div class="buttons">
-        <ion-button @click="evaluationStore.getDeviceInfos()" color="medium"
-          >Aktualisieren</ion-button
-        ><ion-button class="csv_download"
+        <ion-button class="csv_download"
           ><a
             :href="allDeviceInfosCsv"
-            download="csvDeviceInfos.csv"
+            :download="filename"
             ref="csvDeviceInfos"
-            >Download CSV DeviceInfos</a
+            >Download {{ filename }}</a
           ></ion-button
         >
       </div>
+      <div class="answers_count">
+        <div v-if="getAll">
+          Total Pages (if using get all Posts option):
+          {{ evaluationStore.totalPages.deviceInfos }}
+        </div>
+        <div>
+          Total Posts (in WP): {{ evaluationStore.totalPosts.deviceInfos }}
+        </div>
+      </div>
 
       <div class="answers_count">
-        Anzahl Stats: {{ Object.entries(allDeviceInfos).length }}
+        Anzahl Device Stats in csv: {{ Object.entries(allDeviceInfos).length }}
       </div>
       <div class="answers" v-if="allDeviceInfos != undefined">
         <div
@@ -55,24 +67,29 @@
           </div>
         </div>
       </div>
-      <Transition>
-        <MessageboxComponent v-if="false" @click="showMessage = false"
-          >Here is a message</MessageboxComponent
-        >
-      </Transition>
+      <transition>
+        <messagebox-component
+          type="normal"
+          name="fade"
+          v-if="userStore.appMessage != '' && userStore.showAppMessage"
+          ><p
+            v-html="userStore.appMessage"
+            style="white-space: pre-line"
+          ></p></messagebox-component
+      ></transition>
     </div>
   </base-layout>
 </template>
 
 <script setup lang="ts">
-  import { reactive, computed } from 'vue';
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, watch, reactive, computed } from 'vue';
   import { useUserStore } from '@/stores/userStore';
 
   import { useEvaluationStore } from '@/stores/evaluationStore';
   import AnswersComponent from '@/components/AnswersComponent.vue';
   import MessageboxComponent from '../components/MessageboxComponent.vue';
   import { IonTitle } from '@ionic/vue';
+  import GetPostsComponent from '../components/GetPostsComponent.vue';
 
   const csvDeviceInfos = ref(null);
 
@@ -81,8 +98,32 @@
   const evaluationStore = useEvaluationStore();
 
   onMounted(async () => {
-    evaluationStore.getDeviceInfos();
+    // evaluationStore.getDeviceInfos();
   });
+
+  let getAll = ref(false);
+
+  async function getPosts(getAllValue, perPage, page, offset, useOffset) {
+    getAll.value = getAllValue;
+
+    let result = await evaluationStore.getStatistics(
+      getAllValue,
+      perPage,
+      page,
+      offset,
+      useOffset,
+      'device-infos'
+    );
+
+    console.log('DeviceStats - result', result);
+    if (result.status != 200) {
+      let appMessage = `Es gab einen Fehler bei der Serveranfrage: ${result.response.data.code}, ${result.response.data.message}`;
+      userStore.appMessage = appMessage;
+      userStore.showAppMessage = true;
+    } else {
+      //
+    }
+  }
 
   let showMessage = ref(true);
 
@@ -221,9 +262,9 @@
     let newArray = [];
     deviceInfosElements.forEach(function (element2) {
       newArray.push(element[element2]);
-      console.log('device - element[element2]', element[element2], element2);
+      // console.log('device - element[element2]', element[element2], element2);
     });
-    console.log('device - newArray', newArray);
+    // console.log('device - newArray', newArray);
     return newArray;
   }
 
@@ -250,6 +291,31 @@
 
     return 0;
   }
+
+  // START Filename
+  let filenameFirstPost = ref(0);
+  let filenameLastPost = ref(0);
+  let filename = ref(createFileName('DeviceInfos'));
+
+  function setFilenameValues(firstPost, lastPost) {
+    filenameFirstPost.value = firstPost;
+    filenameLastPost.value = lastPost;
+  }
+
+  watch(allDeviceInfos, () => {
+    filename.value = createFileName('DeviceInfos');
+  });
+
+  function createFileName(string) {
+    let last = filenameFirstPost.value + allDeviceInfos.value.length - 1;
+    if (!getAll.value) {
+      return `${string}-${filenameFirstPost.value}-${last}.csv`;
+    } else {
+      return `${string}-all.csv`;
+    }
+  }
+
+  // END Filename
 </script>
 
 <style scoped>
@@ -334,7 +400,7 @@
 
   .answers_count {
     margin-bottom: 20px;
-    font-size: 20px;
+    /* font-size: 20px; */
   }
 
   .questions {

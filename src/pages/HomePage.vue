@@ -85,8 +85,11 @@
             userStore.userData.username === 'RolandToth'
           "
         >
-          <router-link class="link_button" to="/answers">
-            <ion-button color="medium">Auswertung ansehen</ion-button>
+          <router-link class="link_button" to="/answersInitial">
+            <ion-button color="medium">Antworten Initialfragebogen</ion-button>
+          </router-link>
+          <router-link class="link_button" to="/answersShort">
+            <ion-button color="medium">Antworten Kurzfragebogen</ion-button>
           </router-link>
           <router-link class="link_button" to="/statistics">
             <ion-button color="medium">Nutzungsstatistiken</ion-button>

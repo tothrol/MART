@@ -496,10 +496,10 @@ export const useUserStore = defineStore('userStore', {
     async setTestNotifications() {
       //START channel
       const channel = {
-        id: '2',
+        id: '6',
         name: 'channel2',
         importance: 5,
-        sound: 'none.mp3',
+        // sound: 'none.mp3',
       };
 
       LocalNotifications.createChannel(channel);
@@ -515,8 +515,8 @@ export const useUserStore = defineStore('userStore', {
 
       let notificationEntry = {
         id: 5856,
-        channelId: 2,
-        title: `Erinnerung Fragebogen`,
+        channelId: '6',
+        title: `Erinnerung Fragebogen !!`,
         body: `Bitte Fragebogen ausfüllen`,
         schedule: {
           at: new Date(nowPlusOneMinute),
@@ -525,7 +525,6 @@ export const useUserStore = defineStore('userStore', {
         foreground: true,
         smallIcon: 'ic_stat_tonne',
         extra: {},
-        sound: 'none',
       };
       notificationArray.push(notificationEntry);
 
@@ -716,7 +715,7 @@ export const useUserStore = defineStore('userStore', {
           id: '0',
           name: 'Allgemein',
           importance: 5,
-          sound: 'none.mp3',
+          // sound: 'none.mp3',
         };
 
         LocalNotifications.createChannel(channel);
@@ -746,7 +745,6 @@ export const useUserStore = defineStore('userStore', {
             foreground: true,
             smallIcon: 'ic_stat_tonne',
             extra: {},
-            sound: 'none.mp3',
           };
           notificationArray.push(notificationEntry);
         }

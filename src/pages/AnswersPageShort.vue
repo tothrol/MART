@@ -1,22 +1,20 @@
 <template>
-  <base-layout
-    ><div class="box">
-      <div class="buttons">
-        <ion-button
-          @click="setAnswerType('initial')"
-          :color="answerType == 'initial' ? 'primary' : 'medium'"
-          >Initalfragebogen</ion-button
-        ><ion-button
-          @click="setAnswerType('short')"
-          :color="answerType == 'short' ? 'primary' : 'medium'"
-          >Kurzfragebogen</ion-button
-        >
-      </div>
+  <base-layout>
+    <div class="box">
+      <h2 class="h2_stats">Antworten Kurzfragebogen</h2>
+      <GetPostsComponent
+        @getPosts="getPosts"
+        @setFilenameValues="setFilenameValues"
+      ></GetPostsComponent>
+
       <AnswersComponent
         :ans="answersFromStore"
         :questions="questionsFromStore"
         :scales="scalesFromStore"
         :answerType="answerType"
+        :filenameFirstPost="filenameFirstPost"
+        :filenameLastPost="filenameLastPost"
+        :getAll="getAll"
       ></AnswersComponent>
     </div>
     <Transition>
@@ -50,27 +48,39 @@
   import { useEvaluationStore } from '@/stores/evaluationStore';
   import AnswersComponent from '@/components/AnswersComponent.vue';
   import MessageboxComponent from '../components/MessageboxComponent.vue';
+  import GetPostsComponent from '../components/GetPostsComponent.vue';
 
   const userStore = useUserStore();
   const questionsStore = useQuestionsStore();
   const evaluationStore = useEvaluationStore();
 
   onMounted(async () => {
-    evaluationStore.getInitialAnswers();
-    evaluationStore.getShortAnswers();
+    // evaluationStore.getInitialAnswers();
+    // evaluationStore.getShortAnswers();
 
     questionsStore.getInitialQuestions();
     questionsStore.getShortQuestions();
   });
 
-  function setAnswerType(type) {
-    answerType.value = type;
+  let getAll = ref(false);
 
-    // Refresh
-    if (type === 'initial') {
-      evaluationStore.getInitialAnswers();
-    } else {
-      evaluationStore.getShortAnswers();
+  async function getPosts(getAllValue, perPage, page, offset, useOffset) {
+    getAll.value = getAllValue;
+
+    let result = await evaluationStore.getStatistics(
+      getAllValue,
+      perPage,
+      page,
+      offset,
+      useOffset,
+      'antworten_kurzfrageb'
+    );
+
+    console.log('DeviceStats - result', result);
+    if (result.status != 200) {
+      let appMessage = `Es gab einen Fehler bei der Serveranfrage: ${result.response.data.code}, ${result.response.data.message}`;
+      userStore.appMessage = appMessage;
+      userStore.showAppMessage = true;
     }
   }
 
@@ -79,34 +89,27 @@
   let answerType = ref('short');
 
   let answersFromStore = computed(() => {
-    if (answerType.value === 'initial') {
-      return evaluationStore.answersInitial;
-    } else {
-      console.log(
-        'AnswersPage - evaluationStore.answersShort',
-        evaluationStore.answersShort
-      );
-      return evaluationStore.answersShort;
-    }
+    return evaluationStore.answersShort;
   });
 
   let questionsFromStore = computed(() => {
-    if (answerType.value === 'initial') {
-      return questionsStore.questionsInitial;
-    } else {
-      return questionsStore.questionsShort;
-    }
+    return questionsStore.questionsShort;
   });
 
   let scalesFromStore = computed(() => {
-    if (answerType.value === 'initial') {
-      return questionsStore.scalesInitial;
-    } else {
-      return questionsStore.scalesShort;
-    }
+    return questionsStore.scalesShort;
   });
 
-  // const answersInitial = evaluationStore.answersInitial;
+  // START Filename
+  let filenameFirstPost = ref(0);
+  let filenameLastPost = ref(0);
+
+  function setFilenameValues(firstPost, lastPost) {
+    console.log('setFilenameValues: ', firstPost, lastPost);
+    filenameFirstPost.value = firstPost;
+    filenameLastPost.value = lastPost;
+  }
+  // END Filename
 </script>
 
 <style scoped>

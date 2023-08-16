@@ -29,7 +29,7 @@
     },
 
     { name: 'Briefing Kurzfragebogen', route: '/briefing-short' },
-    { name: 'Datenschutz', route: '/compliance' },
+    // { name: 'Datenschutz', route: '/compliance' },
     { name: 'Kontakt', route: '/contact' },
     { name: 'User', route: '/user' },
   ];

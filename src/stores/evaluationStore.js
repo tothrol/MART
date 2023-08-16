@@ -15,286 +15,132 @@ export const useEvaluationStore = defineStore('evaluationStore', {
       statistics: {},
 
       deviceInfos: {},
+
+      totalPages: {
+        statistics: null,
+        deviceInfos: null,
+        answersShort: null,
+        answersInitial: null,
+      },
+      totalPosts: {
+        statistics: null,
+        deviceInfos: null,
+        answersShort: null,
+        answersInitial: null,
+      },
     };
   },
   actions: {
-    async getInitialAnswers() {
-      this.answersInitial = {};
-      let perPage = 100;
-      let page = 1;
-      let totalPages = 1;
-      let totalPosts = 1;
-      let lastPage = false;
+    async getStatistics(
+      getAll,
+      perPageInput,
+      pageInput,
+      offsetInput,
+      useOffset,
+      postType
+    ) {
+      console.log(
+        'evaluationStore -  getStatistics -parameters',
+        getAll,
+        perPageInput,
+        pageInput,
+        offsetInput,
+        useOffset,
+        postType
+      );
       try {
+        this.statistics = {};
+
+        console.log('evaluationStore -  getAll', getAll);
+
+        let perPage;
+        let page;
+
+        if (getAll === true) {
+          page = 1;
+          perPage = perPageInput;
+        } else {
+          perPage = perPageInput;
+          page = pageInput;
+        }
+
+        let totalPages;
+        let totalPosts;
+        let lastPage = false;
+
         let response;
+        let statistics = {};
+        let postTypeJS;
+        if (postType === 'nutzungsstatistik') {
+          postTypeJS = 'statistics';
+        } else if (postType === 'device-infos') {
+          postTypeJS = 'deviceInfos';
+        } else if (postType === 'antworten_initial') {
+          postTypeJS = 'answersInitial';
+        } else if (postType === 'antworten_kurzfrageb') {
+          postTypeJS = 'answersShort';
+        }
+
         while (lastPage === false) {
-          const response = await axios.get(
-            `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_initial?per_page=${perPage}&page=${page}`
-          );
+          let url;
+          if (useOffset) {
+            url = `https://fuberlin.nvii-dev.com/wp-json/wp/v2/${postType}?per_page=${perPage}&offset=${offsetInput}`;
+          } else {
+            url = `https://fuberlin.nvii-dev.com/wp-json/wp/v2/${postType}?per_page=${perPage}&page=${page}`;
+          }
+          response = await axios.get(url);
 
           let responseHeaders = response.headers;
           totalPosts = responseHeaders['x-wp-total'];
           totalPages = parseInt(responseHeaders['x-wp-totalpages']);
+
+          this.totalPages[postTypeJS] = totalPages;
+          this.totalPosts[postTypeJS] = totalPosts;
+
+          // console.log('evaluationStore - getStatistics -  response', response);
+          // console.log(
+          //   'evaluationStore - getStatistics -  page',
+          //   page,
+          //   '/',
+          //   totalPages
+          // );
 
           for (let [value, key] of Object.entries(response.data)) {
             // console.log(
-            //   'evaluationStore - answersInitial-  value , key',
+            //   'evaluationStore - getStatistics -  value , key',
             //   value,
             //   key
             // );
-            this.answersInitial[key.id] = key;
+            statistics[key.id] = key;
           }
 
-          if (totalPages === page || totalPages === 0) {
-            lastPage = true;
-          } else {
-            page++;
-          }
-        }
-
-        console.log('evaluationStore - answersInitial-  response', response);
-
-        if (response.data.length >= 1) {
-          return new Promise((resolve) => {
-            // if (response.status == 200) {
-            resolve(response);
-            // }
-          });
-        } else {
-          return new Promise((resolve) => {
-            // if (response.status == 200) {
-            resolve(response);
-            // }
-          });
-        }
-      } catch (e) {
-        return new Promise((reject) => {
-          // if (response.status == 200) {
-          reject(e);
-          // }
-        });
-      }
-    },
-    async getShortAnswers() {
-      this.answersShort = {};
-      console.log('evaluationStore -  getShortAnswers', this.answersShort);
-      let perPage = 100;
-      let page = 1;
-      let totalPages = 1;
-      let totalPosts = 1;
-      let lastPage = false;
-      try {
-        let response;
-        while (lastPage === false) {
-          response = await axios.get(
-            `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_kurzfrageb?per_page=${perPage}&page=${page}`
-          );
-
-          let responseHeaders = response.headers;
-          totalPosts = responseHeaders['x-wp-total'];
-          totalPages = parseInt(responseHeaders['x-wp-totalpages']);
-
-          console.log('evaluationStore -  response', response);
-          console.log('evaluationStore -  page', page, '/', totalPages);
-
-          for (let [value, key] of Object.entries(response.data)) {
-            // console.log('evaluationStore -  value , key', value, key);
-            this.answersShort[key.id] = key;
-          }
-
-          if (totalPages === page || totalPages === 0) {
+          if (totalPages === page || totalPages === 0 || getAll != true) {
+            // if getAll is not true than the loop should only run once
             // console.log('evaluationStore -  LastPAge');
             lastPage = true;
           } else {
             page++;
           }
         }
+        this[postTypeJS] = statistics;
         // console.log(
-        //   'evaluationStore -  response headers totalPosts',
+        //   'evaluationStore - getStatistics -  response headers totalPosts',
         //   totalPosts
         // );
         // console.log(
-        //   'evaluationStore -  response headers totalPages',
+        //   'evaluationStore - getStatistics -  response headers totalPages',
         //   totalPages
         // );
 
-        // console.log('evaluationStore -  response', response);
+        // console.log('evaluationStore - getStatistics -  response', response);
         if (response) {
           return new Promise((resolve) => {
-            // if (response.status == 200) {
             resolve(response);
-            // }
-          });
-        } else {
-          return new Promise((resolve) => {
-            // if (response.status == 200) {
-            resolve(response);
-            // }
           });
         }
       } catch (e) {
         return new Promise((reject) => {
-          // if (response.status == 200) {
           reject(e);
-          // }
-        });
-      }
-    },
-
-    async getStatistics() {
-      try {
-        this.statistics = {};
-        console.log('evaluationStore -  statistics', this.statistics);
-        let perPage = 100;
-        let page = 1;
-        let totalPages = 1;
-        let totalPosts = 1;
-        let lastPage = false;
-
-        let response;
-        let statistics = {};
-        while (lastPage === false) {
-          response = await axios.get(
-            `https://fuberlin.nvii-dev.com/wp-json/wp/v2/nutzungsstatistik?per_page=${perPage}&page=${page}`
-          );
-
-          let responseHeaders = response.headers;
-          totalPosts = responseHeaders['x-wp-total'];
-          totalPages = parseInt(responseHeaders['x-wp-totalpages']);
-
-          console.log('evaluationStore - getStatistics -  response', response);
-          console.log(
-            'evaluationStore - getStatistics -  page',
-            page,
-            '/',
-            totalPages
-          );
-
-          for (let [value, key] of Object.entries(response.data)) {
-            console.log(
-              'evaluationStore - getStatistics -  value , key',
-              value,
-              key
-            );
-            statistics[key.id] = key;
-          }
-
-          if (totalPages === page || totalPages === 0) {
-            console.log('evaluationStore -  LastPAge');
-            lastPage = true;
-          } else {
-            page++;
-          }
-        }
-        this.statistics = statistics;
-        console.log(
-          'evaluationStore - getStatistics -  response headers totalPosts',
-          totalPosts
-        );
-        console.log(
-          'evaluationStore - getStatistics -  response headers totalPages',
-          totalPages
-        );
-
-        console.log('evaluationStore - getStatistics -  response', response);
-        if (response) {
-          return new Promise((resolve) => {
-            // if (response.status == 200) {
-            resolve(response);
-            // }
-          });
-        }
-        // } else {
-        //   return new Promise((resolve) => {
-        //     // if (response.status == 200) {
-        //     resolve(response);
-        //     // }
-        //   });
-        // }
-      } catch (e) {
-        return new Promise((reject) => {
-          // if (response.status == 200) {
-          reject(e);
-          // }
-        });
-      }
-    },
-    async getDeviceInfos() {
-      try {
-        this.deviceInfos = {};
-        console.log('evaluationStore -  getDeviceInfos', this.statistics);
-        let perPage = 100;
-        let page = 1;
-        let totalPages = 1;
-        let totalPosts = 1;
-        let lastPage = false;
-
-        let response;
-        let deviceInfos = {};
-        while (lastPage === false) {
-          response = await axios.get(
-            `https://fuberlin.nvii-dev.com/wp-json/wp/v2/device-infos?per_page=${perPage}&page=${page}`
-          );
-
-          let responseHeaders = response.headers;
-          totalPosts = responseHeaders['x-wp-total'];
-          totalPages = parseInt(responseHeaders['x-wp-totalpages']);
-
-          console.log('evaluationStore - deviceInfos -  response', response);
-          console.log(
-            'evaluationStore - deviceInfos -  page',
-            page,
-            '/',
-            totalPages
-          );
-
-          for (let [value, key] of Object.entries(response.data)) {
-            console.log(
-              'evaluationStore - deviceInfos -  value , key',
-              value,
-              key
-            );
-            deviceInfos[key.id] = key;
-          }
-
-          if (totalPages === page || totalPages === 0) {
-            console.log('evaluationStore -  LastPAge');
-            lastPage = true;
-          } else {
-            page++;
-          }
-        }
-
-        this.deviceInfos = deviceInfos;
-        console.log(
-          'evaluationStore - deviceInfos -  response headers totalPosts',
-          totalPosts
-        );
-        console.log(
-          'evaluationStore - deviceInfos -  response headers totalPages',
-          totalPages
-        );
-
-        console.log('evaluationStore - deviceInfos -  response', response);
-        if (response) {
-          return new Promise((resolve) => {
-            // if (response.status == 200) {
-            resolve(response);
-            // }
-          });
-        }
-        // } else {
-        //   return new Promise((resolve) => {
-        //     // if (response.status == 200) {
-        //     resolve(response);
-        //     // }
-        //   });
-        // }
-      } catch (e) {
-        return new Promise((reject) => {
-          // if (response.status == 200) {
-          reject(e);
-          // }
         });
       }
     },

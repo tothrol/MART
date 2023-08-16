@@ -405,36 +405,36 @@ export const useInfoStore = defineStore('infoStore', {
         });
       }
     },
-    async getCompliance() {
-      try {
-        const response = await axios.get(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/pages?slug=datenschutzerklaerung`
-        );
+    // async getCompliance() {
+    //   try {
+    //     const response = await axios.get(
+    //       `https://fuberlin.nvii-dev.com/wp-json/wp/v2/pages?slug=datenschutzerklaerung`
+    //     );
 
-        if (response.status == 200) {
-          this.compliance.text = response.data[0].content.rendered;
-          this.compliance.title = response.data[0].title.rendered;
-          // const storage = new Storage();
-          // await storage.create();
-          // await storage.set(
-          //   'lastShortQuestion',
-          //   response.data[0].acf.dateLong_k
-          // );
-          return new Promise((resolve) => {
-            console.log('infoStore - compliance - resolve', response);
-            resolve('infoStore - compliance - resolve');
-            // }
-          });
-        }
-      } catch (e) {
-        console.log('infoStore - compliance - error', e);
-        return new Promise((reject) => {
-          // if (response.status == 200) {
-          reject(e);
-          // }
-        });
-      }
-    },
+    //     if (response.status == 200) {
+    //       this.compliance.text = response.data[0].content.rendered;
+    //       this.compliance.title = response.data[0].title.rendered;
+    //       // const storage = new Storage();
+    //       // await storage.create();
+    //       // await storage.set(
+    //       //   'lastShortQuestion',
+    //       //   response.data[0].acf.dateLong_k
+    //       // );
+    //       return new Promise((resolve) => {
+    //         console.log('infoStore - compliance - resolve', response);
+    //         resolve('infoStore - compliance - resolve');
+    //         // }
+    //       });
+    //     }
+    //   } catch (e) {
+    //     console.log('infoStore - compliance - error', e);
+    //     return new Promise((reject) => {
+    //       // if (response.status == 200) {
+    //       reject(e);
+    //       // }
+    //     });
+    //   }
+    // },
   },
   getters: {},
 });

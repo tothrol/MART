@@ -1,78 +1,48 @@
 <template>
   <base-layout>
     <div class="box">
-      <h2>UsageStats</h2>
-      <div class="buttons">
-        <ion-button @click="evaluationStore.getStatistics()" color="medium"
-          >Aktualisieren</ion-button
-        ><ion-button class="csv_download"
-          ><a
-            :href="allUsageStatsCsv"
-            download="csvUsageStats.csv"
-            ref="csvUsageStats"
-            >Download CSV usageStats</a
-          ></ion-button
-        >
-      </div>
-
-      <div class="answers_count">
-        Anzahl Stats: {{ Object.entries(allUsageStatsUnique).length }}
-      </div>
-      <div class="answers" v-if="allUsageStatsUnique != undefined">
-        <div
-          class="row heading"
-          v-if="Object.entries(allUsageStatsUnique).length >= 1"
-        >
-          <div
-            class="long cell"
-            v-for="element of usageStatsElements"
-            :key="element"
-          >
-            {{ element }}
-          </div>
-
-          <!-- <div
-            class="cell answer"
-            v-for="(value, property) of headerRow"
-            :key="property"
-          >
-            {{ property }}
-          </div> -->
-        </div>
-        <div
-          class="row"
-          v-for="(value, property) of allUsageStatsUnique.slice(0, 1000)"
-          :key="property"
-        >
-          <div
-            class="long cell"
-            v-for="element of usageStatsElements"
-            :key="element"
-          >
-            {{ value[element] }}
-          </div>
-        </div>
-      </div>
-
       <!-- EventStats
        -->
-      <h2>EventStats</h2>
+
+      <h2 class="h2_stats">EventStats</h2>
+
+      <GetPostsComponent
+        @getPosts="getPosts"
+        @setFilenameValues="setFilenameValues"
+        :perPage="10"
+      ></GetPostsComponent>
 
       <div class="buttons">
-        <ion-button @click="evaluationStore.getStatistics()" color="medium"
-          >Aktualisieren</ion-button
-        ><ion-button class="csv_download"
+        <ion-button class="csv_download"
           ><a
             :href="allEventStatsCsv"
-            download="csvEventStats.csv"
+            :download="filenameEvents"
             ref="csvEventStats"
-            >Download CSV eventStats</a
+            >Download {{ filenameEvents }}
+          </a></ion-button
+        >
+        <ion-button class="csv_download"
+          ><a
+            :href="allUsageStatsCsv"
+            :download="filenameUsage"
+            ref="csvUsageStats"
+            >Download {{ filenameUsage }}</a
           ></ion-button
         >
       </div>
 
       <div class="answers_count">
-        Anzahl Stats: {{ Object.entries(allEventStatsUnique).length }}
+        <div>
+          Anzahl Events in csv:
+          {{ Object.entries(allEventStatsUnique).length }}
+        </div>
+        <div v-if="getAll">
+          Total Pages (if using get all Posts option):
+          {{ evaluationStore.totalPages.statistics }}
+        </div>
+        <div>
+          Total Posts (in WP): {{ evaluationStore.totalPosts.statistics }}
+        </div>
       </div>
       <div class="answers" v-if="allEventStats != undefined">
         <div
@@ -86,14 +56,6 @@
           >
             {{ element }}
           </div>
-
-          <!-- <div
-            class="cell answer"
-            v-for="(value, property) of headerRow"
-            :key="property"
-          >
-            {{ property }}
-          </div> -->
         </div>
         <div
           class="row"
@@ -109,7 +71,47 @@
           </div>
         </div>
       </div>
+
       <!-- End EvntStats -->
+
+      <!-- Usage Stats -->
+
+      <div>
+        <h2>UsageStats</h2>
+
+        <div class="answers_count">
+          <div>
+            Anzahl Stats: {{ Object.entries(allUsageStatsUnique).length }}
+          </div>
+        </div>
+        <div class="answers" v-if="allUsageStatsUnique != undefined">
+          <div
+            class="row heading"
+            v-if="Object.entries(allUsageStatsUnique).length >= 1"
+          >
+            <div
+              class="long cell"
+              v-for="element of usageStatsElements"
+              :key="element"
+            >
+              {{ element }}
+            </div>
+          </div>
+          <div
+            class="row"
+            v-for="(value, property) of allUsageStatsUnique.slice(0, 1000)"
+            :key="property"
+          >
+            <div
+              class="long cell"
+              v-for="element of usageStatsElements"
+              :key="element"
+            >
+              {{ value[element] }}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <Transition>
         <MessageboxComponent v-if="false" @click="showMessage = false"
@@ -120,27 +122,47 @@
   </base-layout>
 </template>
 
-<script setup lang="ts">
-  import { reactive, computed } from 'vue';
+<script setup>
+  import { reactive, computed, watch } from 'vue';
   import { ref, onMounted } from 'vue';
-  import { useUserStore } from '@/stores/userStore';
-
   import { useEvaluationStore } from '@/stores/evaluationStore';
-  import AnswersComponent from '@/components/AnswersComponent.vue';
   import MessageboxComponent from '../components/MessageboxComponent.vue';
-  import { IonTitle } from '@ionic/vue';
+  import GetPostsComponent from '../components/GetPostsComponent.vue';
+  import { useUserStore } from '@/stores/userStore';
+  import dayjs from 'dayjs';
+
+  const userStore = useUserStore();
 
   const csvUsageStats = ref(null);
   const csvEventStats = ref(null);
-  const csvDeviceInfos = ref(null);
-
-  const userStore = useUserStore();
 
   const evaluationStore = useEvaluationStore();
 
   onMounted(async () => {
-    evaluationStore.getStatistics();
+    //
   });
+
+  let getAll = ref(false);
+  async function getPosts(getAllValue, perPage, page, offset, useOffset) {
+    getAll.value = getAllValue;
+
+    let result = await evaluationStore.getStatistics(
+      getAllValue,
+      perPage,
+      page,
+      offset,
+      useOffset,
+      'nutzungsstatistik'
+    );
+
+    if (result.status != 200) {
+      let appMessage = `Es gab einen Fehler bei der Serveranfrage: ${result.response.data.code}, ${result.response.data.message}`;
+      userStore.appMessage = appMessage;
+      userStore.showAppMessage = true;
+    }
+  }
+
+  // END Update 14.08
 
   let showMessage = ref(true);
 
@@ -170,8 +192,6 @@
 
     if (wpPosts != null && wpPosts != undefined) {
       for (let [key1, wpPost] of Object.entries(wpPosts)) {
-        let queryEventStats = {};
-
         // single event
 
         let string = wpPost.acf.queryUsageStats;
@@ -215,6 +235,7 @@
   });
 
   function compare(a, b) {
+    // console.log('Compare - ');
     // if (!a.timestamp || a.timestamp === '' || a.timestamp === undefined)
     //   return -1;
     // if (a.timestamp < b.timestamp) return -1;
@@ -272,13 +293,13 @@
     'userId',
     'userName',
     'uniqueUserId',
-
     'postId',
     'postTitle',
     'date',
     'dateLong',
     'time',
     'timestamp',
+
     'timeStampAndroid',
     'getPackageName',
 
@@ -313,21 +334,13 @@
   }
 
   let allUsageStatsUnique = computed(() => {
-    let arrayUnique = [];
-
     let allUsage = allUsageStats.value;
-
     let unique = [];
     unique = allUsage.filter(filterFunction);
 
-    let sorted = unique.sort(compare);
+    // let sorted = unique.sort(compare);
 
-    // console.log('statistics - sorted: ', sorted);
-    // console.log('statistics - unique: ', unique);
-
-    // let arrayOrdered = allUsageStats.value.forEach(function (item, index) {});
-
-    return sorted;
+    return unique;
   });
 
   let allUsageStatsCsv = computed(() => {
@@ -341,8 +354,6 @@
     let csvContent = 'data:text/csv;charset=utf-8,' + csvString;
 
     let encodeUri = encodeURI(csvContent);
-    // csvUsageStats.value.setAttribute('href', encodeUri);
-    // csvUsageStats.value.setAttribute('download', 'csvUsageStats.csv');
 
     return encodeUri;
   });
@@ -424,21 +435,6 @@
     }
   });
 
-  function compareEvent(a, b) {
-    if (!a.timestamp || a.timestamp === '' || a.timestamp === undefined)
-      return -1;
-    if (a.timestamp < b.timestamp) return -1;
-    if (a.timestamp > b.timestamp) return 1;
-    // if (a.uniqueUserId < b.uniqueUserId) return -1;
-    // if (a.uniqueUserId > b.uniqueUserId) return 1;
-    // if (a.getEventType < b.getEventType) return -1;
-    // if (a.getEventType > b.getEventType) return 1;
-    // if (a.getFirstTimeStamp < b.getFirstTimeStamp) return -1;
-    // if (a.getFirstTimeStamp > b.getFirstTimeStamp) return 1;
-
-    return 0;
-  }
-
   function filterFunctionEvent(element, index, array) {
     // Filters double entrys (with same user, package and date) so that only the newest entry for a day will be kept
     let bool = true;
@@ -481,26 +477,27 @@
     return newArray;
   }
 
-  // function filterFunctionEvent(value, index, array) {
-  //   return array.indexOf(value) === index;
-  // }
-
   let allEventStatsUnique = computed(() => {
-    let arrayUnique = [];
-
     let allEvents = allEventStats.value;
 
     let unique = [];
     unique = allEvents.filter(filterFunctionEvent);
 
-    let sorted = unique.sort(compare);
+    const now = dayjs();
+    const t = now.valueOf();
+    console.log('Compare - t:', t);
+
+    // let sorted = unique.sort(compare);
+    const t2 = now.valueOf();
+    console.log('Compare - t2:', t2);
+    console.log('Compare - duration:', t2 - t);
 
     // console.log('statistics - sorted: ', sorted);
     // console.log('statistics - unique: ', unique);
 
     // let arrayOrdered = allEventStats.value.forEach(function (item, index) {});
 
-    return sorted;
+    return unique;
   });
 
   let allEventStatsCsv = computed(() => {
@@ -521,6 +518,42 @@
   });
 
   // END Event Stats
+
+  // Start Filename
+  let filenameFirstPost = ref(0);
+  let filenameLastPost = ref(0);
+
+  let filenameEvents = ref(createFileName('EventStats'));
+
+  let filenameUsage = ref(createFileName('UsageStats'));
+
+  function createFileName(string) {
+    let last =
+      filenameFirstPost.value +
+      Object.entries(evaluationStore.statistics).length -
+      1;
+    if (!getAll.value) {
+      return `${string}-${filenameFirstPost.value}-${last}.csv`;
+    } else {
+      return `${string}-all.csv`;
+    }
+  }
+
+  function setFilenameValues(firstPost, lastPost) {
+    console.log('setFilenameValues: ', firstPost, lastPost);
+    filenameFirstPost.value = firstPost;
+    filenameLastPost.value = lastPost;
+  }
+
+  watch(allUsageStatsCsv, () => {
+    filenameUsage.value = createFileName('UsageStats');
+  });
+
+  watch(allEventStatsCsv, () => {
+    filenameEvents.value = createFileName('EventStats');
+  });
+
+  // END Filename
 </script>
 
 <style scoped>
@@ -605,7 +638,8 @@
 
   .answers_count {
     margin-bottom: 20px;
-    font-size: 20px;
+    margin-top: 20px;
+    /* font-size: 20px; */
   }
 
   .questions {
@@ -668,5 +702,9 @@
 
   .csv_download a {
     color: white;
+  }
+
+  .firstLast {
+    margin-top: 10px;
   }
 </style>

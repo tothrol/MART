@@ -14,9 +14,7 @@
         />
         <label for="compliance"></label>
         <div class="compliance_text">
-          Ich stimme der <br />
-          <span class="link" @click="routing()">Datenschutzverordnung</span>
-          zu
+          Ich habe den Willkommenstext gelesen und verstanden
         </div>
       </div>
 

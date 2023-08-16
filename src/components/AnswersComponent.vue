@@ -1,15 +1,23 @@
 <template>
   <div>
-    <h2>Antworten</h2>
-    <div class="answers_count">
-      Anzahl Antworten: {{ Object.entries(allAnswers).length }}
-    </div>
     <div class="button_wrapper">
       <ion-button class="csv_download"
-        ><a :href="initialCsv" :download="downloadFileName" ref="csvLinkRef"
-          >Download CSV {{ answerTypeGerman }}</a
+        ><a :href="initialCsv" :download="filename" ref="csvLinkRef"
+          >Download {{ filename }}</a
         ></ion-button
       >
+    </div>
+    <div class="answers_count">
+      <div v-if="getAll">
+        Total Pages (if using get all Posts option):
+        {{ evaluationStore.totalPages.answersInitial }}
+      </div>
+      <div>
+        Total Posts (in WP): {{ evaluationStore.totalPosts.answersInitial }}
+      </div>
+    </div>
+    <div class="answers_count">
+      Anzahl Antworten in csv: {{ Object.entries(allAnswers).length }}
     </div>
 
     <!-- <ion-button class="csv_download"
@@ -101,14 +109,20 @@
 </template>
 
 <script setup lang="ts">
-  import { reactive, computed } from 'vue';
+  import { reactive, computed, watch } from 'vue';
   import { ref, onMounted, defineProps } from 'vue';
+  import { useEvaluationStore } from '@/stores/evaluationStore';
+
+  const evaluationStore = useEvaluationStore();
 
   const props = defineProps({
     ans: Object,
     answerType: String,
     questions: Object,
     scales: Object,
+    filenameFirstPost: Number,
+    filenameLastPost: Number,
+    getAll: Boolean,
   });
 
   let arrayOfAnswers = [];
@@ -120,10 +134,10 @@
     let allAnswers = {};
     if (props.ans != null && props.ans != undefined) {
       let wpPosts = props.ans;
-      console.log('Answers - wpPosts', wpPosts);
+      // console.log('Answers - wpPosts', wpPosts);
 
       for (let [key1, wpPost] of Object.entries(wpPosts)) {
-        console.log('Answers - answers', wpPost, key1);
+        // console.log('Answers - answers', wpPost, key1);
 
         let row = {};
         let answers = {};
@@ -181,10 +195,10 @@
     let allAnswers = [];
     if (props.ans != null && props.ans != undefined) {
       let wpPosts = props.ans;
-      console.log('Answers - wpPosts', wpPosts);
+      // console.log('Answers - wpPosts', wpPosts);
 
       for (let [key1, wpPost] of Object.entries(wpPosts)) {
-        console.log('Answers - answers', wpPost, key1);
+        // console.log('Answers - answers', wpPost, key1);
 
         let row = {};
         let answers = {};
@@ -248,7 +262,7 @@
     headlines.value.forEach(function (element2) {
       newArray.push(element[element2]);
     });
-    console.log('newArray', newArray);
+    // console.log('newArray', newArray);
     return newArray;
   }
 
@@ -281,7 +295,7 @@
       .map((e) => e.join(';'))
       .join('\n');
 
-    console.log('csvString', csvString);
+    // console.log('csvString', csvString);
 
     let csvContent = 'data:text/csv;charset=utf-8,' + csvString;
 
@@ -292,27 +306,56 @@
     return encodeUri;
   });
 
-  let downloadFileName = computed(() => {
-    if (props.answerType == 'short') {
-      return 'shortCsv.csv';
-    }
-    if (props.answerType == 'initial') {
-      return 'initialCsv.csv';
-    } else return 'noFile';
-  });
+  // START Filename
+  let filename = ref();
 
-  let answerTypeGerman = computed(() => {
-    if (props.answerType == 'short') {
-      return 'Kurz';
-    }
-    if (props.answerType == 'initial') {
-      return 'Initial';
-    } else return 'noFile';
-  });
-
-  function download(url) {
-    window.open(url, '_blank');
+  if (props.answerType === 'initial') {
+    filename.value = createFileName('Antworten-Initial');
+  } else {
+    filename.value = createFileName('Antworten-Kurz');
   }
+
+  function createFileName(string) {
+    let last =
+      props.filenameFirstPost + allAnswersOneDimentional.value.length - 1;
+    if (!props.getAll) {
+      return `${string}-${props.filenameFirstPost}-${last}.csv`;
+    } else {
+      return `${string}-all.csv`;
+    }
+  }
+
+  watch(allAnswersOneDimentional, () => {
+    if (props.answerType === 'initial') {
+      filename.value = createFileName('Antworten-Initial');
+    } else {
+      filename.value = createFileName('Antworten-Kurz');
+    }
+  });
+
+  // END Filename
+
+  // let downloadFileName = computed(() => {
+  //   if (props.answerType == 'short') {
+  //     return 'shortCsv.csv';
+  //   }
+  //   if (props.answerType == 'initial') {
+  //     return 'initialCsv.csv';
+  //   } else return 'noFile';
+  // });
+
+  // let answerTypeGerman = computed(() => {
+  //   if (props.answerType == 'short') {
+  //     return 'Kurz';
+  //   }
+  //   if (props.answerType == 'initial') {
+  //     return 'Initial';
+  //   } else return 'noFile';
+  // });
+
+  // function download(url) {
+  //   window.open(url, '_blank');
+  // }
 </script>
 
 <style scoped>
@@ -406,7 +449,7 @@
 
   .answers_count {
     margin-bottom: 20px;
-    font-size: 20px;
+    /* font-size: 20px; */
   }
 
   .questions .itemId {

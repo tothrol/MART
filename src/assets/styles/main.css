@@ -222,3 +222,7 @@ input {
 .wrap {
   flex-wrap: wrap;
 }
+
+.h2_stats {
+  margin-bottom: 40px;
+}
