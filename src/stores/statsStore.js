@@ -286,7 +286,7 @@ export const useStatsStore = defineStore('statsStore', {
         };
 
         const response = await axios.post(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/device-infos`,
+          `https://martappserver.de/wp-json/wp/v2/device-infos`,
           body,
           config
         );
@@ -442,7 +442,7 @@ export const useStatsStore = defineStore('statsStore', {
         };
 
         const response = await axios.post(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/nutzungsstatistik`,
+          `https://martappserver.de/wp-json/wp/v2/nutzungsstatistik`,
           body,
           config
         );

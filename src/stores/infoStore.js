@@ -78,7 +78,7 @@ export const useInfoStore = defineStore('infoStore', {
         this.testCounter++;
         // url below works only with the plugin ACF to REST-API
         const response = await axios.get(
-          `https://fuberlin.nvii-dev.com/wp-json/acf/v2/options/`
+          `https://martappserver.de/wp-json/acf/v2/options/`
         );
 
         console.log('infoStore - getOptions - response xcx', response);
@@ -288,7 +288,7 @@ export const useInfoStore = defineStore('infoStore', {
     async getWelcomeText() {
       try {
         const response = await axios.get(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/pages?slug=begruessungstext`
+          `https://martappserver.de/wp-json/wp/v2/pages?slug=begruessungstext`
         );
 
         if (response.status == 200) {
@@ -318,7 +318,7 @@ export const useInfoStore = defineStore('infoStore', {
     async getContactText() {
       try {
         const response = await axios.get(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/pages?slug=kontakt`
+          `https://martappserver.de/wp-json/wp/v2/pages?slug=kontakt`
         );
 
         if (response.status == 200) {
@@ -348,7 +348,7 @@ export const useInfoStore = defineStore('infoStore', {
     async getBriefingShort() {
       try {
         const response = await axios.get(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/pages?slug=briefing-kurzfragebogen`
+          `https://martappserver.de/wp-json/wp/v2/pages?slug=briefing-kurzfragebogen`
         );
 
         if (response.status == 200) {
@@ -378,7 +378,7 @@ export const useInfoStore = defineStore('infoStore', {
     async getBriefingShortMenu() {
       try {
         const response = await axios.get(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/pages?slug=briefing-kurzfragebogen-menu`
+          `https://martappserver.de/wp-json/wp/v2/pages?slug=briefing-kurzfragebogen-menu`
         );
 
         if (response.status == 200) {
@@ -408,7 +408,7 @@ export const useInfoStore = defineStore('infoStore', {
     // async getCompliance() {
     //   try {
     //     const response = await axios.get(
-    //       `https://fuberlin.nvii-dev.com/wp-json/wp/v2/pages?slug=datenschutzerklaerung`
+    //       `https://martappserver.de/wp-json/wp/v2/pages?slug=datenschutzerklaerung`
     //     );
 
     //     if (response.status == 200) {

@@ -47,7 +47,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
     async getInitialQuestions() {
       try {
         let response = await axios.get(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/fragebogen`
+          `https://martappserver.de/wp-json/wp/v2/fragebogen`
         );
 
         if (response.status === 200) {
@@ -146,7 +146,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
         };
 
         const response = await axios.post(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_initial`,
+          `https://martappserver.de/wp-json/wp/v2/antworten_initial`,
           body,
           config
         );
@@ -218,7 +218,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
       if (userStore.userData.id != 0 && userStore.userData.id != '') {
         try {
           const response = await axios.get(
-            `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_initial/?meta_key=uniqueUserId&meta_value=${userStore.uniqueUserId}`
+            `https://martappserver.de/wp-json/wp/v2/antworten_initial/?meta_key=uniqueUserId&meta_value=${userStore.uniqueUserId}`
           );
 
           console.log(
@@ -273,7 +273,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
     async getShortQuestions() {
       try {
         let response = await axios.get(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/kurzfragebogen`
+          `https://martappserver.de/wp-json/wp/v2/kurzfragebogen`
         );
 
         // JSON responses are automatically parsed.
@@ -402,7 +402,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
         };
 
         const response = await axios.post(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_kurzfrageb`,
+          `https://martappserver.de/wp-json/wp/v2/antworten_kurzfrageb`,
           body,
           config
         );
@@ -529,7 +529,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
       try {
         const response = await axios.get(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_kurzfrageb/?meta_key=uniqueUserId&meta_value=${userStore.uniqueUserId}&per_page=1`
+          `https://martappserver.de/wp-json/wp/v2/antworten_kurzfrageb/?meta_key=uniqueUserId&meta_value=${userStore.uniqueUserId}&per_page=1`
         );
 
         // JSON responses are automatically parsed.
@@ -572,7 +572,7 @@ export const useQuestionsStore = defineStore('questionsStore', {
 
       try {
         const response = await axios.get(
-          `https://fuberlin.nvii-dev.com/wp-json/wp/v2/antworten_kurzfrageb/?meta_key=uniqueUserId&meta_value=${userStore.uniqueUserId}&per_page=100`
+          `https://martappserver.de/wp-json/wp/v2/antworten_kurzfrageb/?meta_key=uniqueUserId&meta_value=${userStore.uniqueUserId}&per_page=100`
         );
 
         // JSON responses are automatically parsed.

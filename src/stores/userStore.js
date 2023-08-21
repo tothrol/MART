@@ -105,7 +105,7 @@ export const useUserStore = defineStore('userStore', {
       );
       try {
         const response = await axios.post(
-          `https://fuberlin.nvii-dev.com/wp-json/jwt-auth/v1/token`,
+          `https://martappserver.de/wp-json/jwt-auth/v1/token`,
           {
             username: username,
             password: password,
@@ -273,7 +273,7 @@ export const useUserStore = defineStore('userStore', {
         };
 
         const response = await axios.post(
-          `https://fuberlin.nvii-dev.com/wp-json/jwt-auth/v1/token/validate`,
+          `https://martappserver.de/wp-json/jwt-auth/v1/token/validate`,
           {},
           config
         );

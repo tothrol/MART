@@ -84,9 +84,9 @@ export const useEvaluationStore = defineStore('evaluationStore', {
         while (lastPage === false) {
           let url;
           if (useOffset) {
-            url = `https://fuberlin.nvii-dev.com/wp-json/wp/v2/${postType}?per_page=${perPage}&offset=${offsetInput}`;
+            url = `https://martappserver.de/wp-json/wp/v2/${postType}?per_page=${perPage}&offset=${offsetInput}`;
           } else {
-            url = `https://fuberlin.nvii-dev.com/wp-json/wp/v2/${postType}?per_page=${perPage}&page=${page}`;
+            url = `https://martappserver.de/wp-json/wp/v2/${postType}?per_page=${perPage}&page=${page}`;
           }
           response = await axios.get(url);
 
