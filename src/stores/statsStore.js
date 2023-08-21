@@ -247,6 +247,8 @@ export const useStatsStore = defineStore('statsStore', {
 
         const deviceInfo = await Device.getInfo();
 
+        delete deviceInfo.name;
+
         console.log('statsStore - sendDeviceInfo - deviceInfo: ', deviceInfo);
 
         let deviceInfoString = JSON.stringify(deviceInfo);
