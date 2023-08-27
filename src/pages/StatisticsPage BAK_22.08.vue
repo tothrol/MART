@@ -9,7 +9,7 @@
       <GetPostsComponent
         @getPosts="getPosts"
         @setFilenameValues="setFilenameValues"
-        :perPage="1"
+        :perPage="10"
       ></GetPostsComponent>
 
       <div class="buttons">
@@ -59,7 +59,7 @@
         </div>
         <div
           class="row"
-          v-for="(value, property) of allEventStatsUnique.slice(0, 1000)"
+          v-for="(value, property) of allEventStatsUnique.slice(0, 100)"
           :key="property"
         >
           <div
@@ -336,14 +336,12 @@
   let allUsageStatsUnique = computed(() => {
     let allUsage = allUsageStats.value;
 
-    // START Unique
-    // let unique = [];
-    // unique = allUsage.filter(filterFunction);
-    // END Unique
+    let unique = [];
+    unique = allUsage.filter(filterFunction);
 
     // let sorted = unique.sort(compare);
 
-    return allUsage;
+    return unique;
   });
 
   let allUsageStatsCsv = computed(() => {
@@ -483,10 +481,8 @@
   let allEventStatsUnique = computed(() => {
     let allEvents = allEventStats.value;
 
-    // START Unique
-    // let unique = [];
-    // unique = allEvents.filter(filterFunctionEvent);
-    // END Unique
+    let unique = [];
+    unique = allEvents.filter(filterFunctionEvent);
 
     // const now = dayjs();
     // const t = now.valueOf();
@@ -502,7 +498,7 @@
 
     // let arrayOrdered = allEventStats.value.forEach(function (item, index) {});
 
-    return allEvents;
+    return unique;
   });
 
   let allEventStatsCsv = computed(() => {

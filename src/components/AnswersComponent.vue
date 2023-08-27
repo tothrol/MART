@@ -2,7 +2,7 @@
   <div>
     <div class="button_wrapper">
       <ion-button class="csv_download"
-        ><a :href="initialCsv" :download="filename" ref="csvLinkRef"
+        ><a :href="csvFile" :download="filename" ref="csvLinkRef"
           >Download {{ filename }}</a
         ></ion-button
       >
@@ -10,10 +10,19 @@
     <div class="answers_count">
       <div v-if="getAll">
         Total Pages (if using get all Posts option):
-        {{ evaluationStore.totalPages.answersInitial }}
+        {{
+          props.answerType === 'initial'
+            ? evaluationStore.totalPages.answersInitial
+            : evaluationStore.totalPages.answersShort
+        }}
       </div>
       <div>
-        Total Posts (in WP): {{ evaluationStore.totalPosts.answersInitial }}
+        Total Posts (in WP):
+        {{
+          props.answerType === 'initial'
+            ? evaluationStore.totalPosts.answersInitial
+            : evaluationStore.totalPosts.answersShort
+        }}
       </div>
     </div>
     <div class="answers_count">
@@ -279,14 +288,14 @@
     'timestampStart',
     'timestampDifferenceSec',
   ];
-  let answersIndexInitial = computed(() => {
+  let answersIndex = computed(() => {
     return Object.keys(props.questions);
   });
   let headlines = computed(() => {
-    return [...headlineElements, ...answersIndexInitial.value];
+    return [...headlineElements, ...answersIndex.value];
   });
 
-  let initialCsv = computed(() => {
+  let csvFile = computed(() => {
     console.log('headlines: ', headlines.value);
     let csvString = [
       headlines.value,
@@ -334,28 +343,6 @@
   });
 
   // END Filename
-
-  // let downloadFileName = computed(() => {
-  //   if (props.answerType == 'short') {
-  //     return 'shortCsv.csv';
-  //   }
-  //   if (props.answerType == 'initial') {
-  //     return 'initialCsv.csv';
-  //   } else return 'noFile';
-  // });
-
-  // let answerTypeGerman = computed(() => {
-  //   if (props.answerType == 'short') {
-  //     return 'Kurz';
-  //   }
-  //   if (props.answerType == 'initial') {
-  //     return 'Initial';
-  //   } else return 'noFile';
-  // });
-
-  // function download(url) {
-  //   window.open(url, '_blank');
-  // }
 </script>
 
 <style scoped>
