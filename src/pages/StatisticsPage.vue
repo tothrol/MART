@@ -386,33 +386,23 @@
 
     if (wpPosts != null && wpPosts != undefined) {
       for (let [key1, wpPost] of Object.entries(wpPosts)) {
+        // single WP Post
         let queryEventStats = {};
-
-        // single event
-
         let string = wpPost.acf.queryEventStats;
+        // removing first and last character
         let string2 = string.substring(1, string.length - 1);
+
+        // array: each event is an array entry
         let array = string2.split('},{');
 
         for (let i = 0; i < array.length; i++) {
           let singleStatObject;
           let singleStatString = array[i];
           let singleStatStringObject = '{' + singleStatString + '}';
-          // console.log(
-          //   'Statisticss - single - singleStatStringObject',
-          //   singleStatStringObject
-          // );
-          // console.log(
-          //   'Statistics - single - array :',
-          //   array,
-          //   'array.length: ',
-          //   array.length,
-          //   'i: ',
-          //   i
-          // );
 
+          // from JSON to JS-Object e.g.:  {cd: null,pn: android, et:15, ts: 126543554}
           singleStatObject = JSON.parse(singleStatStringObject);
-          // console.log('Statistics - single - singleStatObj', singleStatObject);
+
           singleStatObject['userId'] = wpPost.acf.userIdStats;
           singleStatObject['userName'] = wpPost.acf.userNameStats;
           singleStatObject['uniqueUserId'] = wpPost.acf.uniqueUserIdStats;
@@ -426,10 +416,8 @@
           singleStatObject['time'] = wpPost.acf.timeStats;
           singleStatObject['timestamp'] = wpPost.acf.timestamp;
 
-          // console.log('Statistics - singleStatObject', singleStatObject);
           allEventStats.push(singleStatObject);
         }
-        // console.log('Statistics - queryEventStats', queryEventStats);
       }
 
       return allEventStats;
